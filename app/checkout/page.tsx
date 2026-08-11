@@ -320,10 +320,11 @@ export default function CheckoutPage() {
               <h2 className="text-xl font-semibold">Payment Option</h2>
               <div className="mt-6 rounded-xl border border-blue-900 bg-blue-950/30 p-4 text-sm">
                 <div className="font-medium text-slate-100">
-                  Pay with FPX (Stripe Checkout)
+                  Pay securely with Stripe Checkout
                 </div>
                 <div className="mt-1 text-slate-400">
-                  You will be redirected to Stripe to complete payment.
+                  Cards, Apple Pay, Google Pay, GrabPay, and Link when available
+                  for your Stripe account and currency.
                 </div>
               </div>
             </section>
@@ -341,7 +342,7 @@ export default function CheckoutPage() {
             >
               {submitting
                 ? "Creating order & redirecting..."
-                : "Pay with FPX"}
+                : "Pay with Stripe"}
             </button>
           </form>
 

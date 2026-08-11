@@ -136,7 +136,7 @@ export async function POST(request: Request) {
     // 1) Create pending order with existing atomic inventory protection.
     logStripeDebug("place_store_order start", {
       uniqueIds_count: uniqueIds.length,
-      payment_method: "stripe_fpx",
+      payment_method: "stripe",
     });
     const { data: placeResult, error: placeError } = await rpcClient.rpc(
       "place_store_order",
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
         p_customer_email: customerEmail,
         p_customer_whatsapp: customerWhatsapp,
         p_customer_note: customerNote,
-        p_payment_method: "stripe_fpx",
+        p_payment_method: "stripe",
         p_product_ids: uniqueIds,
       }
     );
@@ -224,7 +224,11 @@ export async function POST(request: Request) {
     const finalTotal = Number(finalOrder?.total_amount ?? order.total ?? 0);
     const finalDiscount = Number(finalOrder?.discount_amount ?? appliedCoupon?.discount_amount ?? 0);
 
-    // 2) Create Stripe Checkout Session (FPX only).
+    // 2) Create Stripe Checkout Session.
+    // Omit payment_method_types so Stripe Checkout uses dynamic payment methods
+    // from the Dashboard (cards, wallets, GrabPay, Link, etc. when eligible).
+    // Do NOT hard-code fpx — it is not available on this Stripe account.
+    // Note: automatic_payment_methods applies to PaymentIntents, not Checkout Sessions.
     const stripe = getStripe();
     const discountedRows = distributeDiscountCents(order.items || [], Math.round(finalDiscount * 100));
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = discountedRows.map((row) => ({
@@ -247,33 +251,33 @@ export async function POST(request: Request) {
     const cancelUrl = `${SITE_URL}/checkout`;
 
     logStripeDebug("stripe checkout session create start", {
-      payment_method_types: ["fpx"],
+      payment_methods: "dashboard_dynamic",
       currency: "myr",
       order_id: order.order_id,
       order_total_major: finalTotal,
     });
 
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      mode: "payment",
+      line_items: lineItems,
+      // Keep MYR pricing; dynamic methods respect currency + Dashboard settings.
+      currency: "myr",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        order_id: order.order_id,
+        customer_id: user?.id || "",
+        guest_order_id: user?.id ? "" : order.order_id,
+      },
+      // Helps Link / saved payment UX when email is known.
+      ...(customerEmail && isValidEmail(customerEmail)
+        ? { customer_email: customerEmail }
+        : {}),
+    };
+
     let checkoutSession: Stripe.Checkout.Session;
     try {
-      checkoutSession = await stripe.checkout.sessions.create({
-        mode: "payment",
-        payment_method_types: ["fpx"],
-        line_items: lineItems,
-        currency: "myr",
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-        metadata: {
-          order_id: order.order_id,
-          customer_id: user?.id || "",
-          guest_order_id: user?.id ? "" : order.order_id,
-        },
-        // Useful for FPX; keeps integration straightforward.
-        payment_method_options: {
-          fpx: {
-            setup_future_usage: "none",
-          },
-        },
-      });
+      checkoutSession = await stripe.checkout.sessions.create(sessionParams);
     } catch (stripeError) {
       const e = stripeError as {
         type?: string;

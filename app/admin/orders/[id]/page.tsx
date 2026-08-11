@@ -317,8 +317,9 @@ export default function OrderDetailPage() {
               <div>
                 <div className="text-xs text-slate-500">Payment Method</div>
                 <div className="mt-1">
-                  {order.payment_method === "stripe_fpx"
-                    ? "FPX"
+                  {order.payment_method === "stripe_fpx" ||
+                  order.payment_method === "stripe"
+                    ? "Stripe Checkout"
                     : order.payment_method || "-"}
                 </div>
               </div>
