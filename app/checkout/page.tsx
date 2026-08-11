@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { clearCart, getCartTotal, loadCart } from "@/lib/cart";
@@ -354,14 +355,14 @@ export default function CheckoutPage() {
                     key={item.id}
                     className="flex gap-3 border-b border-slate-800 pb-4"
                   >
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-950">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-950">
                       {item.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.title}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
+                          fill
+                          sizes="64px"
+                          className="object-cover"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-slate-500">

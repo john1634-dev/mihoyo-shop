@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 
 type Game = {
@@ -507,18 +508,25 @@ export default function AdminGamesPage() {
                             {imageLabel(type)}
                           </p>
 
-                          <div className="mb-3 flex h-32 items-center justify-center overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
+                          <div className="relative mb-3 flex h-32 items-center justify-center overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
                             {url ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={url}
-                                alt={`${game.name} ${imageLabel(type)}`}
-                                className={
-                                  type === "logo"
-                                    ? "max-h-24 max-w-[80%] object-contain"
-                                    : "h-full w-full object-cover"
-                                }
-                              />
+                              type === "logo" ? (
+                                <Image
+                                  src={url}
+                                  alt={`${game.name} ${imageLabel(type)}`}
+                                  width={120}
+                                  height={96}
+                                  className="max-h-24 max-w-[80%] object-contain"
+                                />
+                              ) : (
+                                <Image
+                                  src={url}
+                                  alt={`${game.name} ${imageLabel(type)}`}
+                                  fill
+                                  sizes="200px"
+                                  className="object-cover"
+                                />
+                              )
                             ) : (
                               <span className="text-xs text-slate-600">
                                 No image

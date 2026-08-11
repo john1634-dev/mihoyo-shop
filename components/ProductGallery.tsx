@@ -13,14 +13,22 @@ type ProductGalleryProps = {
   images: GalleryImage[];
 };
 
+function ImageFallback({ label }: { label: string }) {
+  return (
+    <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-950 px-4 text-center text-sm text-slate-500">
+      {label}
+    </div>
+  );
+}
+
 export default function ProductGallery({ title, images }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [failed, setFailed] = useState<Record<string, boolean>>({});
 
   if (images.length === 0) {
     return (
-      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 text-7xl">
-        🎮
+      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+        <ImageFallback label="No product images" />
       </div>
     );
   }
@@ -33,9 +41,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
     <div className="space-y-4">
       <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
         {showFallback ? (
-          <div className="flex h-full items-center justify-center text-7xl">
-            🎮
-          </div>
+          <ImageFallback label="Image unavailable" />
         ) : (
           <Image
             src={active.image_url}
@@ -63,6 +69,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 aria-label={`View image ${index + 1}`}
+                aria-pressed={isActive}
                 className={`relative aspect-square overflow-hidden rounded-xl border bg-slate-900 transition ${
                   isActive
                     ? "border-blue-500 ring-2 ring-blue-500/40"
@@ -70,9 +77,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
                 }`}
               >
                 {thumbFailed ? (
-                  <div className="flex h-full items-center justify-center text-lg">
-                    🎮
-                  </div>
+                  <ImageFallback label="N/A" />
                 ) : (
                   <Image
                     src={image.image_url}
@@ -80,7 +85,6 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
                     fill
                     sizes="120px"
                     className="object-cover"
-                    loading="lazy"
                     onError={() =>
                       setFailed((current) => ({
                         ...current,

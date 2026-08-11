@@ -39,69 +39,72 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
-
-  async function loadOrders() {
-    setLoading(true);
-    setError("");
-
-    const { data, error: ordersError } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: sortDir === "asc" });
-
-    if (ordersError) {
-      setError(toUserError(ordersError.message));
-      setLoading(false);
-      return;
-    }
-
-      const list = (data || []) as Order[];
-    setOrders(list);
-
-    const counts: Record<string, number> = {};
-    for (const order of list) {
-      const key = order.customer_id || order.customer_email || order.id;
-      counts[key] = (counts[key] || 0) + 1;
-    }
-    setOrderCounts(counts);
-
-    if (list.length > 0) {
-      const { data: items } = await supabase
-        .from("order_items")
-        .select("order_id, product_title")
-        .in(
-          "order_id",
-          list.map((order) => order.id)
-        );
-
-      const map: Record<string, string[]> = {};
-      for (const item of (items || []) as OrderItem[]) {
-        if (!map[item.order_id]) map[item.order_id] = [];
-        map[item.order_id].push(item.product_title);
-      }
-      setItemsByOrder(map);
-    } else {
-      setItemsByOrder({});
-    }
-
-    setLoading(false);
-  }
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
 
     async function run() {
-      await loadOrders();
+      setLoading(true);
+      setError("");
+
+      const { data, error: ordersError } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: sortDir === "asc" });
+
       if (!active) return;
+
+      if (ordersError) {
+        setError(toUserError(ordersError.message));
+        setLoading(false);
+        return;
+      }
+
+      const list = (data || []) as Order[];
+      setOrders(list);
+
+      const counts: Record<string, number> = {};
+      for (const order of list) {
+        const key = order.customer_id || order.customer_email || order.id;
+        counts[key] = (counts[key] || 0) + 1;
+      }
+      setOrderCounts(counts);
+
+      if (list.length > 0) {
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("order_id, product_title")
+          .in(
+            "order_id",
+            list.map((order) => order.id)
+          );
+
+        if (!active) return;
+
+        const map: Record<string, string[]> = {};
+        for (const item of (items || []) as OrderItem[]) {
+          if (!map[item.order_id]) map[item.order_id] = [];
+          map[item.order_id].push(item.product_title);
+        }
+        setItemsByOrder(map);
+      } else {
+        setItemsByOrder({});
+      }
+
+      setLoading(false);
     }
 
-    run();
+    void run();
 
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortDir]);
+  }, [sortDir, reloadKey]);
+
+  function refreshOrders() {
+    setReloadKey((value) => value + 1);
+  }
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -191,7 +194,7 @@ export default function OrdersPage() {
 
           <button
             type="button"
-            onClick={loadOrders}
+            onClick={refreshOrders}
             className="rounded-xl border border-slate-700 px-5 py-3 text-sm hover:border-blue-500"
           >
             Refresh

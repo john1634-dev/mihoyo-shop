@@ -28,6 +28,15 @@ export type Product = {
   cover_image_url: string | null;
   game_id: string | null;
   created_at?: string;
+  /** Admin-only fields */
+  supplier_cost?: number | null;
+  supplier_name?: string | null;
+};
+
+/** Product row with admin-only supplier fields (e.g. edit forms). */
+export type AdminProduct = Product & {
+  supplier_cost: number | null;
+  supplier_name: string | null;
 };
 
 export type ProductImage = {
@@ -49,11 +58,15 @@ export type CartItem = {
 
 export type Order = {
   id: string;
+  order_number?: string | null;
+  customer_id?: string | null;
   customer_name: string | null;
   customer_email: string | null;
   customer_whatsapp: string | null;
   status: string | null;
+  order_status?: string | null;
   total_amount: number | null;
+  discount_amount?: number | null;
   currency: string | null;
   payment_method: string | null;
   payment_status: string | null;

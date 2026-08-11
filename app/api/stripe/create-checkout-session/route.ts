@@ -236,11 +236,14 @@ export async function POST(request: Request) {
       quantity: row.quantity,
     }));
 
-    // Stripe expects success/cancel URLs, but the success page will
-    // rely only on server-side order.payment_status (not query params).
-    const successUrl = `${SITE_URL}/orders/success?id=${encodeURIComponent(
-      order.order_id
-    )}`;
+    // Success page reads payment_status from the server; email unlocks guest receipts.
+    const successParams = new URLSearchParams({
+      id: order.order_id,
+    });
+    if (!user?.id && customerEmail) {
+      successParams.set("email", customerEmail);
+    }
+    const successUrl = `${SITE_URL}/orders/success?${successParams.toString()}`;
     const cancelUrl = `${SITE_URL}/checkout`;
 
     logStripeDebug("stripe checkout session create start", {

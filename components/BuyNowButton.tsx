@@ -5,6 +5,7 @@ import { useState } from "react";
 import { addToCart } from "@/lib/cart";
 import { supabase } from "@/lib/supabase";
 import { toUserError } from "@/lib/errors";
+import { toast } from "@/lib/toast";
 import type { CartItem } from "@/lib/types";
 
 type ProductInfo = {
@@ -76,9 +77,11 @@ export default function BuyNowButton({
     try {
       addToCart(toCartItem(product));
       setAdded(true);
+      toast("Added to cart.", "success");
       window.setTimeout(() => setAdded(false), 2000);
     } catch {
       setError("Could not add to cart. Please try again.");
+      toast("Could not add to cart.", "error");
     }
   }
 

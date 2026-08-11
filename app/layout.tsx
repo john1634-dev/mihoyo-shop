@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import ToastHost from "@/components/ToastHost";
 import {
   SITE_NAME,
   SITE_DESCRIPTION,
@@ -64,6 +65,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen overflow-x-hidden bg-slate-950 font-sans text-white antialiased`}
       >
         {children}
+        <ToastHost />
       </body>
     </html>
   );

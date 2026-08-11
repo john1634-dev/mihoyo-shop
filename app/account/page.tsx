@@ -126,6 +126,40 @@ function AccountContent() {
             <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
+                  <h2 className="text-xl font-semibold">Wishlist</h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    View saved products
+                  </p>
+                </div>
+                <Link
+                  href="/account/wishlist"
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500"
+                >
+                  View Wishlist
+                </Link>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold">Referral Program</h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Share your link and track referrals
+                  </p>
+                </div>
+                <Link
+                  href="/account/affiliate"
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500"
+                >
+                  Affiliate Dashboard
+                </Link>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
                   <h2 className="text-xl font-semibold">Order History</h2>
                   <p className="mt-1 text-sm text-slate-400">
                     View your past purchases

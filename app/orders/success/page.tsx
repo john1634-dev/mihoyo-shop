@@ -18,6 +18,7 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("id");
   const orderNumberFromQuery = searchParams.get("no");
+  const emailFromQuery = (searchParams.get("email") || "").trim();
 
   const [receipt, setReceipt] = useState<OrderReceipt | null>(null);
   const [loading, setLoading] = useState(Boolean(orderId));
@@ -38,7 +39,15 @@ function SuccessContent() {
           headers.Authorization = `Bearer ${token}`;
         }
 
-        const response = await fetch(`/api/orders/${orderId}`, { headers });
+        const qs = new URLSearchParams();
+        if (!token && emailFromQuery) {
+          qs.set("email", emailFromQuery);
+        }
+        const query = qs.toString();
+        const response = await fetch(
+          `/api/orders/${orderId}${query ? `?${query}` : ""}`,
+          { headers }
+        );
         const payload = await response.json();
 
         if (!active) return;
@@ -58,12 +67,12 @@ function SuccessContent() {
       }
     }
 
-    loadReceipt();
+    void loadReceipt();
 
     return () => {
       active = false;
     };
-  }, [orderId]);
+  }, [orderId, emailFromQuery]);
 
   const paymentStatus = receipt?.payment_status;
 

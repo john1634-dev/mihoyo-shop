@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import type { Game, Product } from "@/lib/types";
+import { toUserError } from "@/lib/errors";
 
 function ProductsContent() {
   const router = useRouter();
@@ -42,7 +43,7 @@ function ProductsContent() {
       if (!active) return;
 
       if (gamesResult.error) {
-        setError(gamesResult.error.message);
+        setError(toUserError(gamesResult.error.message));
         setLoading(false);
         return;
       }
@@ -85,7 +86,7 @@ function ProductsContent() {
       if (!active) return;
 
       if (productsResult.error) {
-        setError(productsResult.error.message);
+        setError(toUserError(productsResult.error.message));
         setLoading(false);
         return;
       }
@@ -248,8 +249,7 @@ function ProductsContent() {
 
         {!loading && !error && products.length === 0 && (
           <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-12 text-center">
-            <div className="text-5xl">🔍</div>
-            <h2 className="mt-4 text-xl font-semibold">No accounts found</h2>
+            <h2 className="text-xl font-semibold">No accounts found</h2>
             <p className="mt-2 text-slate-400">
               Try a different search, status, or browse all games.
             </p>

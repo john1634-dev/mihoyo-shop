@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import ImageUploader from "@/components/ImageUploader";
@@ -655,15 +656,15 @@ export default function EditProductPage() {
                     className="relative overflow-hidden rounded-xl border border-slate-800"
                   >
 
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-<img
-  src={image.image_url}
-                      alt={
-                        "Product image " +
-                        (index + 1)
-                      }
-                      className="aspect-square w-full object-cover"
-                    />
+                    <div className="relative aspect-square w-full">
+                      <Image
+                        src={image.image_url}
+                        alt={`Product image ${index + 1}`}
+                        fill
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        className="object-cover"
+                      />
+                    </div>
 
                     {index === 0 && (
                       <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-3 py-2 text-xs">
@@ -721,15 +722,15 @@ export default function EditProductPage() {
                       className="relative overflow-hidden rounded-xl border border-blue-900"
                     >
 
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-<img
-  src={image.url}
-                        alt={
-                          "New image " +
-                          (index + 1)
-                        }
-                        className="aspect-square w-full object-cover"
-                      />
+                      <div className="relative aspect-square w-full">
+                        <Image
+                          src={image.url}
+                          alt={`New image ${index + 1}`}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          className="object-cover"
+                        />
+                      </div>
 
                       <div className="absolute bottom-0 left-0 right-0 bg-blue-950/80 px-3 py-2 text-xs">
                         Will be saved

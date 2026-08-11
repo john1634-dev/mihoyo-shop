@@ -49,12 +49,13 @@ export default function AdminDashboard() {
   }, []);
 
   const navLinks = [
-    { href: "/admin/orders", label: "📦 Orders" },
-    { href: "/admin/products", label: "🎮 Products" },
-    { href: "/admin/coupons", label: "🏷️ Coupons" },
-    { href: "/admin/analytics", label: "📊 Analytics" },
-    { href: "/admin/reviews", label: "⭐ Reviews" },
-    { href: "/admin/affiliates", label: "🔗 Affiliates" },
+    { href: "/admin/orders", label: "Orders" },
+    { href: "/admin/products", label: "Products" },
+    { href: "/admin/games", label: "Games" },
+    { href: "/admin/coupons", label: "Coupons" },
+    { href: "/admin/analytics", label: "Analytics" },
+    { href: "/admin/reviews", label: "Reviews" },
+    { href: "/admin/affiliates", label: "Affiliates" },
   ];
 
   return (
