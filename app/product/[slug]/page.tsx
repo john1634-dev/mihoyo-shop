@@ -62,7 +62,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const { data: product, error } = await supabase
     .from("products")
-    .select("*")
+    .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at,shopee_url")
     .eq("slug", slug)
     .single();
 
@@ -104,7 +104,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       product.game_id
         ? supabase
             .from("products")
-            .select("*")
+            .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at,shopee_url")
             .eq("game_id", product.game_id)
             .eq("status", "available")
             .neq("id", product.id)

@@ -15,6 +15,7 @@ type Product = {
   server: string | null;
   ar_level: number | null;
   cover_image_url: string | null;
+  cost_myr: number | null;
 };
 
 export default function ProductsPage() {
@@ -33,7 +34,7 @@ export default function ProductsPage() {
 
       const result = await supabase
         .from("products")
-        .select("*")
+        .select("id,title,price,currency,status,server,ar_level,cover_image_url,cost_myr")
         .order("created_at", { ascending: false });
 
       if (!active) {
@@ -215,6 +216,8 @@ export default function ProductsPage() {
                   <th className="px-5 py-4">Server</th>
                   <th className="px-5 py-4">AR</th>
                   <th className="px-5 py-4">Price</th>
+                  <th className="px-5 py-4">Cost</th>
+                  <th className="px-5 py-4">Profit</th>
                   <th className="px-5 py-4">Status</th>
                   <th className="px-5 py-4">Action</th>
                 </tr>
@@ -257,6 +260,21 @@ export default function ProductsPage() {
 
                     <td className="px-5 py-5 font-semibold">
                       {formatPrice(Number(product.price), product.currency)}
+                    </td>
+
+                    <td className="px-5 py-5 text-slate-300">
+                      {product.cost_myr !== null
+                        ? formatPrice(Number(product.cost_myr), "MYR")
+                        : "-"}
+                    </td>
+
+                    <td className="px-5 py-5 text-slate-300">
+                      {product.cost_myr !== null
+                        ? formatPrice(
+                            Number(product.price) - Number(product.cost_myr),
+                            "MYR"
+                          )
+                        : "-"}
                     </td>
 
                     <td className="px-5 py-5">

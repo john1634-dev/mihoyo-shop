@@ -101,12 +101,12 @@ export default function Home() {
       const [gamesResult, productsResult] = await Promise.all([
         supabase
           .from("games")
-          .select("*")
+          .select("id,name,slug,description,image_url,logo_url,banner_url,mobile_banner_url,is_active,sort_order")
           .eq("is_active", true)
           .order("sort_order", { ascending: true }),
         supabase
           .from("products")
-          .select("*")
+          .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at,shopee_url")
           .eq("status", "available")
           .order("created_at", { ascending: false }),
       ]);

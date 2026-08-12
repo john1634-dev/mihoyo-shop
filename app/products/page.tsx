@@ -38,7 +38,7 @@ function ProductsContent() {
 
       const gamesResult = await supabase
         .from("games")
-        .select("*")
+        .select("id,name,slug,description,image_url,logo_url,banner_url,mobile_banner_url,is_active,sort_order")
         .eq("is_active", true)
         .order("sort_order");
 
@@ -50,7 +50,9 @@ function ProductsContent() {
         return;
       }
 
-      let query = supabase.from("products").select("*");
+      let query = supabase
+        .from("products")
+        .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at,shopee_url");
 
       if (gameSlug) {
         const matchedGame = (gamesResult.data || []).find(

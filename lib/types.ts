@@ -30,6 +30,11 @@ export type Product = {
   shopee_url?: string | null;
   supplier_cost?: number | null;
   supplier_name?: string | null;
+  cost_vnd?: number | null;
+  cost_myr?: number | null;
+  vnd_myr_rate?: number | null;
+  cost_currency?: string | null;
+  cost_rate_updated_at?: string | null;
 };
 
 export type AdminProduct = Product & {
