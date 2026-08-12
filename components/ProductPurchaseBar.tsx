@@ -18,8 +18,8 @@ export default function ProductPurchaseBar({
   if (!available) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800/90 bg-slate-950/95 p-3 backdrop-blur-xl lg:hidden">
-      <div className="mx-auto flex max-w-lg items-center gap-3">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-slate-950/95 p-3 backdrop-blur-xl lg:hidden">
+      <div className="mx-auto flex max-w-lg items-center gap-3 pb-[env(safe-area-inset-bottom,0px)]">
         <div className="min-w-0 shrink-0">
           <p className="text-[10px] uppercase tracking-wide text-slate-500">
             Price

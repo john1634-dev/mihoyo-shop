@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useState } from "react";
 
+const PRODUCT_IMAGE_QUALITY = 88;
+
 type GalleryImage = {
   id: string;
   image_url: string;
@@ -49,6 +51,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
             fill
             priority
             sizes="(max-width: 1024px) 100vw, 50vw"
+            quality={PRODUCT_IMAGE_QUALITY}
             className="object-contain"
             onError={() =>
               setFailed((current) => ({ ...current, [active.id]: true }))
@@ -84,6 +87,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
                     alt={`${title} thumbnail ${index + 1}`}
                     fill
                     sizes="120px"
+                    quality={PRODUCT_IMAGE_QUALITY}
                     className="object-cover"
                     onError={() =>
                       setFailed((current) => ({

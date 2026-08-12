@@ -79,7 +79,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             href="/products"
             className="mt-6 inline-block text-blue-400 hover:text-blue-300"
           >
-            ← Browse accounts
+            Browse accounts
           </Link>
         </div>
         <Footer />
@@ -135,7 +135,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <main className="flex min-h-screen flex-col bg-slate-950 text-white">
       <Navbar games={navGames || []} />
 
-      <section className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 pb-28 md:px-6 md:py-10 lg:pb-10">
+      <section className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 pb-purchase-bar md:px-6 md:py-10">
         <nav aria-label="Breadcrumb" className="text-sm text-slate-500">
           <ol className="flex flex-wrap items-center gap-2">
             <li>
@@ -169,76 +169,78 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <ProductGallery title={product.title} images={galleryImages} />
 
           <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <span
-                className={
-                  isAvailable
-                    ? "rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-400"
-                    : "rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400"
-                }
-              >
-                {isAvailable ? "Available" : "Sold"}
-              </span>
-              {game && (
-                <Link
-                  href={`/products?game=${game.slug}`}
-                  className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-blue-300"
+            <div className="glass-panel p-5 sm:p-6">
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <span
+                  className={
+                    isAvailable
+                      ? "rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-400 ring-1 ring-emerald-500/25"
+                      : "rounded-full bg-slate-800 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400"
+                  }
                 >
-                  {game.name}
-                </Link>
-              )}
-            </div>
-
-            <h1 className="text-3xl font-bold leading-tight tracking-tight break-words md:text-4xl">
-              {product.title}
-            </h1>
-
-            <div className="mt-5 flex flex-wrap gap-2 text-sm text-slate-300">
-              {product.server && (
-                <span className="rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-1.5">
-                  {product.server}
+                  {isAvailable ? "Available" : "Sold"}
                 </span>
-              )}
-              {product.ar_level != null && (
-                <span className="rounded-lg border border-slate-800 bg-slate-900/70 px-3 py-1.5">
-                  AR {product.ar_level}
-                </span>
-              )}
-            </div>
+                {game && (
+                  <Link
+                    href={`/products?game=${game.slug}`}
+                    className="rounded-full border border-white/[0.08] px-3 py-1 text-xs text-slate-300 transition hover:border-blue-500/40 hover:text-blue-300"
+                  >
+                    {game.name}
+                  </Link>
+                )}
+              </div>
 
-            <p className="mt-8 text-4xl font-bold tracking-tight md:text-5xl">
-              {formatPrice(Number(product.price), product.currency || "MYR")}
-            </p>
+              <h1 className="text-2xl font-bold leading-tight tracking-tight break-words sm:text-3xl md:text-4xl">
+                {product.title}
+              </h1>
 
-            <div className="mt-8 hidden lg:block">
-              <PurchaseButtons
-                product={typedProduct}
-                gameName={game?.name}
-                available={isAvailable}
-                layout="stack"
-                size="lg"
-              />
+              <div className="mt-5 flex flex-wrap gap-2">
+                {product.server && (
+                  <span className="rounded-lg border border-white/[0.08] bg-slate-950/50 px-3 py-1.5 text-sm text-slate-300">
+                    {product.server}
+                  </span>
+                )}
+                {product.ar_level != null && (
+                  <span className="rounded-lg border border-white/[0.08] bg-slate-950/50 px-3 py-1.5 text-sm text-slate-300">
+                    AR {product.ar_level}
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-8 text-4xl font-bold tracking-tight text-white md:text-5xl">
+                {formatPrice(Number(product.price), product.currency || "MYR")}
+              </p>
+
+              <div className="mt-8 hidden lg:block">
+                <PurchaseButtons
+                  product={typedProduct}
+                  gameName={game?.name}
+                  available={isAvailable}
+                  layout="stack"
+                  size="lg"
+                />
+              </div>
+
+              <p className="mt-5 text-sm text-slate-500">
+                Purchase via WhatsApp or Shopee. No checkout on this website.
+              </p>
             </div>
 
             {product.description && (
-              <div className="mt-8">
+              <div className="mt-6">
                 <h2 className="mb-3 text-lg font-semibold">Account details</h2>
-                <div className="whitespace-pre-wrap rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5 text-sm leading-7 text-slate-300">
+                <div className="whitespace-pre-wrap rounded-2xl border border-white/[0.06] bg-slate-900/40 p-5 text-sm leading-7 text-slate-300">
                   {product.description}
                 </div>
               </div>
             )}
-
-            <p className="mt-6 text-sm text-slate-500">
-              Purchase via WhatsApp or Shopee. No checkout on this website.
-            </p>
           </div>
         </div>
 
         {related && related.length > 0 && (
-          <section className="mt-16 border-t border-slate-800/80 pt-12">
-            <h2 className="text-2xl font-bold tracking-tight">Related accounts</h2>
-            <p className="mt-2 text-sm text-slate-400">
+          <section className="mt-16 border-t border-white/[0.06] pt-12">
+            <h2 className="section-title">Related accounts</h2>
+            <p className="section-subtitle">
               More available listings from {game?.name || "this game"}
             </p>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

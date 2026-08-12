@@ -1,7 +1,7 @@
 export const SITE_NAME = "Gameslot";
-export const SITE_TAGLINE = "Trusted Game Account Store";
+export const SITE_TAGLINE = "Premium Game Account Marketplace";
 export const SITE_DESCRIPTION =
-  "Premium game accounts for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and more. Browse listings, then purchase via WhatsApp or Shopee.";
+  "Premium game accounts for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and more. Browse curated listings and purchase via WhatsApp or Shopee.";
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -48,19 +48,14 @@ export type WhatsAppProductInfo = {
 
 export function buildProductWhatsAppMessage(product: WhatsAppProductInfo): string {
   const priceLabel = formatPriceDetailed(product.price, product.currency || "MYR");
-  const productUrl = product.slug
-    ? `${SITE_URL.replace(/\/$/, "")}/product/${product.slug}`
-    : `${SITE_URL.replace(/\/$/, "")}/products`;
 
   return [
     "Hi, I'm interested in this account:",
     "",
     product.title.trim(),
     "",
+    `Game: ${product.gameName?.trim() || "N/A"}`,
     `Price: ${priceLabel}`,
-    "",
-    "Product:",
-    productUrl,
     "",
     "Is this account still available?",
   ].join("\n");

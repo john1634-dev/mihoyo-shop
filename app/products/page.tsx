@@ -146,16 +146,16 @@ function ProductsContent() {
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 md:px-6">
         <div className="max-w-2xl">
           {activeGame && getGameImageUrl(activeGame) ? (
-            <div className="relative mb-5 aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+            <div className="relative mb-5 aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-white/[0.06] bg-slate-900">
               <GameImage game={activeGame} variant="header" />
             </div>
           ) : null}
-          <h1 className="text-3xl font-bold md:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
             {activeGame ? `${activeGame.name} Accounts` : "All Game Accounts"}
           </h1>
           <p className="mt-3 text-slate-400">
-            Browse verified accounts with screenshots, clear pricing, and fast
-            support.
+            Premium listings with clear details. Contact us on WhatsApp or
+            Shopee to purchase.
           </p>
         </div>
 
