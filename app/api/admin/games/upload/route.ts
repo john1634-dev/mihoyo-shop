@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { getRequestUser } from "@/lib/supabase";
+import { isNextResponse, requireAdmin } from "@/lib/require-admin";
 import { getSupabaseService } from "@/lib/supabase-service";
 import { logServerError, toUserError } from "@/lib/errors";
+import { extractGameAssetStoragePath } from "@/lib/games";
 
 const BUCKET = "game-assets";
+const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -11,54 +13,20 @@ const ALLOWED_TYPES = new Set([
   "image/webp",
 ]);
 
-const MAX_LOGO_SIZE = 2 * 1024 * 1024;
-const MAX_BANNER_SIZE = 5 * 1024 * 1024;
-
-type ImageType = "logo" | "banner" | "mobile_banner";
-
-async function requireAdmin(request: Request) {
-  const { user, client } = await getRequestUser(request);
-
-  if (!user) {
-    return {
-      response: NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      ),
-    };
-  }
-
-  const { data: profile, error } = await client
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (error) {
-    logServerError("admin game upload profile check", error);
-
-    return {
-      response: NextResponse.json(
-        { error: toUserError(error.message) },
-        { status: 400 }
-      ),
-    };
-  }
-
-  if (!profile?.is_admin) {
-    return {
-      response: NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      ),
-    };
-  }
-
-  return {
-    response: null,
-    user,
-  };
-}
+const GAME_SELECT = `
+  id,
+  name,
+  slug,
+  description,
+  image_url,
+  logo_url,
+  banner_url,
+  mobile_banner_url,
+  is_active,
+  sort_order,
+  created_at,
+  updated_at
+`;
 
 function getExtension(contentType: string) {
   switch (contentType) {
@@ -73,29 +41,26 @@ function getExtension(contentType: string) {
   }
 }
 
+async function removeStoredGameAsset(publicUrl: string | null | undefined) {
+  const path = extractGameAssetStoragePath(publicUrl);
+  if (!path) return;
+
+  const svc = getSupabaseService();
+  await svc.storage.from(BUCKET).remove([path]);
+}
+
 export async function POST(request: Request) {
   const auth = await requireAdmin(request);
-
-  if (auth.response) {
-    return auth.response;
-  }
+  if (isNextResponse(auth)) return auth;
 
   const formData = await request.formData();
 
   const gameId = String(formData.get("game_id") ?? "").trim();
-  const type = String(formData.get("type") ?? "").trim() as ImageType;
   const file = formData.get("file");
 
   if (!gameId) {
     return NextResponse.json(
       { error: "Game ID is required." },
-      { status: 400 }
-    );
-  }
-
-  if (!["logo", "banner", "mobile_banner"].includes(type)) {
-    return NextResponse.json(
-      { error: "Invalid image type." },
       { status: 400 }
     );
   }
@@ -114,43 +79,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const maxSize =
-    type === "logo" ? MAX_LOGO_SIZE : MAX_BANNER_SIZE;
-
-  if (file.size > maxSize) {
+  if (file.size > MAX_IMAGE_SIZE) {
     return NextResponse.json(
-      {
-        error:
-          type === "logo"
-            ? "Logo must be 2MB or smaller."
-            : "Banner must be 5MB or smaller.",
-      },
+      { error: "Image must be 8 MB or smaller." },
       { status: 400 }
-    );
-  }
-
-  const svc = getSupabaseService();
-
-  // Make sure the game exists.
-  const { data: game, error: gameError } = await svc
-    .from("games")
-    .select("id, slug")
-    .eq("id", gameId)
-    .maybeSingle();
-
-  if (gameError) {
-    logServerError("admin game upload lookup", gameError);
-
-    return NextResponse.json(
-      { error: toUserError(gameError.message) },
-      { status: 400 }
-    );
-  }
-
-  if (!game) {
-    return NextResponse.json(
-      { error: "Game not found." },
-      { status: 404 }
     );
   }
 
@@ -163,16 +95,27 @@ export async function POST(request: Request) {
     );
   }
 
-  const folder =
-    type === "logo"
-      ? "logos"
-      : type === "banner"
-        ? "banners"
-        : "mobile-banners";
+  const svc = getSupabaseService();
 
-  const fileName = `${crypto.randomUUID()}.${extension}`;
-  const path = `${folder}/${game.slug}/${fileName}`;
+  const { data: game, error: gameError } = await svc
+    .from("games")
+    .select("id, slug, image_url")
+    .eq("id", gameId)
+    .maybeSingle();
 
+  if (gameError) {
+    logServerError("admin game upload lookup", gameError);
+    return NextResponse.json(
+      { error: toUserError(gameError.message) },
+      { status: 400 }
+    );
+  }
+
+  if (!game) {
+    return NextResponse.json({ error: "Game not found." }, { status: 404 });
+  }
+
+  const path = `categories/${game.slug}/${crypto.randomUUID()}.${extension}`;
   const bytes = await file.arrayBuffer();
 
   const { error: uploadError } = await svc.storage
@@ -185,7 +128,6 @@ export async function POST(request: Request) {
 
   if (uploadError) {
     logServerError("admin game image upload", uploadError);
-
     return NextResponse.json(
       { error: toUserError(uploadError.message) },
       { status: 400 }
@@ -194,50 +136,111 @@ export async function POST(request: Request) {
 
   const {
     data: { publicUrl },
-  } = svc.storage
-    .from(BUCKET)
-    .getPublicUrl(path);
+  } = svc.storage.from(BUCKET).getPublicUrl(path);
 
-  const column =
-    type === "logo"
-      ? "logo_url"
-      : type === "banner"
-        ? "banner_url"
-        : "mobile_banner_url";
+  const previousImageUrl = game.image_url;
 
   const { data: updatedGame, error: updateError } = await svc
     .from("games")
     .update({
-      [column]: publicUrl,
+      image_url: publicUrl,
       updated_at: new Date().toISOString(),
     })
     .eq("id", gameId)
-    .select()
+    .select(GAME_SELECT)
     .single();
 
   if (updateError) {
-    logServerError(
-      "admin game image database update",
-      updateError
-    );
-
-    // Best-effort cleanup if DB update fails.
-    await svc.storage
-      .from(BUCKET)
-      .remove([path]);
-
+    logServerError("admin game image database update", updateError);
+    await svc.storage.from(BUCKET).remove([path]);
     return NextResponse.json(
       { error: toUserError(updateError.message) },
       { status: 400 }
     );
   }
 
+  if (previousImageUrl && previousImageUrl !== publicUrl) {
+    await removeStoredGameAsset(previousImageUrl);
+  }
+
   return NextResponse.json({
     game: updatedGame,
     image: {
-      type,
       path,
       url: publicUrl,
     },
   });
+}
+
+export async function DELETE(request: Request) {
+  const auth = await requireAdmin(request);
+  if (isNextResponse(auth)) return auth;
+
+  let body: { game_id?: string };
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid request body." },
+      { status: 400 }
+    );
+  }
+
+  const gameId = String(body.game_id ?? "").trim();
+
+  if (!gameId) {
+    return NextResponse.json(
+      { error: "Game ID is required." },
+      { status: 400 }
+    );
+  }
+
+  const svc = getSupabaseService();
+
+  const { data: game, error: gameError } = await svc
+    .from("games")
+    .select("id, image_url")
+    .eq("id", gameId)
+    .maybeSingle();
+
+  if (gameError) {
+    logServerError("admin game image delete lookup", gameError);
+    return NextResponse.json(
+      { error: toUserError(gameError.message) },
+      { status: 400 }
+    );
+  }
+
+  if (!game) {
+    return NextResponse.json({ error: "Game not found." }, { status: 404 });
+  }
+
+  if (!game.image_url) {
+    return NextResponse.json({ success: true, game });
+  }
+
+  const previousImageUrl = game.image_url;
+
+  const { data: updatedGame, error: updateError } = await svc
+    .from("games")
+    .update({
+      image_url: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", gameId)
+    .select(GAME_SELECT)
+    .single();
+
+  if (updateError) {
+    logServerError("admin game image delete update", updateError);
+    return NextResponse.json(
+      { error: toUserError(updateError.message) },
+      { status: 400 }
+    );
+  }
+
+  await removeStoredGameAsset(previousImageUrl);
+
+  return NextResponse.json({ success: true, game: updatedGame });
 }

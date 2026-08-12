@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getAccessToken } from "@/lib/auth";
+import { adminFetch } from "@/lib/admin-api";
 import { formatPrice } from "@/lib/config";
 
 type DashboardStats = {
@@ -39,11 +39,14 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     (async () => {
-      const token = await getAccessToken();
-      const res = await fetch("/api/admin/stats", {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) setStats(await res.json() as DashboardStats);
+      try {
+        const res = await adminFetch("/api/admin/stats", {
+          cache: "no-store",
+        });
+        if (res.ok) setStats((await res.json()) as DashboardStats);
+      } catch {
+        // Stats are optional on the dashboard shell.
+      }
       setLoading(false);
     })();
   }, []);

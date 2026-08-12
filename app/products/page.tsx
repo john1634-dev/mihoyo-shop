@@ -7,6 +7,8 @@ import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
+import GameImage from "@/components/GameImage";
+import { getGameImageUrl } from "@/lib/games";
 import type { Game, Product } from "@/lib/types";
 import { toUserError } from "@/lib/errors";
 
@@ -143,6 +145,11 @@ function ProductsContent() {
 
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 md:px-6">
         <div className="max-w-2xl">
+          {activeGame && getGameImageUrl(activeGame) ? (
+            <div className="relative mb-5 h-28 w-full max-w-sm overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+              <GameImage game={activeGame} sizes="384px" />
+            </div>
+          ) : null}
           <h1 className="text-3xl font-bold md:text-4xl">
             {activeGame ? `${activeGame.name} Accounts` : "All Game Accounts"}
           </h1>
@@ -203,19 +210,32 @@ function ProductsContent() {
           >
             All
           </Link>
-          {games.map((game) => (
-            <Link
-              key={game.id}
-              href={buildHref({ game: game.slug })}
-              className={`rounded-full px-4 py-2 text-sm ${
-                gameSlug === game.slug
-                  ? "bg-blue-600 text-white"
-                  : "border border-slate-700 text-slate-300 hover:border-blue-500"
-              }`}
-            >
-              {game.name}
-            </Link>
-          ))}
+          {games.map((game) => {
+            const gameImage = getGameImageUrl(game);
+
+            return (
+              <Link
+                key={game.id}
+                href={buildHref({ game: game.slug })}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm ${
+                  gameSlug === game.slug
+                    ? "bg-blue-600 text-white"
+                    : "border border-slate-700 text-slate-300 hover:border-blue-500"
+                }`}
+              >
+                {gameImage ? (
+                  <span className="relative h-6 w-6 overflow-hidden rounded-full border border-slate-700">
+                    <GameImage
+                      game={game}
+                      sizes="24px"
+                      className="object-cover"
+                    />
+                  </span>
+                ) : null}
+                <span>{game.name}</span>
+              </Link>
+            );
+          })}
         </div>
 
         {!loading && !error && (

@@ -1,13 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
+import GameImage from "@/components/GameImage";
 import {
   SITE_NAME,
   SITE_TAGLINE,
@@ -81,6 +81,7 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [hotProducts, setHotProducts] = useState<Product[]>([]);
   const [latestProducts, setLatestProducts] = useState<Product[]>([]);
+  const [accountCounts, setAccountCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -119,8 +120,17 @@ export default function Home() {
         return;
       }
 
-      const products = productsResult.data || [];
-      setGames(gamesResult.data || []);
+      const products = (productsResult.data || []) as Product[];
+      const counts: Record<string, number> = {};
+
+      for (const product of products) {
+        if (product.game_id) {
+          counts[product.game_id] = (counts[product.game_id] || 0) + 1;
+        }
+      }
+
+      setGames((gamesResult.data || []) as Game[]);
+      setAccountCounts(counts);
       setFeaturedProducts(products.slice(0, 4));
       setHotProducts(
         [...products]
@@ -238,43 +248,25 @@ export default function Home() {
 
         {!loading && !error && games.length > 0 && (
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {games.map((game) => (
-              <Link
-                key={game.id}
-                href={`/products?game=${game.slug}`}
-                className="rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-blue-500"
-              >
-                <div className="relative mb-5 aspect-[16/10] overflow-hidden rounded-xl bg-slate-800">
-                  {game.banner_url || game.mobile_banner_url ? (
-                    <Image
-                      src={(game.banner_url || game.mobile_banner_url) as string}
-                      alt={game.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 25vw"
-                      className="object-cover"
-                      loading="lazy"
-                    />
-                  ) : game.logo_url ? (
-                    <div className="flex h-full items-center justify-center p-8">
-                      <Image
-                        src={game.logo_url}
-                        alt={game.name}
-                        width={400}
-                        height={200}
-                        className="max-h-full w-auto object-contain"
-                        loading="lazy"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-sm text-slate-500">
-                      {game.name}
-                    </div>
-                  )}
-                </div>
-                <h3 className="font-semibold">{game.name}</h3>
-                <p className="mt-2 text-sm text-slate-400">Browse accounts →</p>
-              </Link>
-            ))}
+            {games.map((game) => {
+              const accountCount = accountCounts[game.id] || 0;
+
+              return (
+                <Link
+                  key={game.id}
+                  href={`/products?game=${game.slug}`}
+                  className="rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-blue-500"
+                >
+                  <div className="relative mb-5 aspect-[16/10] overflow-hidden rounded-xl bg-slate-800">
+                    <GameImage game={game} />
+                  </div>
+                  <h3 className="font-semibold">{game.name}</h3>
+                  <p className="mt-2 text-sm text-slate-400">
+                    {accountCount} account{accountCount === 1 ? "" : "s"}
+                  </p>
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>

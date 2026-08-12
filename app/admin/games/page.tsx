@@ -1,87 +1,68 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
-import { supabase } from "@/lib/supabase";
+import { adminFetch } from "@/lib/admin-api";
+import { getGameImageUrl, slugifyGameName } from "@/lib/games";
+import type { Game } from "@/lib/types";
 
-type Game = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  logo_url: string | null;
-  banner_url: string | null;
-  mobile_banner_url: string | null;
+type EditableGame = Game & {
   is_active: boolean;
   sort_order: number;
 };
 
-type ImageType = "logo" | "banner" | "mobile_banner";
-
-type UploadingState = {
-  gameId: string;
-  type: ImageType;
-} | null;
+const EMPTY_GAME = {
+  name: "",
+  slug: "",
+  description: "",
+  is_active: true,
+  sort_order: 50,
+};
 
 export default function AdminGamesPage() {
-  const [games, setGames] = useState<Game[]>([]);
+  const [games, setGames] = useState<EditableGame[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
-  const [uploading, setUploading] = useState<UploadingState>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [removingImageId, setRemovingImageId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const [newGame, setNewGame] = useState({
-    name: "",
-    slug: "",
-    description: "",
-    is_active: true,
-    sort_order: 50,
-  });
-
-  async function getAuthHeaders() {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.access_token) {
-      throw new Error("You are not logged in.");
-    }
-
-    return {
-      Authorization: `Bearer ${session.access_token}`,
-    };
-  }
-
+  const [newGame, setNewGame] = useState({ ...EMPTY_GAME });
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-  
-    async function loadInitialGames() {
+
+    async function run() {
       setLoading(true);
       setError("");
-  
+
       try {
-        const response = await fetch("/api/admin/games", {
+        const response = await adminFetch("/api/admin/games", {
           cache: "no-store",
         });
-  
         const result = await response.json();
-  
+
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("Your session has expired. Please sign in again.");
+          }
+          if (response.status === 403) {
+            throw new Error("You do not have permission to manage games.");
+          }
           throw new Error(result.error || "Failed to load games.");
         }
-  
+
         if (!cancelled) {
-          setGames(result.games ?? []);
+          setGames((result.games ?? []) as EditableGame[]);
         }
-      } catch (error) {
+      } catch (err) {
         if (!cancelled) {
-          setError(
-            error instanceof Error
-              ? error.message
-              : "Failed to load games."
-          );
+          setError(err instanceof Error ? err.message : "Failed to load games.");
         }
       } finally {
         if (!cancelled) {
@@ -89,17 +70,32 @@ export default function AdminGamesPage() {
         }
       }
     }
-  
-    loadInitialGames();
-  
+
+    void run();
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
+
+  function refreshGames() {
+    setReloadKey((value) => value + 1);
+  }
+
+  const sortedGames = useMemo(
+    () =>
+      [...games].sort((a, b) => {
+        if (a.sort_order !== b.sort_order) {
+          return a.sort_order - b.sort_order;
+        }
+        return a.name.localeCompare(b.name);
+      }),
+    [games]
+  );
 
   function updateGame(
     id: string,
-    field: keyof Game,
+    field: keyof EditableGame,
     value: string | boolean | number
   ) {
     setGames((current) =>
@@ -109,18 +105,15 @@ export default function AdminGamesPage() {
     );
   }
 
-  async function saveGame(game: Game) {
+  async function saveGame(game: EditableGame) {
     try {
-      setSaving(game.id);
+      setSavingId(game.id);
       setError("");
       setSuccess("");
 
-      const headers = await getAuthHeaders();
-
-      const response = await fetch("/api/admin/games", {
+      const response = await adminFetch("/api/admin/games", {
         method: "PATCH",
         headers: {
-          ...headers,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -141,44 +134,35 @@ export default function AdminGamesPage() {
 
       setGames((current) =>
         current.map((item) =>
-          item.id === game.id ? data.game : item
+          item.id === game.id ? (data.game as EditableGame) : item
         )
       );
-
       setSuccess(`${game.name} saved successfully.`);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to save game."
-      );
+      setError(err instanceof Error ? err.message : "Failed to save game.");
     } finally {
-      setSaving(null);
+      setSavingId(null);
     }
   }
 
   async function uploadImage(
     gameId: string,
-    type: ImageType,
     event: ChangeEvent<HTMLInputElement>
   ) {
     const file = event.target.files?.[0];
-
     if (!file) return;
 
     try {
-      setUploading({ gameId, type });
+      setUploadingId(gameId);
       setError("");
       setSuccess("");
 
-      const headers = await getAuthHeaders();
-
       const formData = new FormData();
       formData.append("game_id", gameId);
-      formData.append("type", type);
       formData.append("file", file);
 
-      const response = await fetch("/api/admin/games/upload", {
+      const response = await adminFetch("/api/admin/games/upload", {
         method: "POST",
-        headers,
         body: formData,
       });
 
@@ -190,18 +174,87 @@ export default function AdminGamesPage() {
 
       setGames((current) =>
         current.map((game) =>
-          game.id === gameId ? data.game : game
+          game.id === gameId ? (data.game as EditableGame) : game
         )
       );
+      setSuccess("Category image uploaded.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Image upload failed.");
+    } finally {
+      setUploadingId(null);
+      event.target.value = "";
+    }
+  }
 
-      setSuccess("Image uploaded successfully.");
+  async function removeImage(game: EditableGame) {
+    if (!game.image_url) return;
+
+    const confirmed = window.confirm(
+      `Remove the category image for ${game.name}?`
+    );
+    if (!confirmed) return;
+
+    try {
+      setRemovingImageId(game.id);
+      setError("");
+      setSuccess("");
+
+      const response = await adminFetch("/api/admin/games/upload", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ game_id: game.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to remove image.");
+      }
+
+      setGames((current) =>
+        current.map((item) =>
+          item.id === game.id ? (data.game as EditableGame) : item
+        )
+      );
+      setSuccess("Category image removed.");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Image upload failed."
+        err instanceof Error ? err.message : "Failed to remove image."
       );
     } finally {
-      setUploading(null);
-      event.target.value = "";
+      setRemovingImageId(null);
+    }
+  }
+
+  async function deleteGame(game: EditableGame) {
+    const confirmed = window.confirm(
+      `Delete ${game.name}? This cannot be undone. Games with linked products must be disabled instead.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(game.id);
+      setError("");
+      setSuccess("");
+
+      const response = await adminFetch(`/api/admin/games?id=${game.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete game.");
+      }
+
+      setGames((current) => current.filter((item) => item.id !== game.id));
+      setSuccess(`${game.name} deleted.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete game.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -209,6 +262,7 @@ export default function AdminGamesPage() {
     event.preventDefault();
 
     try {
+      setCreating(true);
       setError("");
       setSuccess("");
 
@@ -217,12 +271,9 @@ export default function AdminGamesPage() {
         return;
       }
 
-      const headers = await getAuthHeaders();
-
-      const response = await fetch("/api/admin/games", {
+      const response = await adminFetch("/api/admin/games", {
         method: "POST",
         headers: {
-          ...headers,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -237,51 +288,41 @@ export default function AdminGamesPage() {
         throw new Error(data.error || "Failed to create game.");
       }
 
-      setGames((current) =>
-        [...current, data.game].sort(
-          (a, b) => a.sort_order - b.sort_order
-        )
-      );
-
-      setNewGame({
-        name: "",
-        slug: "",
-        description: "",
-        is_active: true,
-        sort_order: 50,
-      });
-
+      setGames((current) => [...current, data.game as EditableGame]);
+      setNewGame({ ...EMPTY_GAME });
+      setSlugTouched(false);
       setSuccess("Game created successfully.");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to create game."
-      );
+      setError(err instanceof Error ? err.message : "Failed to create game.");
+    } finally {
+      setCreating(false);
     }
-  }
-
-  function imageLabel(type: ImageType) {
-    if (type === "logo") return "Logo";
-    if (type === "banner") return "Desktop Banner";
-    return "Mobile Banner";
-  }
-
-  function imageUrl(game: Game, type: ImageType) {
-    if (type === "logo") return game.logo_url;
-    if (type === "banner") return game.banner_url;
-    return game.mobile_banner_url;
   }
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold sm:text-3xl">
-            Games
-          </h1>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm text-slate-500">
+              <Link href="/admin" className="hover:text-slate-300">
+                Admin
+              </Link>{" "}
+              / Games
+            </p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Games</h1>
+            <p className="mt-2 text-sm text-slate-400">
+              Manage game categories, artwork, visibility, and sort order.
+            </p>
+          </div>
 
-          <p className="mt-2 text-sm text-slate-400">
-            Manage games, logos and desktop/mobile banners.
-          </p>
+          <button
+            type="button"
+            onClick={refreshGames}
+            className="rounded-xl border border-slate-700 px-4 py-2 text-sm hover:bg-slate-900"
+          >
+            Refresh
+          </button>
         </div>
 
         {error && (
@@ -296,49 +337,44 @@ export default function AdminGamesPage() {
           </div>
         )}
 
-        <section className="mb-8 rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <h2 className="mb-4 text-lg font-semibold">
-            Add Game
-          </h2>
+        <section className="mb-8 rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <h2 className="mb-4 text-lg font-semibold">Add Game</h2>
 
           <form
             onSubmit={createGame}
-            className="grid gap-4 md:grid-cols-2 lg:grid-cols-5"
+            className="grid gap-4 md:grid-cols-2 xl:grid-cols-6"
           >
             <input
               value={newGame.name}
-              onChange={(event) =>
-                setNewGame({
-                  ...newGame,
-                  name: event.target.value,
-                })
-              }
+              onChange={(event) => {
+                const name = event.target.value;
+                setNewGame((current) => ({
+                  ...current,
+                  name,
+                  slug: slugTouched ? current.slug : slugifyGameName(name),
+                }));
+              }}
               placeholder="Game name"
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-blue-500"
             />
 
             <input
               value={newGame.slug}
-              onChange={(event) =>
-                setNewGame({
-                  ...newGame,
-                  slug: event.target.value,
-                })
-              }
+              onChange={(event) => {
+                setSlugTouched(true);
+                setNewGame({ ...newGame, slug: event.target.value });
+              }}
               placeholder="game-slug"
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-blue-500"
             />
 
             <input
               value={newGame.description}
               onChange={(event) =>
-                setNewGame({
-                  ...newGame,
-                  description: event.target.value,
-                })
+                setNewGame({ ...newGame, description: event.target.value })
               }
               placeholder="Description"
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-blue-500 md:col-span-2"
             />
 
             <input
@@ -351,223 +387,234 @@ export default function AdminGamesPage() {
                 })
               }
               placeholder="Sort order"
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-slate-500"
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-blue-500"
             />
 
             <button
               type="submit"
-              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
+              disabled={creating}
+              className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-slate-200 disabled:opacity-50"
             >
-              Add Game
+              {creating ? "Adding..." : "Add Game"}
             </button>
           </form>
         </section>
 
         {loading ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
             Loading games...
+          </div>
+        ) : sortedGames.length === 0 ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-12 text-center">
+            <h2 className="text-lg font-semibold">No games yet</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Create your first game category above.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
-            {games.map((game) => (
-              <section
-                key={game.id}
-                className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900"
-              >
-                <div className="flex flex-col gap-4 border-b border-slate-800 p-5 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold">
-                      {game.name}
-                    </h2>
+            {sortedGames.map((game) => {
+              const previewUrl = getGameImageUrl(game);
+              const isSaving = savingId === game.id;
+              const isUploading = uploadingId === game.id;
+              const isRemovingImage = removingImageId === game.id;
+              const isDeleting = deletingId === game.id;
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      {game.slug}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 text-sm text-slate-300">
-                      <input
-                        type="checkbox"
-                        checked={game.is_active}
-                        onChange={(event) =>
-                          updateGame(
-                            game.id,
-                            "is_active",
-                            event.target.checked
-                          )
-                        }
-                        className="h-4 w-4"
-                      />
-                      Active
-                    </label>
-
-                    <button
-                      onClick={() => saveGame(game)}
-                      disabled={saving === game.id}
-                      className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
-                    >
-                      {saving === game.id ? "Saving..." : "Save"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid gap-6 p-5 lg:grid-cols-2">
-                  <div className="space-y-4">
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-slate-400">
-                        Game Name
-                      </span>
-
-                      <input
-                        value={game.name}
-                        onChange={(event) =>
-                          updateGame(
-                            game.id,
-                            "name",
-                            event.target.value
-                          )
-                        }
-                        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-slate-400">
-                        Slug
-                      </span>
-
-                      <input
-                        value={game.slug}
-                        onChange={(event) =>
-                          updateGame(
-                            game.id,
-                            "slug",
-                            event.target.value
-                          )
-                        }
-                        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-slate-400">
-                        Description
-                      </span>
-
-                      <textarea
-                        value={game.description || ""}
-                        onChange={(event) =>
-                          updateGame(
-                            game.id,
-                            "description",
-                            event.target.value
-                          )
-                        }
-                        rows={4}
-                        className="w-full resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-slate-400">
-                        Sort Order
-                      </span>
-
-                      <input
-                        type="number"
-                        value={game.sort_order}
-                        onChange={(event) =>
-                          updateGame(
-                            game.id,
-                            "sort_order",
-                            Number(event.target.value)
-                          )
-                        }
-                        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-                      />
-                    </label>
-                  </div>
-
-                  <div className="grid gap-5 sm:grid-cols-3">
-                    {(
-                      [
-                        "logo",
-                        "banner",
-                        "mobile_banner",
-                      ] as ImageType[]
-                    ).map((type) => {
-                      const url = imageUrl(game, type);
-                      const isUploading =
-                        uploading?.gameId === game.id &&
-                        uploading?.type === type;
-
-                      return (
-                        <div key={type}>
-                          <p className="mb-2 text-sm font-medium text-slate-300">
-                            {imageLabel(type)}
-                          </p>
-
-                          <div className="relative mb-3 flex h-32 items-center justify-center overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
-                            {url ? (
-                              type === "logo" ? (
-                                <Image
-                                  src={url}
-                                  alt={`${game.name} ${imageLabel(type)}`}
-                                  width={120}
-                                  height={96}
-                                  className="max-h-24 max-w-[80%] object-contain"
-                                />
-                              ) : (
-                                <Image
-                                  src={url}
-                                  alt={`${game.name} ${imageLabel(type)}`}
-                                  fill
-                                  sizes="200px"
-                                  className="object-cover"
-                                />
-                              )
-                            ) : (
-                              <span className="text-xs text-slate-600">
-                                No image
-                              </span>
-                            )}
+              return (
+                <section
+                  key={game.id}
+                  className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900"
+                >
+                  <div className="flex flex-col gap-4 border-b border-slate-800 p-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+                        {previewUrl ? (
+                          <Image
+                            src={previewUrl}
+                            alt={game.name}
+                            fill
+                            sizes="96px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-xs text-slate-600">
+                            No image
                           </div>
+                        )}
+                      </div>
 
-                          <label className="block cursor-pointer rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-center text-xs text-slate-300 transition hover:border-slate-500">
-                            {isUploading
-                              ? "Uploading..."
-                              : `Upload ${imageLabel(type)}`}
-
-                            <input
-                              type="file"
-                              accept="image/jpeg,image/png,image/webp"
-                              disabled={isUploading}
-                              onChange={(event) =>
-                                uploadImage(
-                                  game.id,
-                                  type,
-                                  event
-                                )
-                              }
-                              className="hidden"
-                            />
-                          </label>
-
-                          <p className="mt-2 text-[11px] text-slate-600">
-                            JPG / PNG / WebP
-                            <br />
-                            {type === "logo"
-                              ? "Max 2MB"
-                              : "Max 5MB"}
-                          </p>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-xl font-semibold">{game.name}</h2>
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              game.is_active
+                                ? "bg-emerald-500/10 text-emerald-300"
+                                : "bg-slate-800 text-slate-400"
+                            }`}
+                          >
+                            {game.is_active ? "Active" : "Disabled"}
+                          </span>
                         </div>
-                      );
-                    })}
+                        <p className="mt-1 text-sm text-slate-500">{game.slug}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveGame(game)}
+                        disabled={isSaving}
+                        className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
+                      >
+                        {isSaving ? "Saving..." : "Save"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => void deleteGame(game)}
+                        disabled={isDeleting}
+                        className="rounded-xl border border-red-500/40 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+                      >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </section>
-            ))}
+
+                  <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="block md:col-span-2">
+                        <span className="mb-2 block text-sm text-slate-400">
+                          Game Name
+                        </span>
+                        <input
+                          value={game.name}
+                          onChange={(event) =>
+                            updateGame(game.id, "name", event.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm text-slate-400">
+                          Slug
+                        </span>
+                        <input
+                          value={game.slug}
+                          onChange={(event) =>
+                            updateGame(game.id, "slug", event.target.value)
+                          }
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm text-slate-400">
+                          Sort Order
+                        </span>
+                        <input
+                          type="number"
+                          value={game.sort_order}
+                          onChange={(event) =>
+                            updateGame(
+                              game.id,
+                              "sort_order",
+                              Number(event.target.value)
+                            )
+                          }
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                        />
+                      </label>
+
+                      <label className="block md:col-span-2">
+                        <span className="mb-2 block text-sm text-slate-400">
+                          Description
+                        </span>
+                        <textarea
+                          value={game.description || ""}
+                          onChange={(event) =>
+                            updateGame(
+                              game.id,
+                              "description",
+                              event.target.value
+                            )
+                          }
+                          rows={4}
+                          className="w-full resize-none rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                        />
+                      </label>
+
+                      <label className="flex items-center gap-2 text-sm text-slate-300 md:col-span-2">
+                        <input
+                          type="checkbox"
+                          checked={game.is_active}
+                          onChange={(event) =>
+                            updateGame(
+                              game.id,
+                              "is_active",
+                              event.target.checked
+                            )
+                          }
+                          className="h-4 w-4"
+                        />
+                        Active category
+                      </label>
+                    </div>
+
+                    <div>
+                      <p className="mb-2 text-sm font-medium text-slate-300">
+                        Category Image
+                      </p>
+
+                      <div className="relative mb-3 aspect-[16/10] overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+                        {previewUrl ? (
+                          <Image
+                            src={previewUrl}
+                            alt={`${game.name} category`}
+                            fill
+                            sizes="280px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-xs text-slate-600">
+                            No image uploaded
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid gap-2">
+                        <label className="block cursor-pointer rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-center text-sm text-slate-300 transition hover:border-blue-500">
+                          {isUploading ? "Uploading..." : "Upload Image"}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={isUploading}
+                            onChange={(event) => void uploadImage(game.id, event)}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {game.image_url && (
+                          <button
+                            type="button"
+                            onClick={() => void removeImage(game)}
+                            disabled={isRemovingImage}
+                            className="rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:border-red-500 hover:text-red-300 disabled:opacity-50"
+                          >
+                            {isRemovingImage ? "Removing..." : "Remove Image"}
+                          </button>
+                        )}
+                      </div>
+
+                      <p className="mt-2 text-[11px] text-slate-600">
+                        JPG / PNG / WebP · max 8 MB
+                      </p>
+                    </div>
+                  </div>
+                </section>
+              );
+            })}
           </div>
         )}
       </div>
