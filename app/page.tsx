@@ -106,7 +106,7 @@ export default function Home() {
           .order("sort_order", { ascending: true }),
         supabase
           .from("products")
-          .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at,shopee_url")
+          .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at")
           .eq("status", "available")
           .order("created_at", { ascending: false }),
       ]);
@@ -114,12 +114,11 @@ export default function Home() {
       if (!active) return;
 
       if (gamesResult.error || productsResult.error) {
+        const productsError = Boolean(productsResult.error);
         setError(
-          toUserError(
-            gamesResult.error?.message ||
-              productsResult.error?.message ||
-              "Load failed"
-          )
+          productsError
+            ? "Something went wrong. Please try again."
+            : toUserError(gamesResult.error?.message || "Load failed")
         );
         setLoading(false);
         return;

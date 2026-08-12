@@ -52,7 +52,7 @@ function ProductsContent() {
 
       let query = supabase
         .from("products")
-        .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at,shopee_url");
+        .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at");
 
       if (gameSlug) {
         const matchedGame = (gamesResult.data || []).find(
@@ -90,7 +90,7 @@ function ProductsContent() {
       if (!active) return;
 
       if (productsResult.error) {
-        setError(toUserError(productsResult.error.message));
+        setError("Something went wrong. Please try again.");
         setLoading(false);
         return;
       }
