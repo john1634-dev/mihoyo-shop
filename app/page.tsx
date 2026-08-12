@@ -86,7 +86,8 @@ const FAQ = [
 
 export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
   const [accountCounts, setAccountCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -135,7 +136,8 @@ export default function Home() {
 
       setGames((gamesResult.data || []) as Game[]);
       setAccountCounts(counts);
-      setFeaturedProducts(products.slice(0, 8));
+      setAvailableProducts(products.slice(0, 8));
+      setRecentProducts(products.slice(0, 8));
       setLoading(false);
     }
 
@@ -151,23 +153,23 @@ export default function Home() {
       <Navbar games={games} />
 
       <section className="hero-premium hero-grid">
-        <div className="relative mx-auto w-full max-w-7xl px-4 py-16 md:px-6 md:py-28">
+        <div className="relative mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-20">
           <div className="max-w-3xl animate-fade-up">
             <p className="eyebrow">Premium game accounts</p>
 
-            <h1 className="mt-6 text-4xl font-bold leading-[1.02] tracking-tight md:text-6xl lg:text-7xl">
+            <h1 className="mt-5 text-3xl font-bold leading-[1.04] tracking-tight md:text-5xl lg:text-6xl">
               Find your next
               <span className="mt-1 block bg-gradient-to-r from-blue-300 via-blue-400 to-indigo-300 bg-clip-text text-transparent">
                 game account
               </span>
             </h1>
 
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-300 md:text-lg">
+            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-300 md:text-base">
               Premium game accounts, carefully selected and ready to play.
               Browse listings, then purchase via WhatsApp or Shopee.
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/products" className="btn-primary">
                 Browse accounts
               </Link>
@@ -185,7 +187,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-16 md:px-6 md:py-20">
+      <section id="popular-games" className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-18">
         <div>
           <h2 className="section-title">Popular games</h2>
           <p className="section-subtitle">
@@ -217,7 +219,7 @@ export default function Home() {
         )}
 
         {!loading && !error && games.length > 0 && (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
             {games.map((game) => (
               <GameCategoryCard
                 key={game.id}
@@ -230,12 +232,16 @@ export default function Home() {
       </section>
 
       <section className="border-y border-white/[0.06] bg-slate-900/25">
-        <div className="mx-auto w-full max-w-7xl px-4 py-16 md:px-6">
+        <div className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-16">
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
-              <h2 className="section-title">Featured accounts</h2>
+              <h2 className="section-title">Available accounts</h2>
               <p className="section-subtitle">
-                Hand-picked listings currently available
+                {loading
+                  ? "Loading available listings..."
+                  : `${availableProducts.length} account${
+                      availableProducts.length === 1 ? "" : "s"
+                    } available now`}
               </p>
             </div>
             <Link
@@ -246,11 +252,18 @@ export default function Home() {
             </Link>
           </div>
 
-          {!loading && featuredProducts.length === 0 ? (
-            <p className="text-slate-400">No accounts available right now.</p>
+          {!loading && availableProducts.length === 0 ? (
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-6 py-10 text-center">
+              <p className="text-base font-medium text-slate-200">
+                No accounts available right now
+              </p>
+              <p className="mt-2 text-sm text-slate-400">
+                New listings are added frequently. Check back soon or message us on WhatsApp.
+              </p>
+            </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredProducts.map((product) => (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+              {availableProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
@@ -258,7 +271,31 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-16 md:px-6">
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-16">
+        <div className="mb-8 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="section-title">Just added</h2>
+            <p className="section-subtitle">Recently listed available accounts</p>
+          </div>
+          <Link
+            href="/products?sort=newest"
+            className="text-sm text-blue-400 transition hover:text-blue-300"
+          >
+            See newest
+          </Link>
+        </div>
+        {recentProducts.length === 0 && !loading ? (
+          <p className="text-sm text-slate-400">No recent listings yet.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+            {recentProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14">
         <h2 className="section-title">Why buyers choose {SITE_NAME}</h2>
         <p className="section-subtitle">
           A straightforward way to discover and purchase game accounts
@@ -276,7 +313,7 @@ export default function Home() {
       </section>
 
       <section className="border-y border-white/[0.06] bg-slate-900/20">
-        <div className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+        <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">
           <h2 className="section-title">How it works</h2>
           <p className="section-subtitle">Four simple steps from browse to purchase</p>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -301,7 +338,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-16 md:px-6">
+      <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14">
         <div className="glass-panel p-6 md:p-8">
           <h2 className="section-title">Buy with confidence</h2>
           <p className="section-subtitle">
@@ -324,7 +361,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 pb-16 md:px-6">
+      <section className="mx-auto w-full max-w-7xl px-4 pb-14 md:px-6 md:pb-16">
         <h2 className="section-title">FAQ</h2>
         <div className="mt-6 space-y-3">
           {FAQ.map((item) => (

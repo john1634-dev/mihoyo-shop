@@ -98,7 +98,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm text-slate-300 lg:flex">
-          <Link href="/products" className="transition hover:text-white">
+          <Link href="/#popular-games" className="transition hover:text-white">
             Games
           </Link>
           <Link href="/products" className="transition hover:text-white">
@@ -185,7 +185,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
           </form>
 
           <div className="flex flex-col gap-3 text-sm text-slate-300">
-            <Link href="/products" onClick={() => setMenuOpen(false)}>
+            <Link href="/#popular-games" onClick={() => setMenuOpen(false)}>
               Games
             </Link>
             <Link href="/products" onClick={() => setMenuOpen(false)}>

@@ -165,7 +165,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </ol>
         </nav>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
+        <div className="mt-6 grid gap-6 lg:grid-cols-2 lg:gap-12">
           <ProductGallery title={product.title} images={galleryImages} />
 
           <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
@@ -238,12 +238,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </div>
 
         {related && related.length > 0 && (
-          <section className="mt-16 border-t border-white/[0.06] pt-12">
+          <section className="mt-14 border-t border-white/[0.06] pt-10">
             <h2 className="section-title">Related accounts</h2>
             <p className="section-subtitle">
               More available listings from {game?.name || "this game"}
             </p>
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
               {related.map((item) => (
                 <ProductCard
                   key={item.id}

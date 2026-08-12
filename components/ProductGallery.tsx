@@ -29,7 +29,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
 
   if (images.length === 0) {
     return (
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-800 bg-slate-900 sm:rounded-2xl">
         <ImageFallback label="No product images" />
       </div>
     );
@@ -52,7 +52,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
             priority
             sizes="(max-width: 1024px) 100vw, 50vw"
             quality={PRODUCT_IMAGE_QUALITY}
-            className="object-contain"
+            className="object-cover"
             onError={() =>
               setFailed((current) => ({ ...current, [active.id]: true }))
             }

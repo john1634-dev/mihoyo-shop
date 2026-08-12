@@ -16,18 +16,18 @@ export default function ProductCard({ product, gameName }: ProductCardProps) {
   const resolvedGame = gameName || product.games?.name || null;
 
   return (
-    <article className="card-hover group flex h-full flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-slate-900/50">
+    <article className="card-hover group flex h-full flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/60 sm:rounded-2xl">
       <Link
         href={`/product/${product.slug}`}
         className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
       >
-        <div className="relative aspect-[16/10] overflow-hidden bg-slate-800">
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-800 sm:aspect-[16/10]">
           {product.cover_image_url ? (
             <Image
               src={product.cover_image_url}
               alt={product.title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
               quality={PRODUCT_IMAGE_QUALITY}
               className="object-cover transition duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transform-none"
               loading="lazy"
@@ -43,9 +43,9 @@ export default function ProductCard({ product, gameName }: ProductCardProps) {
             aria-hidden
           />
 
-          <div className="absolute left-3 top-3">
+          <div className="absolute left-2.5 top-2.5 sm:left-3 sm:top-3">
             {isAvailable ? (
-              <span className="rounded-full bg-emerald-500/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+              <span className="rounded-full bg-emerald-500/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
                 Available
               </span>
             ) : (
@@ -61,44 +61,44 @@ export default function ProductCard({ product, gameName }: ProductCardProps) {
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
+      <div className="flex flex-1 flex-col p-3 sm:p-5">
         {resolvedGame && (
-          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-blue-400/90">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-400/90 sm:mb-1.5 sm:tracking-[0.16em]">
             {resolvedGame}
           </p>
         )}
 
         <Link href={`/product/${product.slug}`}>
-          <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-slate-100 transition group-hover:text-white sm:text-[15px]">
+          <h3 className="line-clamp-2 min-h-[2.35rem] text-[13px] font-semibold leading-snug text-slate-100 transition group-hover:text-white sm:min-h-[2.5rem] sm:text-[15px]">
             {product.title}
           </h3>
         </Link>
 
         {(product.server || product.ar_level != null) && (
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1 sm:mt-2.5 sm:gap-1.5">
             {product.server && (
-              <span className="rounded-md border border-slate-700/60 bg-slate-950/40 px-2 py-0.5 text-[11px] text-slate-400">
+              <span className="rounded-md border border-slate-700/60 bg-slate-950/40 px-1.5 py-0.5 text-[10px] text-slate-400 sm:px-2 sm:text-[11px]">
                 {product.server}
               </span>
             )}
             {product.ar_level != null && (
-              <span className="rounded-md border border-slate-700/60 bg-slate-950/40 px-2 py-0.5 text-[11px] text-slate-400">
+              <span className="rounded-md border border-slate-700/60 bg-slate-950/40 px-1.5 py-0.5 text-[10px] text-slate-400 sm:px-2 sm:text-[11px]">
                 AR {product.ar_level}
               </span>
             )}
           </div>
         )}
 
-        <div className="mt-auto space-y-3 pt-4">
-          <p className="text-2xl font-bold tracking-tight text-white">
+        <div className="mt-auto space-y-2.5 pt-3 sm:space-y-3 sm:pt-4">
+          <p className="text-lg font-bold tracking-tight text-white sm:text-2xl">
             {formatPrice(Number(product.price), product.currency)}
           </p>
 
           <Link
             href={`/product/${product.slug}`}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-950/60 py-2.5 text-sm font-medium text-slate-200 transition duration-200 ease-out hover:border-blue-500/40 hover:bg-slate-900 hover:text-white"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-950/60 px-2 py-2 text-xs font-medium text-slate-200 transition duration-200 ease-out hover:border-blue-500/40 hover:bg-slate-900 hover:text-white sm:gap-2 sm:rounded-xl sm:py-2.5 sm:text-sm"
           >
-            View account
+            View details
             <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
           </Link>
         </div>

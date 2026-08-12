@@ -16,8 +16,7 @@ export default function Footer() {
             <h3 className="text-lg font-bold tracking-tight">{SITE_NAME}</h3>
             <p className="mt-1 text-sm text-slate-400">{SITE_TAGLINE}</p>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
-              Curated game accounts with clear details. Purchase via WhatsApp or
-              Shopee.
+              Gameslot / Baitugames curated listings. Purchase via WhatsApp or Shopee.
             </p>
           </div>
 
@@ -27,18 +26,13 @@ export default function Footer() {
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm text-slate-400">
               <li>
-                <Link href="/products" className="transition hover:text-white">
+                <Link href="/#popular-games" className="transition hover:text-white">
                   Games
                 </Link>
               </li>
               <li>
                 <Link href="/products" className="transition hover:text-white">
                   Products
-                </Link>
-              </li>
-              <li>
-                <Link href="/account/wishlist" className="transition hover:text-white">
-                  Wishlist
                 </Link>
               </li>
             </ul>

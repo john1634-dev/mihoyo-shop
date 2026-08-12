@@ -48,17 +48,26 @@ export type WhatsAppProductInfo = {
 
 export function buildProductWhatsAppMessage(product: WhatsAppProductInfo): string {
   const priceLabel = formatPriceDetailed(product.price, product.currency || "MYR");
+  const productUrl =
+    product.slug && product.slug.trim()
+      ? `${SITE_URL.replace(/\/$/, "")}/product/${product.slug.trim()}`
+      : null;
 
-  return [
+  const lines = [
     "Hi, I'm interested in this account:",
     "",
     product.title.trim(),
     "",
     `Game: ${product.gameName?.trim() || "N/A"}`,
     `Price: ${priceLabel}`,
-    "",
-    "Is this account still available?",
-  ].join("\n");
+  ];
+
+  if (productUrl) {
+    lines.push("", productUrl);
+  }
+
+  lines.push("", "Can you confirm availability?");
+  return lines.join("\n");
 }
 
 export function resolveShopeeUrl(productShopeeUrl?: string | null): string {
