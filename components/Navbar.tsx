@@ -97,12 +97,18 @@ export default function Navbar({ games = [] }: NavbarProps) {
           {SITE_NAME}
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm text-slate-300 lg:flex">
+        <nav className="hidden items-center gap-6 text-sm text-slate-300 lg:flex" aria-label="Main">
+          <Link href="/" className="transition hover:text-white">
+            Home
+          </Link>
           <Link href="/#popular-games" className="transition hover:text-white">
             Games
           </Link>
           <Link href="/products" className="transition hover:text-white">
-            Products
+            Accounts
+          </Link>
+          <Link href="/#faq" className="transition hover:text-white">
+            FAQ
           </Link>
         </nav>
 
@@ -125,15 +131,14 @@ export default function Navbar({ games = [] }: NavbarProps) {
         </form>
 
         <div className="flex items-center gap-2">
-          <a
-            href={buildWhatsAppUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/15 sm:inline-flex"
-          >
-            <WhatsAppIcon className="h-4 w-4" />
-            <span className="hidden md:inline">WhatsApp</span>
-          </a>
+          {user && (
+            <Link
+              href="/account/wishlist"
+              className="hidden rounded-xl border border-white/[0.08] px-3 py-2 text-sm transition hover:border-slate-500 lg:inline-block"
+            >
+              Wishlist
+            </Link>
+          )}
 
           {user ? (
             <Link
@@ -173,9 +178,13 @@ export default function Navbar({ games = [] }: NavbarProps) {
       </div>
 
       {menuOpen && (
-        <nav className="border-t border-white/[0.06] px-4 py-4 lg:hidden">
+        <nav className="border-t border-white/[0.06] px-4 py-4 lg:hidden" aria-label="Mobile">
           <form onSubmit={handleSearch} className="mb-4">
+            <label className="sr-only" htmlFor="mobile-nav-search">
+              Search accounts
+            </label>
             <input
+              id="mobile-nav-search"
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -185,11 +194,17 @@ export default function Navbar({ games = [] }: NavbarProps) {
           </form>
 
           <div className="flex flex-col gap-3 text-sm text-slate-300">
+            <Link href="/" onClick={() => setMenuOpen(false)}>
+              Home
+            </Link>
             <Link href="/#popular-games" onClick={() => setMenuOpen(false)}>
               Games
             </Link>
             <Link href="/products" onClick={() => setMenuOpen(false)}>
-              Products
+              Accounts
+            </Link>
+            <Link href="/#faq" onClick={() => setMenuOpen(false)}>
+              FAQ
             </Link>
             {games.slice(0, 6).map((game) => (
               <Link

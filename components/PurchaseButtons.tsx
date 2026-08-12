@@ -38,7 +38,7 @@ export default function PurchaseButtons({
       <div
         className={`rounded-xl border border-slate-700/80 bg-slate-900/80 px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider text-slate-500 ${className}`}
       >
-        Sold
+        Sold out
       </div>
     );
   }
@@ -73,22 +73,22 @@ export default function PurchaseButtons({
   return (
     <div className={`${wrap} ${className}`}>
       <a
+        href={shopeeHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`btn-shopee ${pad}`}
+      >
+        <ShopeeIcon />
+        Buy on Shopee
+      </a>
+      <a
         href={whatsappHref}
         target="_blank"
         rel="noopener noreferrer"
         className={`btn-whatsapp ${pad}`}
       >
         <WhatsAppIcon />
-        Buy via WhatsApp
-      </a>
-      <a
-        href={shopeeHref}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`inline-flex items-center justify-center gap-2 rounded-xl border border-orange-500/40 bg-orange-500/10 font-semibold text-orange-100 transition duration-200 ease-out hover:border-orange-400/60 hover:bg-orange-500/15 ${pad}`}
-      >
-        <ShopeeIcon />
-        Buy on Shopee
+        Chat on WhatsApp
       </a>
     </div>
   );

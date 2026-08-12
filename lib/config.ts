@@ -1,7 +1,7 @@
-export const SITE_NAME = "Gameslot";
-export const SITE_TAGLINE = "Premium Game Account Marketplace";
+export const SITE_NAME = "Baitu Games";
+export const SITE_TAGLINE = "Premium Game Accounts";
 export const SITE_DESCRIPTION =
-  "Premium game accounts for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and more. Browse curated listings and purchase via WhatsApp or Shopee.";
+  "Browse premium game accounts for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and Wuthering Waves. Find your account and purchase through Shopee or WhatsApp.";
 
 /** Canonical production origin — used when env is missing or invalid in production builds. */
 export const PRODUCTION_SITE_URL = "https://www.baitugames.com";

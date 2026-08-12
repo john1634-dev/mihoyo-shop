@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/icons";
 
 const PRODUCT_IMAGE_QUALITY = 88;
 
@@ -26,82 +27,195 @@ function ImageFallback({ label }: { label: string }) {
 export default function ProductGallery({ title, images }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [failed, setFailed] = useState<Record<string, boolean>>({});
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const safeIndex = Math.min(activeIndex, Math.max(images.length - 1, 0));
+
+  const goTo = useCallback(
+    (index: number) => {
+      if (images.length === 0) return;
+      const next = (index + images.length) % images.length;
+      setActiveIndex(next);
+    },
+    [images.length]
+  );
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setLightboxOpen(false);
+      if (event.key === "ArrowLeft") goTo(safeIndex - 1);
+      if (event.key === "ArrowRight") goTo(safeIndex + 1);
+    }
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [lightboxOpen, goTo, safeIndex]);
 
   if (images.length === 0) {
     return (
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-slate-800 bg-slate-900 sm:rounded-2xl">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900">
         <ImageFallback label="No product images" />
       </div>
     );
   }
 
-  const safeIndex = Math.min(activeIndex, images.length - 1);
   const active = images[safeIndex];
   const showFallback = failed[active.id];
 
   return (
-    <div className="space-y-4">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
-        {showFallback ? (
-          <ImageFallback label="Image unavailable" />
-        ) : (
-          <Image
-            src={active.image_url}
-            alt={`${title} — image ${safeIndex + 1}`}
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            quality={PRODUCT_IMAGE_QUALITY}
-            className="object-cover"
-            onError={() =>
-              setFailed((current) => ({ ...current, [active.id]: true }))
-            }
-          />
+    <>
+      <div className="space-y-3 sm:space-y-4">
+        <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.6)]">
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            className="relative h-full w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            aria-label={`Open full-size image ${safeIndex + 1} of ${images.length}`}
+          >
+            {showFallback ? (
+              <ImageFallback label="Image unavailable" />
+            ) : (
+              <Image
+                src={active.image_url}
+                alt={`${title} — screenshot ${safeIndex + 1}`}
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                quality={PRODUCT_IMAGE_QUALITY}
+                className="object-cover"
+                onError={() =>
+                  setFailed((current) => ({ ...current, [active.id]: true }))
+                }
+              />
+            )}
+          </button>
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => goTo(safeIndex - 1)}
+                className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-white opacity-0 transition duration-200 hover:bg-slate-900 group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
+                aria-label="Previous image"
+              >
+                <ChevronLeftIcon />
+              </button>
+              <button
+                type="button"
+                onClick={() => goTo(safeIndex + 1)}
+                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-white opacity-0 transition duration-200 hover:bg-slate-900 group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
+                aria-label="Next image"
+              >
+                <ChevronRightIcon />
+              </button>
+            </>
+          )}
+        </div>
+
+        {images.length > 1 && (
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 sm:gap-2.5">
+            {images.map((image, index) => {
+              const isActive = index === safeIndex;
+              const thumbFailed = failed[image.id];
+
+              return (
+                <button
+                  key={image.id}
+                  type="button"
+                  onClick={() => setActiveIndex(index)}
+                  aria-label={`View image ${index + 1}`}
+                  aria-pressed={isActive}
+                  className={`relative aspect-[4/3] overflow-hidden rounded-lg border bg-slate-900 transition duration-200 ${
+                    isActive
+                      ? "border-blue-500 ring-2 ring-blue-500/30"
+                      : "border-white/[0.08] hover:border-slate-600"
+                  }`}
+                >
+                  {thumbFailed ? (
+                    <ImageFallback label="N/A" />
+                  ) : (
+                    <Image
+                      src={image.image_url}
+                      alt={`${title} thumbnail ${index + 1}`}
+                      fill
+                      sizes="120px"
+                      quality={PRODUCT_IMAGE_QUALITY}
+                      className="object-cover"
+                      loading="lazy"
+                      onError={() =>
+                        setFailed((current) => ({
+                          ...current,
+                          [image.id]: true,
+                        }))
+                      }
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-2 sm:gap-3">
-          {images.map((image, index) => {
-            const isActive = index === safeIndex;
-            const thumbFailed = failed[image.id];
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${title} image gallery`}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(false)}
+            className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-slate-900 text-white transition duration-200 hover:bg-slate-800"
+            aria-label="Close gallery"
+          >
+            <CloseIcon />
+          </button>
 
-            return (
+          {images.length > 1 && (
+            <>
               <button
-                key={image.id}
                 type="button"
-                onClick={() => setActiveIndex(index)}
-                aria-label={`View image ${index + 1}`}
-                aria-pressed={isActive}
-                className={`relative aspect-square overflow-hidden rounded-xl border bg-slate-900 transition ${
-                  isActive
-                    ? "border-blue-500 ring-2 ring-blue-500/40"
-                    : "border-slate-800 hover:border-slate-600"
-                }`}
+                onClick={() => goTo(safeIndex - 1)}
+                className="absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-900 text-white transition duration-200 hover:bg-slate-800 sm:left-6"
+                aria-label="Previous image"
               >
-                {thumbFailed ? (
-                  <ImageFallback label="N/A" />
-                ) : (
-                  <Image
-                    src={image.image_url}
-                    alt={`${title} thumbnail ${index + 1}`}
-                    fill
-                    sizes="120px"
-                    quality={PRODUCT_IMAGE_QUALITY}
-                    className="object-cover"
-                    onError={() =>
-                      setFailed((current) => ({
-                        ...current,
-                        [image.id]: true,
-                      }))
-                    }
-                  />
-                )}
+                <ChevronLeftIcon />
               </button>
-            );
-          })}
+              <button
+                type="button"
+                onClick={() => goTo(safeIndex + 1)}
+                className="absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-900 text-white transition duration-200 hover:bg-slate-800 sm:right-6"
+                aria-label="Next image"
+              >
+                <ChevronRightIcon />
+              </button>
+            </>
+          )}
+
+          <div className="relative h-[70vh] w-full max-w-5xl">
+            {!showFallback ? (
+              <Image
+                src={active.image_url}
+                alt={`${title} — full size screenshot ${safeIndex + 1}`}
+                fill
+                sizes="100vw"
+                quality={PRODUCT_IMAGE_QUALITY}
+                className="object-contain"
+              />
+            ) : (
+              <ImageFallback label="Image unavailable" />
+            )}
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

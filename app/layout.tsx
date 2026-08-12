@@ -8,6 +8,7 @@ import {
   SITE_URL,
   SITE_TAGLINE,
 } from "@/lib/config";
+import { OG_IMAGE_PATH, absoluteUrl } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,16 +30,17 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
-    "Gameslot",
-    "game account catalogue",
+    "Baitu Games",
+    "game accounts",
     "Genshin Impact account",
     "Honkai Star Rail account",
     "Zenless Zone Zero account",
     "Wuthering Waves account",
     "Malaysia game accounts",
-    "WhatsApp",
-    "Shopee",
   ],
+  alternates: {
+    canonical: SITE_URL.replace(/\/$/, "") + "/",
+  },
   openGraph: {
     type: "website",
     locale: "en_MY",
@@ -46,11 +48,13 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} | ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
+    images: [{ url: absoluteUrl(OG_IMAGE_PATH), alt: `${SITE_NAME} — ${SITE_TAGLINE}` }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE_NAME} | ${SITE_TAGLINE}`,
     description: SITE_DESCRIPTION,
+    images: [absoluteUrl(OG_IMAGE_PATH)],
   },
   robots: {
     index: true,

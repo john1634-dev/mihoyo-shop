@@ -507,7 +507,7 @@ export default function NewProductPage() {
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
               />
               <p className="mt-2 text-xs text-slate-500">
-                Leave empty to use the global Gameslot Shopee store link.
+                Leave empty to use the global Baitu Games Shopee store link.
               </p>
             </div>
           </section>

@@ -6,18 +6,49 @@ import {
   SITE_TAGLINE,
   WHATSAPP_DISPLAY,
 } from "@/lib/config";
+import { supabase } from "@/lib/supabase";
 
-export default function Footer() {
+export default async function Footer() {
+  const { data: games } = await supabase
+    .from("games")
+    .select("name, slug")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+
   return (
-    <footer className="mt-auto border-t border-white/[0.06] bg-slate-950">
-      <div className="mx-auto max-w-7xl px-4 py-14 md:px-6">
+    <footer className="mt-auto border-t border-white/[0.06] bg-gradient-to-b from-slate-950 to-[#020617]">
+      <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <h3 className="text-lg font-bold tracking-tight">{SITE_NAME}</h3>
             <p className="mt-1 text-sm text-slate-400">{SITE_TAGLINE}</p>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
-              Gameslot / Baitugames curated listings. Purchase via WhatsApp or Shopee.
+              Premium game account listings for popular titles. Purchase via
+              WhatsApp or Shopee.
             </p>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+              Games
+            </h4>
+            <ul className="mt-4 space-y-2.5 text-sm text-slate-400">
+              <li>
+                <Link href="/#popular-games" className="transition duration-200 hover:text-white">
+                  All games
+                </Link>
+              </li>
+              {(games || []).map((game) => (
+                <li key={game.slug}>
+                  <Link
+                    href={`/products?game=${game.slug}`}
+                    className="transition duration-200 hover:text-white"
+                  >
+                    {game.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div>
@@ -26,13 +57,28 @@ export default function Footer() {
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm text-slate-400">
               <li>
-                <Link href="/#popular-games" className="transition hover:text-white">
-                  Games
+                <Link href="/" className="transition hover:text-white">
+                  Home
                 </Link>
               </li>
               <li>
                 <Link href="/products" className="transition hover:text-white">
-                  Products
+                  Accounts
+                </Link>
+              </li>
+              <li>
+                <Link href="/#faq" className="transition hover:text-white">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/terms" className="transition hover:text-white">
+                  Terms
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/privacy" className="transition hover:text-white">
+                  Privacy
                 </Link>
               </li>
             </ul>
@@ -40,7 +86,7 @@ export default function Footer() {
 
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Contact
+              Support
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
@@ -60,30 +106,12 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="text-orange-300 transition hover:text-orange-200"
                 >
-                  Shopee Store
+                  Shopee store
                 </a>
               </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Legal
-            </h4>
-            <ul className="mt-4 space-y-2.5 text-sm text-slate-400">
               <li>
-                <Link href="/legal/terms" className="transition hover:text-white">
-                  Terms
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/privacy" className="transition hover:text-white">
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/refund" className="transition hover:text-white">
-                  Refund
+                <Link href="/legal/refund" className="text-slate-400 transition hover:text-white">
+                  Refund policy
                 </Link>
               </li>
             </ul>

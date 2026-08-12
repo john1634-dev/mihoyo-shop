@@ -18,25 +18,23 @@ export default function ProductPurchaseBar({
   if (!available) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-slate-950/95 p-3 backdrop-blur-xl lg:hidden">
-      <div className="mx-auto flex max-w-lg items-center gap-3 pb-[env(safe-area-inset-bottom,0px)]">
-        <div className="min-w-0 shrink-0">
-          <p className="text-[10px] uppercase tracking-wide text-slate-500">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-slate-950/95 backdrop-blur-xl lg:hidden">
+      <div className="mx-auto max-w-lg px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
             Price
           </p>
-          <p className="text-lg font-bold leading-none">
+          <p className="text-xl font-bold leading-none text-white">
             {formatPrice(Number(product.price), product.currency)}
           </p>
         </div>
-        <div className="min-w-0 flex-1">
-          <PurchaseButtons
-            product={product}
-            gameName={gameName}
-            available
-            layout="row"
-            size="sm"
-          />
-        </div>
+        <PurchaseButtons
+          product={product}
+          gameName={gameName}
+          available
+          layout="stack"
+          size="sm"
+        />
       </div>
     </div>
   );

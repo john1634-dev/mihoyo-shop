@@ -1,10 +1,29 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatPrice } from "@/lib/config";
+import { getProductBadges, type ProductBadge } from "@/lib/products-public";
 import { ArrowRightIcon } from "@/components/icons";
 import type { Product } from "@/lib/types";
 
 const PRODUCT_IMAGE_QUALITY = 88;
+
+const BADGE_STYLES: Record<ProductBadge, string> = {
+  NEW: "bg-blue-600/90 text-white",
+  SOLD_OUT: "bg-slate-950/90 text-slate-300",
+};
+
+function accountSummaryLine(product: Product): string | null {
+  const parts: string[] = [];
+  if (product.ar_level != null) parts.push(`AR ${product.ar_level}`);
+  if (product.server?.trim()) parts.push(product.server.trim());
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function descriptionPreview(description: string | null | undefined): string | null {
+  const line = description?.trim().split("\n").find(Boolean);
+  if (!line) return null;
+  return line.length > 72 ? `${line.slice(0, 69)}…` : line;
+}
 
 type ProductCardProps = {
   product: Product & { games?: { name?: string; slug?: string } | null };
@@ -14,22 +33,26 @@ type ProductCardProps = {
 export default function ProductCard({ product, gameName }: ProductCardProps) {
   const isAvailable = product.status === "available";
   const resolvedGame = gameName || product.games?.name || null;
+  const badges = getProductBadges(product);
+  const summary = accountSummaryLine(product);
+  const preview = descriptionPreview(product.description);
+  const productHref = `/product/${product.slug}`;
 
   return (
-    <article className="card-hover group flex h-full flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-slate-900/60 sm:rounded-2xl">
+    <article className="product-card group flex h-full flex-col">
       <Link
-        href={`/product/${product.slug}`}
-        className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+        href={productHref}
+        className="relative block overflow-hidden rounded-t-xl border border-b-0 border-white/[0.08] bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 sm:rounded-t-2xl"
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-slate-800 sm:aspect-[16/10]">
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-800">
           {product.cover_image_url ? (
             <Image
               src={product.cover_image_url}
-              alt={product.title}
+              alt={`${product.title}${resolvedGame ? ` — ${resolvedGame}` : ""}`}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
               quality={PRODUCT_IMAGE_QUALITY}
-              className="object-cover transition duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transform-none"
+              className="object-cover transition duration-200 ease-out group-hover:scale-[1.02] motion-reduce:transform-none"
               loading="lazy"
             />
           ) : (
@@ -39,67 +62,63 @@ export default function ProductCard({ product, gameName }: ProductCardProps) {
           )}
 
           <div
-            className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-80"
+            className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/15 to-transparent"
             aria-hidden
           />
 
-          <div className="absolute left-2.5 top-2.5 sm:left-3 sm:top-3">
-            {isAvailable ? (
-              <span className="rounded-full bg-emerald-500/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
-                Available
+          <div className="absolute left-2.5 top-2.5 flex flex-wrap gap-1 sm:left-3 sm:top-3">
+            {badges.map((badge) => (
+              <span
+                key={badge}
+                className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${BADGE_STYLES[badge]}`}
+              >
+                {badge === "SOLD_OUT" ? "Sold Out" : badge}
               </span>
-            ) : (
-              <span className="rounded-full bg-slate-900/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-300 backdrop-blur-sm">
-                Sold
-              </span>
-            )}
+            ))}
           </div>
 
           {!isAvailable && (
-            <div className="absolute inset-0 bg-slate-950/45" aria-hidden />
+            <div className="absolute inset-0 bg-slate-950/50" aria-hidden />
           )}
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-3 sm:p-5">
+      <div className="flex flex-1 flex-col rounded-b-xl border border-white/[0.08] border-t-0 bg-slate-900/50 p-3 sm:rounded-b-2xl sm:p-4">
         {resolvedGame && (
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-400/90 sm:mb-1.5 sm:tracking-[0.16em]">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-[11px]">
             {resolvedGame}
           </p>
         )}
 
-        <Link href={`/product/${product.slug}`}>
-          <h3 className="line-clamp-2 min-h-[2.35rem] text-[13px] font-semibold leading-snug text-slate-100 transition group-hover:text-white sm:min-h-[2.5rem] sm:text-[15px]">
+        <Link href={productHref} className="mt-1 block">
+          <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-slate-100 transition duration-200 group-hover:text-white sm:text-[15px]">
             {product.title}
           </h3>
         </Link>
 
-        {(product.server || product.ar_level != null) && (
-          <div className="mt-2 flex flex-wrap gap-1 sm:mt-2.5 sm:gap-1.5">
-            {product.server && (
-              <span className="rounded-md border border-slate-700/60 bg-slate-950/40 px-1.5 py-0.5 text-[10px] text-slate-400 sm:px-2 sm:text-[11px]">
-                {product.server}
-              </span>
-            )}
-            {product.ar_level != null && (
-              <span className="rounded-md border border-slate-700/60 bg-slate-950/40 px-1.5 py-0.5 text-[10px] text-slate-400 sm:px-2 sm:text-[11px]">
-                AR {product.ar_level}
-              </span>
-            )}
-          </div>
+        {summary && (
+          <p className="mt-2 text-[11px] font-medium text-slate-400 sm:text-xs">
+            {summary}
+          </p>
         )}
 
-        <div className="mt-auto space-y-2.5 pt-3 sm:space-y-3 sm:pt-4">
-          <p className="text-lg font-bold tracking-tight text-white sm:text-2xl">
+        {preview && (
+          <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-slate-500 sm:text-xs">
+            {preview}
+          </p>
+        )}
+
+        <div className="mt-auto pt-3 sm:pt-4">
+          <p className="text-xl font-bold tracking-tight text-white sm:text-2xl">
             {formatPrice(Number(product.price), product.currency)}
           </p>
 
           <Link
-            href={`/product/${product.slug}`}
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-950/60 px-2 py-2 text-xs font-medium text-slate-200 transition duration-200 ease-out hover:border-blue-500/40 hover:bg-slate-900 hover:text-white sm:gap-2 sm:rounded-xl sm:py-2.5 sm:text-sm"
+            href={productHref}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 transition duration-200 hover:text-blue-300 sm:text-sm"
           >
-            View details
-            <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
+            View Account
+            <ArrowRightIcon className="h-3.5 w-3.5 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none sm:h-4 sm:w-4" />
           </Link>
         </div>
       </div>

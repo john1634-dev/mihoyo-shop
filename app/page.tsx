@@ -1,18 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import GameCategoryCard from "@/components/GameCategoryCard";
+import HeroVisual from "@/components/HeroVisual";
+import TrustBar from "@/components/TrustBar";
+import { ProductGridSkeleton } from "@/components/ProductCardSkeleton";
 import { WhatsAppIcon } from "@/components/icons";
 import {
   SITE_NAME,
   buildWhatsAppUrl,
   SHOPEE_STORE_URL,
 } from "@/lib/config";
+import {
+  PUBLIC_PRODUCT_SELECT,
+  getJustAddedProducts,
+  getRecommendedProductIds,
+  getRecommendedProducts,
+} from "@/lib/products-public";
 import { toUserError } from "@/lib/errors";
 import type { Game, Product } from "@/lib/types";
 
@@ -49,26 +58,19 @@ const HOW_IT_WORKS = [
   {
     step: "03",
     title: "Chat with us",
-    body: "Tap Buy via WhatsApp with a ready-made message, or ask questions first.",
+    body: "Tap Buy on Shopee or Chat on WhatsApp with a ready-made message.",
   },
   {
     step: "04",
     title: "Purchase",
-    body: "Complete your purchase off-site via WhatsApp or Shopee.",
+    body: "Complete your purchase off-site via Shopee or WhatsApp.",
   },
-];
-
-const TRUST = [
-  "Clear account information before you buy",
-  "Direct WhatsApp support",
-  "Shopee purchase option",
-  "Secure off-site communication",
 ];
 
 const FAQ = [
   {
     q: "How do I buy an account?",
-    a: "Open an available listing and choose Buy via WhatsApp or Buy on Shopee. This website does not process payments.",
+    a: "Open an available listing and choose Buy on Shopee or Chat on WhatsApp. This website does not process payments.",
   },
   {
     q: "Can I buy through Shopee?",
@@ -84,10 +86,47 @@ const FAQ = [
   },
 ];
 
+function ProductSection({
+  title,
+  subtitle,
+  products,
+  viewAllHref,
+  viewAllLabel,
+}: {
+  title: string;
+  subtitle: string;
+  products: Product[];
+  viewAllHref: string;
+  viewAllLabel: string;
+}) {
+  if (products.length === 0) return null;
+
+  return (
+    <section className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-16">
+      <div className="mb-8 flex items-end justify-between gap-4">
+        <div>
+          <h2 className="section-title">{title}</h2>
+          <p className="section-subtitle">{subtitle}</p>
+        </div>
+        <Link
+          href={viewAllHref}
+          className="shrink-0 text-sm text-blue-400 transition hover:text-blue-300"
+        >
+          {viewAllLabel}
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
-  const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
-  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [accountCounts, setAccountCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -107,7 +146,7 @@ export default function Home() {
           .order("sort_order", { ascending: true }),
         supabase
           .from("products")
-          .select("id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at")
+          .select(PUBLIC_PRODUCT_SELECT)
           .eq("status", "available")
           .order("created_at", { ascending: false }),
       ]);
@@ -125,10 +164,10 @@ export default function Home() {
         return;
       }
 
-      const products = (productsResult.data || []) as Product[];
+      const loadedProducts = (productsResult.data || []) as Product[];
       const counts: Record<string, number> = {};
 
-      for (const product of products) {
+      for (const product of loadedProducts) {
         if (product.game_id) {
           counts[product.game_id] = (counts[product.game_id] || 0) + 1;
         }
@@ -136,8 +175,7 @@ export default function Home() {
 
       setGames((gamesResult.data || []) as Game[]);
       setAccountCounts(counts);
-      setAvailableProducts(products.slice(0, 8));
-      setRecentProducts(products.slice(0, 8));
+      setProducts(loadedProducts);
       setLoading(false);
     }
 
@@ -148,46 +186,56 @@ export default function Home() {
     };
   }, []);
 
+  const recommendedProducts = useMemo(
+    () => getRecommendedProducts(products),
+    [products]
+  );
+  const recommendedIds = useMemo(
+    () => getRecommendedProductIds(products),
+    [products]
+  );
+  const justAddedProducts = useMemo(() => {
+    const deduped = getJustAddedProducts(products, recommendedIds);
+    if (deduped.length > 0) return deduped;
+    return getJustAddedProducts(products);
+  }, [products, recommendedIds]);
+
   return (
     <main className="flex min-h-screen flex-col bg-slate-950 text-white">
       <Navbar games={games} />
 
-      <section className="hero-premium hero-grid">
-        <div className="relative mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-20">
-          <div className="max-w-3xl animate-fade-up">
-            <p className="eyebrow">Premium game accounts</p>
+      <section className="hero-premium hero-split">
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center gap-10 px-4 py-10 md:px-6 md:py-14 lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:py-16">
+          <div className="w-full max-w-xl animate-fade-up lg:max-w-lg">
+            <p className="hero-badge">Baitu Games</p>
 
-            <h1 className="mt-5 text-3xl font-bold leading-[1.04] tracking-tight md:text-5xl lg:text-6xl">
-              Find your next
-              <span className="mt-1 block bg-gradient-to-r from-blue-300 via-blue-400 to-indigo-300 bg-clip-text text-transparent">
-                game account
-              </span>
-            </h1>
+            <h1 className="hero-title mt-4">Premium Game Accounts</h1>
 
-            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-300 md:text-base">
-              Premium game accounts, carefully selected and ready to play.
-              Browse listings, then purchase via WhatsApp or Shopee.
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-400 md:text-base">
+              Find premium game accounts at competitive prices.
             </p>
 
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/products" className="btn-primary">
-                Browse accounts
+                Browse Accounts
               </Link>
-              <a
-                href={buildWhatsAppUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-whatsapp"
-              >
-                <WhatsAppIcon />
-                Chat on WhatsApp
-              </a>
+              <Link href="/#popular-games" className="btn-secondary">
+                Explore Games
+              </Link>
             </div>
           </div>
+
+          {!loading && (games.length > 0 || products.length > 0) && (
+            <div className="w-full max-w-md lg:max-w-xl lg:flex-shrink-0">
+              <HeroVisual games={games} products={products} />
+            </div>
+          )}
         </div>
       </section>
 
-      <section id="popular-games" className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-18">
+      <TrustBar />
+
+      <section id="popular-games" className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-16">
         <div>
           <h2 className="section-title">Popular games</h2>
           <p className="section-subtitle">
@@ -195,18 +243,7 @@ export default function Home() {
           </p>
         </div>
 
-        {loading && (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className="animate-pulse rounded-2xl border border-white/[0.06] bg-slate-900"
-              >
-                <div className="aspect-[16/10] bg-slate-800" />
-              </div>
-            ))}
-          </div>
-        )}
+        {loading && <div className="mt-8"><ProductGridSkeleton count={4} /></div>}
 
         {error && (
           <p className="mt-8 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -231,72 +268,34 @@ export default function Home() {
         )}
       </section>
 
-      <section className="border-y border-white/[0.06] bg-slate-900/25">
-        <div className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-16">
-          <div className="mb-8 flex items-end justify-between gap-4">
-            <div>
-              <h2 className="section-title">Available accounts</h2>
-              <p className="section-subtitle">
-                {loading
-                  ? "Loading available listings..."
-                  : `${availableProducts.length} account${
-                      availableProducts.length === 1 ? "" : "s"
-                    } available now`}
-              </p>
-            </div>
-            <Link
-              href="/products"
-              className="text-sm text-blue-400 transition hover:text-blue-300"
-            >
-              View all
-            </Link>
-          </div>
-
-          {!loading && availableProducts.length === 0 ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-6 py-10 text-center">
-              <p className="text-base font-medium text-slate-200">
-                No accounts available right now
-              </p>
-              <p className="mt-2 text-sm text-slate-400">
-                New listings are added frequently. Check back soon or message us on WhatsApp.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
-              {availableProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+      {loading ? (
+        <div className="mx-auto w-full max-w-7xl px-4 pb-14 md:px-6">
+          <ProductGridSkeleton />
         </div>
-      </section>
+      ) : (
+        <>
+          <ProductSection
+            title="Recommended accounts"
+            subtitle="Available listings with the most complete details"
+            products={recommendedProducts}
+            viewAllHref="/products"
+            viewAllLabel="View all"
+          />
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-16">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="section-title">Just added</h2>
-            <p className="section-subtitle">Recently listed available accounts</p>
-          </div>
-          <Link
-            href="/products?sort=newest"
-            className="text-sm text-blue-400 transition hover:text-blue-300"
-          >
-            See newest
-          </Link>
-        </div>
-        {recentProducts.length === 0 && !loading ? (
-          <p className="text-sm text-slate-400">No recent listings yet.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
-            {recentProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-      </section>
+          <section className="border-y border-white/[0.06] bg-slate-900/25">
+            <ProductSection
+              title="Just added"
+              subtitle="Newest available accounts in our catalogue"
+              products={justAddedProducts}
+              viewAllHref="/products?sort=newest"
+              viewAllLabel="See newest"
+            />
+          </section>
+        </>
+      )}
 
       <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14">
-        <h2 className="section-title">Why buyers choose {SITE_NAME}</h2>
+        <h2 className="section-title">Why choose {SITE_NAME}</h2>
         <p className="section-subtitle">
           A straightforward way to discover and purchase game accounts
         </p>
@@ -314,7 +313,7 @@ export default function Home() {
 
       <section className="border-y border-white/[0.06] bg-slate-900/20">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">
-          <h2 className="section-title">How it works</h2>
+          <h2 className="section-title">How to buy</h2>
           <p className="section-subtitle">Four simple steps from browse to purchase</p>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {HOW_IT_WORKS.map((item, index) => (
@@ -338,30 +337,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14">
-        <div className="glass-panel p-6 md:p-8">
-          <h2 className="section-title">Buy with confidence</h2>
-          <p className="section-subtitle">
-            Transparent listings and direct support — no website checkout required
-          </p>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {TRUST.map((item) => (
-              <li
-                key={item}
-                className="flex items-start gap-2 text-sm text-slate-300"
-              >
-                <span
-                  className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400"
-                  aria-hidden
-                />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="mx-auto w-full max-w-7xl px-4 pb-14 md:px-6 md:pb-16">
+      <section id="faq" className="mx-auto w-full max-w-7xl px-4 pb-14 md:px-6 md:pb-16">
         <h2 className="section-title">FAQ</h2>
         <div className="mt-6 space-y-3">
           {FAQ.map((item) => (
