@@ -28,6 +28,8 @@ export type Product = {
   cover_image_url: string | null;
   game_id: string | null;
   created_at?: string;
+  /** Optional product-specific Shopee listing URL */
+  shopee_url?: string | null;
   /** Admin-only fields */
   supplier_cost?: number | null;
   supplier_name?: string | null;
@@ -45,15 +47,6 @@ export type ProductImage = {
   image_url: string;
   image_path: string;
   sort_order: number;
-};
-
-export type CartItem = {
-  id: string;
-  title: string;
-  price: number;
-  currency: string;
-  image: string;
-  quantity: number;
 };
 
 export type Order = {

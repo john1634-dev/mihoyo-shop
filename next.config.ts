@@ -24,6 +24,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/cart", destination: "/products", permanent: false },
+      { source: "/checkout", destination: "/products", permanent: false },
+      { source: "/orders/success", destination: "/products", permanent: false },
+      { source: "/api/stripe/:path*", destination: "/products", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

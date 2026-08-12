@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SITE_NAME } from "@/lib/config";
+import { SITE_NAME, buildWhatsAppUrl } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Refund Policy",
@@ -18,17 +18,22 @@ export default function RefundPage() {
         <p className="mt-2 text-sm text-slate-500">Last updated: 2026</p>
         <div className="mt-8 space-y-4 text-sm leading-relaxed text-slate-300">
           <p>
-            Because account goods are unique and delivered digitally, refunds
-            are evaluated case by case after payment confirmation.
+            Because game accounts are unique digital goods, refunds are handled
+            case by case on the channel where you purchased (WhatsApp or Shopee).
           </p>
           <p>
-            If an account cannot be delivered as described, contact support
-            promptly with your order number. Do not attempt to change credentials
-            or transfer the account before support has reviewed the case.
+            Contact us promptly with your listing details if an account cannot
+            be delivered as described.
           </p>
           <p>
-            Chargebacks for successfully delivered accounts may result in
-            account access being revoked and future purchases being blocked.
+            <a
+              href={buildWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:text-emerald-300"
+            >
+              Contact support on WhatsApp
+            </a>
           </p>
         </div>
       </div>

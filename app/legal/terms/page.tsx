@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SITE_NAME } from "@/lib/config";
+import { SITE_NAME, WHATSAPP_DISPLAY, buildWhatsAppUrl } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -18,23 +18,27 @@ export default function TermsPage() {
         <p className="mt-2 text-sm text-slate-500">Last updated: 2026</p>
         <div className="mt-8 space-y-4 text-sm leading-relaxed text-slate-300">
           <p>
-            By browsing or purchasing from {SITE_NAME}, you agree to use the
-            storefront for lawful purposes and to provide accurate checkout
-            information.
+            By browsing {SITE_NAME}, you agree to use the catalogue for lawful
+            purposes. Listings show public account information for browsing and
+            enquiry.
           </p>
           <p>
-            Game accounts are unique digital goods. Availability is not
-            guaranteed until payment is confirmed by our payment provider and
-            the order is marked paid by our server.
+            Purchases are completed off-site via WhatsApp ({WHATSAPP_DISPLAY}) or
+            our Shopee store. This website does not process card payments or
+            online checkout.
           </p>
           <p>
-            Delivery is handled manually after successful payment. Login
-            credentials and handoff details are shared through the contact
-            channel confirmed at checkout.
+            Availability can change. Always confirm stock when you contact us.
           </p>
           <p>
-            We may refuse or cancel orders that appear fraudulent, duplicated,
-            or in violation of game-publisher policies.
+            <a
+              href={buildWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-400 hover:text-emerald-300"
+            >
+              Contact us on WhatsApp
+            </a>
           </p>
         </div>
       </div>

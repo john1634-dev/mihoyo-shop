@@ -18,21 +18,16 @@ export default function PrivacyPage() {
         <p className="mt-2 text-sm text-slate-500">Last updated: 2026</p>
         <div className="mt-8 space-y-4 text-sm leading-relaxed text-slate-300">
           <p>
-            We collect information needed to process orders: name, email,
-            WhatsApp number, and account identifiers if you register.
+            If you create an account, we store authentication and profile data
+            needed for wishlist, reviews, and order history viewing.
           </p>
           <p>
-            Payment card details are processed by Stripe. We do not store full
-            card numbers on our servers.
+            Purchase conversations on WhatsApp or Shopee are handled on those
+            platforms under their own policies.
           </p>
           <p>
-            Order and authentication data is stored in Supabase. Access is
-            controlled with row-level security and server-side authorization
-            checks.
-          </p>
-          <p>
-            We do not sell personal data. Contact us via the storefront support
-            channel if you need an account-related data request.
+            Catalogue and authentication data is stored in Supabase with
+            row-level security and server-side admin checks.
           </p>
         </div>
       </div>

@@ -1,35 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { getCartCount, loadCart } from "@/lib/cart";
-import { SITE_NAME } from "@/lib/config";
+import {
+  SITE_NAME,
+  buildWhatsAppUrl,
+  WHATSAPP_DISPLAY,
+} from "@/lib/config";
 import { supabase } from "@/lib/supabase";
 
 type NavbarProps = {
   games?: { id: string; name: string; slug: string }[];
 };
 
-function subscribe(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener("cart-updated", onStoreChange);
-  return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener("cart-updated", onStoreChange);
-  };
-}
-
-function getSnapshot() {
-  return getCartCount(loadCart());
-}
-
-function getServerSnapshot() {
-  return 0;
-}
-
 export default function Navbar({ games = [] }: NavbarProps) {
-  const cartCount = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -94,7 +79,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
             Home
           </Link>
           <Link href="/products" className="transition hover:text-white">
-            Products
+            Accounts
           </Link>
           {desktopGames.map((game) => (
             <Link
@@ -114,18 +99,15 @@ export default function Navbar({ games = [] }: NavbarProps) {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-2.5">
-          <Link
-            href="/cart"
-            className="relative rounded-lg border border-slate-700 px-3 py-2 text-sm transition hover:border-blue-500"
-            aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"}
+          <a
+            href={buildWhatsAppUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium transition hover:bg-emerald-500 sm:inline-block"
+            title={WHATSAPP_DISPLAY}
           >
-            Cart
-            {cartCount > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1 text-xs font-bold">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+            WhatsApp Us
+          </a>
 
           {user ? (
             <Link
@@ -137,7 +119,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
           ) : (
             <Link
               href="/login"
-              className="hidden rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium transition hover:bg-blue-500 sm:inline-block"
+              className="hidden rounded-lg border border-slate-700 px-3 py-2 text-sm transition hover:border-blue-500 sm:inline-block"
             >
               Login
             </Link>
@@ -171,7 +153,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
               Home
             </Link>
             <Link href="/products" onClick={() => setMenuOpen(false)}>
-              Products
+              Accounts
             </Link>
             {games.map((game) => (
               <Link
@@ -202,6 +184,14 @@ export default function Navbar({ games = [] }: NavbarProps) {
                 </Link>
               </>
             )}
+            <a
+              href={buildWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMenuOpen(false)}
+            >
+              WhatsApp Us
+            </a>
             {isAdmin && (
               <Link href="/admin" onClick={() => setMenuOpen(false)}>
                 Admin

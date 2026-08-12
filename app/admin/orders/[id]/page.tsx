@@ -317,16 +317,17 @@ export default function OrderDetailPage() {
               <div>
                 <div className="text-xs text-slate-500">Payment Method</div>
                 <div className="mt-1">
-                  {order.payment_method === "stripe_fpx" ||
-                  order.payment_method === "stripe"
-                    ? "Stripe Checkout"
-                    : order.payment_method || "-"}
+                  {order.payment_method?.startsWith("stripe")
+                    ? "Legacy online payment"
+                    : order.payment_method || "Manual / off-site"}
                 </div>
               </div>
               <div>
-                <div className="text-xs text-slate-500">Payment Provider</div>
+                <div className="text-xs text-slate-500">Payment Channel</div>
                 <div className="mt-1">
-                  {order.payment_method?.startsWith("stripe") ? "Stripe" : "-"}
+                  {order.payment_method?.startsWith("stripe")
+                    ? "Historical (website payment removed)"
+                    : "WhatsApp / Shopee / Manual"}
                 </div>
               </div>
               <div>
@@ -334,13 +335,13 @@ export default function OrderDetailPage() {
                 <div className="mt-1 capitalize">{order.payment_status || "pending"}</div>
               </div>
               <div>
-                <div className="text-xs text-slate-500">Stripe Checkout Session ID</div>
+                <div className="text-xs text-slate-500">Legacy Session ID</div>
                 <div className="mt-1 break-all font-mono text-xs text-slate-400">
                   {order.stripe_checkout_session_id || "-"}
                 </div>
               </div>
               <div>
-                <div className="text-xs text-slate-500">Stripe Payment Intent ID</div>
+                <div className="text-xs text-slate-500">Legacy Payment Intent ID</div>
                 <div className="mt-1 break-all font-mono text-xs text-slate-400">
                   {order.stripe_payment_intent_id || "-"}
                 </div>

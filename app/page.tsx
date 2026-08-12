@@ -8,63 +8,69 @@ import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/config";
+import {
+  SITE_NAME,
+  SITE_TAGLINE,
+  buildWhatsAppUrl,
+  SHOPEE_STORE_URL,
+  WHATSAPP_DISPLAY,
+} from "@/lib/config";
 import { toUserError } from "@/lib/errors";
 import type { Game, Product } from "@/lib/types";
 
 const HOW_IT_WORKS = [
   {
     step: "01",
-    title: "Browse verified listings",
-    body: "Filter by game, server, and price. Every listing shows availability before checkout.",
+    title: "Browse",
+    body: "Find an available account you like across our featured games.",
   },
   {
     step: "02",
-    title: "Pay securely with FPX",
-    body: "Checkout creates a pending order. Stripe confirms payment before fulfillment starts.",
+    title: "Contact",
+    body: "Message us on WhatsApp with the product details, or open our Shopee store.",
   },
   {
     step: "03",
-    title: "Receive account handoff",
-    body: "After payment is confirmed, we deliver credentials through the contact channel you provided.",
+    title: "Purchase",
+    body: "Complete the purchase through WhatsApp or Shopee — your chosen channel.",
   },
 ];
 
 const TRUST_POINTS = [
   {
-    title: "Server-priced checkout",
-    body: "Final amounts are calculated from the database — not from cart values in your browser.",
+    title: "Clear account listings",
+    body: "Screenshots, price, server, and availability are shown before you contact us.",
   },
   {
-    title: "One account, one buyer",
-    body: "Each listing can only be reserved once. Sold accounts cannot be purchased again.",
+    title: "Direct WhatsApp support",
+    body: "Ask about stock, details, and delivery on WhatsApp with a pre-filled product message.",
   },
   {
-    title: "Webhook-confirmed payment",
-    body: "Visiting the success page never marks an order paid. Only Stripe verification does.",
+    title: "Shopee store option",
+    body: "Prefer marketplace checkout? Open our Shopee store and continue there.",
   },
   {
-    title: "Manual after-sales support",
-    body: "Delivery and warranty follow store policy. Contact support with your order number if needed.",
+    title: "Manual fulfilment",
+    body: "After you purchase via WhatsApp or Shopee, we hand over the account through the agreed channel.",
   },
 ];
 
 const FAQ = [
   {
-    q: "When do I receive the account?",
-    a: "After Stripe confirms payment, we fulfill manually. You will be contacted using the WhatsApp or email provided at checkout.",
+    q: "How do I buy an account?",
+    a: "Open an available listing, then choose Buy via WhatsApp or Buy via Shopee. This website does not process card payments.",
   },
   {
-    q: "Can two people buy the same account?",
-    a: "No. Inventory is reserved atomically during order creation. If an account is already sold, checkout will fail.",
+    q: "What happens after I message on WhatsApp?",
+    a: "We confirm availability and guide you through the purchase and account handoff on WhatsApp.",
   },
   {
-    q: "Do I need an account to buy?",
-    a: "Guests can checkout with email and WhatsApp. Creating an account helps you track orders and wishlist items.",
+    q: "Can I buy on Shopee instead?",
+    a: "Yes. Use Buy via Shopee to open our store. If a listing has a specific Shopee link, that link is used.",
   },
   {
-    q: "What payment methods are supported?",
-    a: "Malaysia FPX via Stripe Checkout. Card data is handled by Stripe — we never store full card numbers.",
+    q: "Why do some accounts say Sold Out?",
+    a: "Those listings are no longer available. You can still view details, but purchase buttons are hidden.",
   },
 ];
 
@@ -104,7 +110,9 @@ export default function Home() {
       if (gamesResult.error || productsResult.error) {
         setError(
           toUserError(
-            gamesResult.error?.message || productsResult.error?.message || "Load failed"
+            gamesResult.error?.message ||
+              productsResult.error?.message ||
+              "Load failed"
           )
         );
         setLoading(false);
@@ -115,7 +123,9 @@ export default function Home() {
       setGames(gamesResult.data || []);
       setFeaturedProducts(products.slice(0, 4));
       setHotProducts(
-        [...products].sort((a, b) => Number(b.price) - Number(a.price)).slice(0, 4)
+        [...products]
+          .sort((a, b) => Number(b.price) - Number(a.price))
+          .slice(0, 4)
       );
       setLatestProducts(products.slice(0, 8));
       setLoading(false);
@@ -146,14 +156,14 @@ export default function Home() {
               {SITE_NAME}
             </p>
             <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-              {SITE_NAME}
+              Find Your Next Game Account
             </h1>
-            <p className="mt-3 text-xl text-slate-200 md:text-2xl">
-              Premium game accounts for Malaysia
+            <p className="mt-4 text-lg text-slate-300 md:text-xl">
+              Browse verified game accounts and choose the one that fits you.
             </p>
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-400 md:text-lg">
-              {SITE_TAGLINE}. Browse verified Genshin Impact, Honkai: Star Rail,
-              Zenless Zone Zero and Wuthering Waves listings with secure FPX checkout.
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-400">
+              {SITE_TAGLINE}. View screenshots and details, then buy via WhatsApp
+              or our Shopee store.
             </p>
 
             <form
@@ -180,20 +190,28 @@ export default function Home() {
               </button>
             </form>
 
-            <div className="mt-6 flex flex-wrap gap-4 text-sm">
-              <Link href="/products" className="text-blue-400 hover:text-blue-300">
-                Browse all accounts →
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/products"
+                className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold transition hover:bg-blue-500"
+              >
+                Browse Accounts
               </Link>
-              <Link href="/cart" className="text-slate-400 hover:text-white">
-                View cart
-              </Link>
+              <a
+                href={buildWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold transition hover:bg-emerald-500"
+              >
+                Chat on WhatsApp
+              </a>
             </div>
           </div>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 py-16 md:px-6 md:py-20">
-        <h2 className="text-2xl font-bold">Featured Games</h2>
+        <h2 className="text-2xl font-bold">Browse by Game</h2>
         <p className="mt-2 text-sm text-slate-400">
           Choose a title to browse available accounts
         </p>
@@ -264,12 +282,15 @@ export default function Home() {
       <section className="mx-auto w-full max-w-7xl px-4 pb-16 md:px-6">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold">Popular Accounts</h2>
+            <h2 className="text-2xl font-bold">Featured Accounts</h2>
             <p className="mt-2 text-sm text-slate-400">
               Highlighted listings currently available
             </p>
           </div>
-          <Link href="/products" className="shrink-0 text-sm text-blue-400 hover:text-blue-300">
+          <Link
+            href="/products"
+            className="shrink-0 text-sm text-blue-400 hover:text-blue-300"
+          >
             View all
           </Link>
         </div>
@@ -285,9 +306,9 @@ export default function Home() {
       </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 pb-16 md:px-6">
-        <h2 className="text-2xl font-bold">Best Value Highlights</h2>
+        <h2 className="text-2xl font-bold">Hot Accounts</h2>
         <p className="mt-2 text-sm text-slate-400">
-          Higher-priced available listings often include stronger builds
+          Higher-priced available listings
         </p>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {hotProducts.map((product) => (
@@ -297,8 +318,8 @@ export default function Home() {
       </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 pb-16 md:px-6">
-        <h2 className="text-2xl font-bold">Recently Added</h2>
-        <p className="mt-2 text-sm text-slate-400">Newest available accounts</p>
+        <h2 className="text-2xl font-bold">New Accounts</h2>
+        <p className="mt-2 text-sm text-slate-400">Recently added listings</p>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {latestProducts.map((product) => (
             <ProductCard key={`latest-${product.id}`} product={product} />
@@ -309,13 +330,22 @@ export default function Home() {
       <section className="border-y border-slate-800 bg-slate-900/40">
         <div className="mx-auto max-w-7xl px-4 py-16 md:px-6">
           <h2 className="text-2xl font-bold">How it works</h2>
-          <p className="mt-2 text-sm text-slate-400">Simple purchase flow with secure payment confirmation</p>
+          <p className="mt-2 text-sm text-slate-400">
+            Browse available game accounts, then purchase off-site
+          </p>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {HOW_IT_WORKS.map((item) => (
-              <div key={item.step} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
-                <p className="text-xs font-semibold tracking-[0.2em] text-blue-400">{item.step}</p>
+              <div
+                key={item.step}
+                className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6"
+              >
+                <p className="text-xs font-semibold tracking-[0.2em] text-blue-400">
+                  {item.step}
+                </p>
                 <h3 className="mt-3 text-lg font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-400">{item.body}</p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                  {item.body}
+                </p>
               </div>
             ))}
           </div>
@@ -323,13 +353,17 @@ export default function Home() {
       </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 py-16 md:px-6">
-        <h2 className="text-2xl font-bold">Why {SITE_NAME}</h2>
-        <p className="mt-2 text-sm text-slate-400">Built for secure digital account commerce</p>
+        <h2 className="text-2xl font-bold">Why buy from {SITE_NAME}</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2">
           {TRUST_POINTS.map((item) => (
-            <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+            <div
+              key={item.title}
+              className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
+            >
               <h3 className="font-semibold text-slate-100">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">{item.body}</p>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                {item.body}
+              </p>
             </div>
           ))}
         </div>
@@ -343,32 +377,52 @@ export default function Home() {
               key={item.q}
               className="group rounded-2xl border border-slate-800 bg-slate-900/70 px-5 py-4"
             >
-              <summary className="cursor-pointer list-none font-medium text-slate-100 marker:content-none">
+              <summary className="cursor-pointer list-none font-medium text-slate-100">
                 <span className="flex items-center justify-between gap-4">
                   {item.q}
-                  <span className="text-slate-500 transition group-open:rotate-45">+</span>
+                  <span className="text-slate-500 transition group-open:rotate-45">
+                    +
+                  </span>
                 </span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">{item.a}</p>
+              <p className="mt-3 text-sm leading-relaxed text-slate-400">
+                {item.a}
+              </p>
             </details>
           ))}
         </div>
       </section>
 
       <section className="border-y border-slate-800 bg-slate-900/50">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-4 py-12 md:flex-row md:items-center md:px-6">
-          <div>
-            <h2 className="text-2xl font-bold">Ready to get started?</h2>
-            <p className="mt-2 text-slate-400">
-              Browse accounts, add to cart, and checkout with Stripe FPX.
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 md:grid-cols-2 md:px-6">
+          <div className="rounded-2xl border border-emerald-900/50 bg-emerald-950/20 p-6">
+            <h2 className="text-xl font-bold">Chat on WhatsApp</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Ask about availability and complete your purchase with us directly.
             </p>
+            <a
+              href={buildWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold transition hover:bg-emerald-500"
+            >
+              WhatsApp {WHATSAPP_DISPLAY}
+            </a>
           </div>
-          <Link
-            href="/products"
-            className="rounded-xl bg-blue-600 px-8 py-3 font-semibold transition hover:bg-blue-500"
-          >
-            Shop Now
-          </Link>
+          <div className="rounded-2xl border border-orange-900/40 bg-orange-950/20 p-6">
+            <h2 className="text-xl font-bold">Shop on Shopee</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Prefer marketplace checkout? Visit our Shopee store.
+            </p>
+            <a
+              href={SHOPEE_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex rounded-xl border border-orange-500/60 bg-orange-500/10 px-5 py-3 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/20"
+            >
+              Open Shopee Store
+            </a>
+          </div>
         </div>
       </section>
 

@@ -33,6 +33,7 @@ export default function NewProductPage() {
   const [description, setDescription] = useState("");
   const [supplierCost, setSupplierCost] = useState("");
   const [supplierName, setSupplierName] = useState("");
+  const [shopeeUrl, setShopeeUrl] = useState("");
   const [status, setStatus] = useState("available");
 
   const [loadingGames, setLoadingGames] = useState(true);
@@ -124,6 +125,7 @@ export default function NewProductPage() {
           ? Number(supplierCost)
           : null,
         supplier_name: supplierName || null,
+        shopee_url: shopeeUrl.trim() || null,
         status,
         cover_image_url: coverImage,
       })
@@ -470,6 +472,22 @@ export default function NewProductPage() {
 
               </div>
 
+            </div>
+
+            <div className="mt-5">
+              <label className="mb-2 block text-sm text-slate-300">
+                Shopee Product URL (optional)
+              </label>
+              <input
+                type="url"
+                value={shopeeUrl}
+                onChange={(event) => setShopeeUrl(event.target.value)}
+                placeholder="https://shopee.com.my/..."
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+              />
+              <p className="mt-2 text-xs text-slate-500">
+                Leave empty to use the global Gameslot Shopee store link.
+              </p>
             </div>
 
           </section>

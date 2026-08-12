@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ToastHost from "@/components/ToastHost";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import {
   SITE_NAME,
   SITE_DESCRIPTION,
@@ -28,12 +29,15 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
-    "Mihoyo Shop",
+    "Gameslot",
+    "game account catalogue",
     "Genshin Impact account",
     "Honkai Star Rail account",
     "Zenless Zone Zero account",
     "Wuthering Waves account",
-    "Malaysia game account store",
+    "Malaysia game accounts",
+    "WhatsApp",
+    "Shopee",
   ],
   openGraph: {
     type: "website",
@@ -65,6 +69,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen overflow-x-hidden bg-slate-950 font-sans text-white antialiased`}
       >
         {children}
+        <FloatingWhatsApp />
         <ToastHost />
       </body>
     </html>

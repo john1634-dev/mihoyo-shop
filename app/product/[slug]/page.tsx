@@ -1,10 +1,10 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import BuyNowButton from "@/components/BuyNowButton";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
+import PurchaseButtons from "@/components/PurchaseButtons";
 import { formatPrice, SITE_NAME, SITE_URL } from "@/lib/config";
 import type { Metadata } from "next";
 import type { Product } from "@/lib/types";
@@ -30,7 +30,7 @@ export async function generateMetadata({
 
   const description =
     product.description?.slice(0, 160) ||
-    `${product.title} available at ${SITE_NAME}.`;
+    `${product.title} available at ${SITE_NAME}. Contact via WhatsApp or Shopee.`;
 
   return {
     title: product.title,
@@ -125,6 +125,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         : [];
 
   const isAvailable = product.status === "available";
+  const typedProduct = product as Product;
 
   return (
     <main className="flex min-h-screen flex-col bg-slate-950 text-white">
@@ -141,7 +142,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <li aria-hidden="true">/</li>
             <li>
               <Link href="/products" className="hover:text-white">
-                Products
+                Accounts
               </Link>
             </li>
             {game && (
@@ -223,22 +224,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
             )}
 
             <div className="mt-8">
-              <BuyNowButton
-                product={{
-                  id: product.id,
-                  title: product.title,
-                  price: Number(product.price),
-                  currency: product.currency || "MYR",
-                  image: product.cover_image_url || "",
-                }}
-                disabled={!isAvailable}
+              <PurchaseButtons
+                product={typedProduct}
+                gameName={game?.name}
+                available={isAvailable}
+                layout="stack"
+                size="lg"
               />
             </div>
 
             <div className="mt-6 space-y-1 text-sm text-slate-500">
-              <p>Secure Stripe FPX checkout</p>
-              <p>Manual delivery after payment confirmation</p>
-              <p>Warranty according to store refund policy</p>
+              <p>Purchase via WhatsApp or Shopee — no website checkout.</p>
+              <p>Delivery and warranty follow the agreed channel and store policy.</p>
             </div>
           </div>
         </div>

@@ -8,8 +8,8 @@ type ErrorLike = {
 function redactSecrets(value: string): string {
   return value
     .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[REDACTED_JWT]")
-    .replace(/sk_(live|test)_[A-Za-z0-9]+/g, "[REDACTED_STRIPE_KEY]")
-    .replace(/whsec_[A-Za-z0-9]+/g, "[REDACTED_WEBHOOK_SECRET]");
+    .replace(/sk_(live|test)_[A-Za-z0-9]+/g, "[REDACTED_SECRET]")
+    .replace(/whsec_[A-Za-z0-9]+/g, "[REDACTED_SECRET]");
 }
 
 /** Log raw server errors without leaking secrets to clients. */
@@ -43,11 +43,11 @@ export function toUserError(error: unknown): string {
   }
 
   if (message.includes("PRODUCT_NOT_FOUND")) {
-    return "A product in your cart could not be found. Please refresh and try again.";
+    return "A product could not be found. Please refresh and try again.";
   }
 
   if (message.includes("EMPTY_CART")) {
-    return "Your cart is empty.";
+    return "No products selected.";
   }
 
   if (message.includes("DUPLICATE_PRODUCT")) {
@@ -79,11 +79,11 @@ export function toUserError(error: unknown): string {
   }
 
   if (message.includes("SHOPEE")) {
-    return "Shopee checkout is not available right now. Please use Website or WhatsApp.";
+    return "Shopee is not available right now. Please contact us on WhatsApp.";
   }
 
   if (message.includes("WHATSAPP") && message.includes("CONFIG")) {
-    return "WhatsApp is not configured yet. Please choose Website checkout or contact the store.";
+    return "WhatsApp is not configured yet. Please try again later.";
   }
 
   // Never expose internal / database / auth internals

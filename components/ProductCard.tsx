@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatPrice } from "@/lib/config";
+import PurchaseButtons from "@/components/PurchaseButtons";
 import type { Product } from "@/lib/types";
 
 type ProductCardProps = {
@@ -10,8 +11,7 @@ type ProductCardProps = {
 
 export default function ProductCard({ product, gameName }: ProductCardProps) {
   const isAvailable = product.status === "available";
-  const resolvedGame =
-    gameName || product.games?.name || null;
+  const resolvedGame = gameName || product.games?.name || null;
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 transition duration-200 hover:border-blue-500/50 hover:bg-slate-900">
@@ -79,23 +79,23 @@ export default function ProductCard({ product, gameName }: ProductCardProps) {
           )}
         </div>
 
-        <div className="mt-auto flex items-center justify-between gap-3 pt-5">
-          <span className="text-lg font-bold tracking-tight sm:text-xl">
+        <div className="mt-auto space-y-3 pt-5">
+          <p className="text-lg font-bold tracking-tight sm:text-xl">
             {formatPrice(Number(product.price), product.currency)}
-          </span>
-
-          {isAvailable ? (
-            <Link
-              href={`/product/${product.slug}`}
-              className="rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-medium transition hover:bg-blue-500"
-            >
-              View
-            </Link>
-          ) : (
-            <span className="rounded-lg bg-slate-800 px-3.5 py-2 text-sm text-slate-500">
-              Sold out
-            </span>
-          )}
+          </p>
+          <PurchaseButtons
+            product={product}
+            gameName={resolvedGame}
+            available={isAvailable}
+            layout="stack"
+            size="sm"
+          />
+          <Link
+            href={`/product/${product.slug}`}
+            className="block text-center text-xs text-slate-400 transition hover:text-white"
+          >
+            View details
+          </Link>
         </div>
       </div>
     </article>

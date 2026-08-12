@@ -1,31 +1,27 @@
 # Gameslot Deployment Guide
 
-Production-ready checklist for GitHub → Vercel deployment.
+Catalogue + WhatsApp / Shopee purchase model (no website payments).
 
-## 1. Repository layout
+## Repository layout
 
-This Git repository root **is** the Next.js app (`package.json` at root).
+Git repository root **is** the Next.js app (`package.json` at root).
 
-In Vercel:
+Vercel:
 
-- **Root Directory**: leave empty / `.` (do **not** set `/gameslot`)
-- **Framework Preset**: Next.js
-- **Build Command**: `npm run build`
-- **Install Command**: `npm install`
-- **Output**: default Next.js
+- **Root Directory**: leave empty / `.`
+- **Framework**: Next.js
+- **Build**: `npm run build`
 
-## 2. Local setup
+## Local setup
 
 ```bash
-git clone <your-repo-url>
-cd mihoyo-shop   # or whatever the clone folder is named
 cp .env.example .env.local
-# fill secrets in .env.local
+# fill Supabase keys
 npm install
 npm run dev
 ```
 
-Production check locally:
+Production check:
 
 ```bash
 npm run lint
@@ -34,81 +30,40 @@ npm run build
 npm start
 ```
 
-## 3. Environment variables (Vercel)
-
-Set these in Vercel → Project → Settings → Environment Variables
-for Production (and Preview if needed):
+## Environment variables (Vercel)
 
 | Variable | Required | Notes |
 |----------|----------|-------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes | Anon/publishable JWT (`eyJ...`) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes | Anon JWT (`eyJ...`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server only |
 | `NEXT_PUBLIC_SITE_URL` | Yes (prod) | `https://your-domain.com` |
-| `STRIPE_SECRET_KEY` | Yes | Stripe secret |
-| `STRIPE_WEBHOOK_SECRET` | Yes | From Stripe webhook endpoint |
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Optional | Digits only |
-| `NEXT_PUBLIC_SHOPEE_URL` | Optional | HTTPS URL |
-| `RESEND_API_KEY` | Optional | Transactional email |
-| `EMAIL_FROM` | Optional | Verified sender |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Recommended | Digits, e.g. `60102431634` |
+| `NEXT_PUBLIC_SHOPEE_URL` | Recommended | `https://shopee.com.my/gameslot` |
+| `RESEND_API_KEY` | Optional | Email |
+| `EMAIL_FROM` | Optional | Email from |
 
-Never put `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, or
-`STRIPE_WEBHOOK_SECRET` in any `NEXT_PUBLIC_*` variable.
+Do **not** set Stripe keys. Website checkout has been removed.
 
-## 4. Supabase setup
+Never put `SUPABASE_SERVICE_ROLE_KEY` in any `NEXT_PUBLIC_*` variable.
 
-1. Create a Supabase project.
-2. In SQL Editor, run migrations in order (if not already applied):
-   - `supabase/master_migration.sql`
-   - `supabase/fix_orders_customer_fk.sql`
-   - `supabase/fix_admin_bootstrap.sql`
-   - `supabase/v3_features.sql`
-   - `supabase/v3_hardening.sql`
-3. Create public Storage buckets:
-   - `product-images`
-   - `game-assets` (if used by admin game uploads)
-4. Confirm RLS policies from the SQL files are active.
-5. Promote your first admin by setting `profiles.is_admin = true` for your user
-   (after login once so the profile row exists). Use SQL Editor with service role.
+## Supabase
 
-## 5. Stripe setup
+Run existing migrations as needed, plus optional:
 
-1. Enable **FPX** in Stripe payment methods (MYR).
-2. Create a webhook endpoint:
-   - URL: `https://your-domain.com/api/stripe/webhook`
-   - Events: `checkout.session.completed`,
-     `checkout.session.async_payment_succeeded`,
-     `checkout.session.async_payment_failed`,
-     `checkout.session.expired`
-3. Copy the webhook signing secret into `STRIPE_WEBHOOK_SECRET`.
-4. Use test keys in Preview; live keys only in Production.
+- `supabase/add_product_shopee_url.sql` — optional per-product Shopee link
 
-## 6. GitHub → Vercel
+## Purchase flow
 
-1. Push this repository to GitHub.
-2. Import the repo in Vercel.
-3. Add environment variables.
-4. Deploy.
-5. Point your domain to Vercel and set `NEXT_PUBLIC_SITE_URL` to that domain.
-6. Update Stripe webhook URL to the production domain.
+1. Customer browses accounts
+2. Opens product details
+3. Clicks **Buy via WhatsApp** (pre-filled message) or **Buy via Shopee**
+4. Completes purchase off-site
 
-## 7. Production checklist
+## Production checklist
 
-- [ ] `npm run lint` passes
-- [ ] `npm run build` passes
-- [ ] No `.env.local` or secrets in Git
-- [ ] Supabase SQL migrations applied
-- [ ] Admin user flagged in `profiles`
-- [ ] Stripe webhook returns 200 on test events
-- [ ] Checkout creates pending order and webhook marks paid
-- [ ] Guest order receipt requires matching email
-- [ ] Product images load via `next/image` (Supabase host allowed)
-- [ ] robots.txt blocks `/admin`, `/account`, `/checkout`, `/cart`
-
-## 8. Security notes
-
-- Payment confirmation comes only from the Stripe webhook (or verified Stripe APIs),
-  never from visiting `/orders/success`.
-- Checkout prices are calculated server-side from the database.
-- Admin UI guards are UX only; every `/api/admin/*` route must verify `is_admin`.
-- Rotate any key that was ever committed or shared in chat.
+- [ ] lint / typecheck / build pass
+- [ ] No `.env.local` in Git
+- [ ] WhatsApp and Shopee links open correctly
+- [ ] Sold products hide purchase buttons
+- [ ] Admin can mark Available / Sold / Hidden
