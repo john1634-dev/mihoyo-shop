@@ -3,150 +3,173 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { adminFetch } from "@/lib/admin-api";
-import { formatPrice } from "@/lib/config";
 
 type DashboardStats = {
-  total_orders: number;
-  paid_orders: number;
-  pending_orders: number;
-  failed_orders: number;
-  total_revenue: number;
+  total_products: number;
   available_products: number;
   sold_products: number;
-  registered_users: number;
-  guest_orders: number;
-  active_coupons: number;
-  total_coupon_uses: number;
-  total_affiliates: number;
-  total_referrals: number;
+  total_games: number;
 };
 
-function StatCard({ label, value, sub, color = "text-white" }: {
-  label: string; value: string | number; sub?: string; color?: string;
+function StatCard({
+  label,
+  value,
+  href,
+  accent = "text-white",
+}: {
+  label: string;
+  value: number;
+  href?: string;
+  accent?: string;
 }) {
-  return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+  const content = (
+  <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 transition hover:border-slate-700">
       <p className="text-sm text-slate-400">{label}</p>
-      <p className={`mt-1 text-2xl font-bold ${color}`}>{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
+      <p className={`mt-2 text-3xl font-bold tracking-tight ${accent}`}>
+        {value}
+      </p>
     </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    (async () => {
+    let active = true;
+
+    async function run() {
+      setLoading(true);
+      setError("");
+
       try {
         const res = await adminFetch("/api/admin/stats", {
           cache: "no-store",
         });
-        if (res.ok) setStats((await res.json()) as DashboardStats);
-      } catch {
-        // Stats are optional on the dashboard shell.
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to load dashboard.");
+        }
+
+        if (active) {
+          setStats(data as DashboardStats);
+        }
+      } catch (err) {
+        if (active) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load dashboard."
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
-    })();
+    }
+
+    void run();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const navLinks = [
-    { href: "/admin/orders", label: "Orders" },
-    { href: "/admin/products", label: "Products" },
-    { href: "/admin/games", label: "Games" },
-    { href: "/admin/coupons", label: "Coupons" },
-    { href: "/admin/analytics", label: "Analytics" },
-    { href: "/admin/reviews", label: "Reviews" },
-    { href: "/admin/affiliates", label: "Affiliates" },
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <div className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <h1 className="text-2xl font-bold sm:text-3xl">Admin Dashboard</h1>
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            {navLinks.map(l => (
-              <Link key={l.href} href={l.href}
-                className="rounded-xl border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800">
-                {l.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="h-24 rounded-2xl border border-slate-800 bg-slate-900 animate-pulse" />
-            ))}
-          </div>
-        ) : !stats ? (
-          <div className="text-slate-400">Failed to load stats.</div>
-        ) : (
-          <>
-            {/* Revenue */}
-            <div className="mb-6">
-              <h2 className="mb-3 text-lg font-semibold text-slate-300">Revenue</h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <StatCard label="Total Revenue (Paid)" value={formatPrice(stats.total_revenue)} color="text-green-400" />
-                <StatCard label="Total Orders" value={stats.total_orders} />
-                <StatCard label="Guest Orders" value={stats.guest_orders} />
-              </div>
-            </div>
-
-            {/* Order status */}
-            <div className="mb-6">
-              <h2 className="mb-3 text-lg font-semibold text-slate-300">Orders by Status</h2>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <StatCard label="Paid" value={stats.paid_orders} color="text-green-400" />
-                <StatCard label="Pending" value={stats.pending_orders} color="text-yellow-400" />
-                <StatCard label="Failed" value={stats.failed_orders} color="text-red-400" />
-              </div>
-            </div>
-
-            {/* Products */}
-            <div className="mb-6">
-              <h2 className="mb-3 text-lg font-semibold text-slate-300">Inventory</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <StatCard label="Available Products" value={stats.available_products} color="text-blue-400" />
-                <StatCard label="Sold Products" value={stats.sold_products} />
-              </div>
-            </div>
-
-            {/* Users */}
-            <div className="mb-6">
-              <h2 className="mb-3 text-lg font-semibold text-slate-300">Users & Affiliates</h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Registered Users" value={stats.registered_users} />
-                <StatCard label="Active Coupons" value={stats.active_coupons} />
-                <StatCard label="Coupon Uses" value={stats.total_coupon_uses} />
-                <StatCard label="Referrals" value={stats.total_referrals} sub={`${stats.total_affiliates} affiliates`} />
-              </div>
-            </div>
-
-            {/* Quick links */}
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <Link href="/admin/orders?filter=pending"
-                className="rounded-2xl border border-yellow-900/50 bg-yellow-950/20 p-4 hover:bg-yellow-950/40">
-                <p className="font-semibold text-yellow-400">Pending Orders →</p>
-                <p className="text-2xl font-bold">{stats.pending_orders}</p>
-              </Link>
-              <Link href="/admin/products?status=available"
-                className="rounded-2xl border border-blue-900/50 bg-blue-950/20 p-4 hover:bg-blue-950/40">
-                <p className="font-semibold text-blue-400">Available Products →</p>
-                <p className="text-2xl font-bold">{stats.available_products}</p>
-              </Link>
-              <Link href="/admin/analytics"
-                className="rounded-2xl border border-slate-700 bg-slate-900 p-4 hover:bg-slate-800">
-                <p className="font-semibold text-slate-300">View Analytics →</p>
-                <p className="text-sm text-slate-400 mt-1">Sales charts & trends</p>
-              </Link>
-            </div>
-          </>
-        )}
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold sm:text-3xl">Dashboard</h1>
+        <p className="mt-2 text-sm text-slate-400">
+          Catalogue overview for games and accounts.
+        </p>
       </div>
+
+      {error && (
+        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-28 animate-pulse rounded-2xl border border-slate-800 bg-slate-900"
+            />
+          ))}
+        </div>
+      ) : stats ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="Total Products"
+              value={stats.total_products}
+              href="/admin/products"
+            />
+            <StatCard
+              label="Available"
+              value={stats.available_products}
+              href="/admin/products"
+              accent="text-emerald-400"
+            />
+            <StatCard
+              label="Sold"
+              value={stats.sold_products}
+              href="/admin/products"
+              accent="text-slate-300"
+            />
+            <StatCard
+              label="Games"
+              value={stats.total_games}
+              href="/admin/games"
+              accent="text-blue-400"
+            />
+          </div>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            <Link
+              href="/admin/products/new"
+              className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 transition hover:bg-blue-500/15"
+            >
+              <p className="font-semibold text-blue-300">Add product →</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Create a new account listing
+              </p>
+            </Link>
+            <Link
+              href="/admin/games"
+              className="rounded-2xl border border-slate-700 bg-slate-900 p-5 transition hover:border-slate-600"
+            >
+              <p className="font-semibold">Manage games →</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Categories, images, sort order
+              </p>
+            </Link>
+            <Link
+              href="/products"
+              className="rounded-2xl border border-slate-700 bg-slate-900 p-5 transition hover:border-slate-600"
+            >
+              <p className="font-semibold">View storefront →</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Open the public catalogue
+              </p>
+            </Link>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import {
   SITE_NAME,
   buildWhatsAppUrl,
-  WHATSAPP_DISPLAY,
 } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
 
@@ -15,9 +15,11 @@ type NavbarProps = {
 };
 
 export default function Navbar({ games = [] }: NavbarProps) {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -43,17 +45,19 @@ export default function Navbar({ games = [] }: NavbarProps) {
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user) setIsAdmin(false);
-      else {
-        void supabase
-          .from("profiles")
-          .select("is_admin")
-          .eq("id", session.user.id)
-          .maybeSingle()
-          .then(({ data: profile }) => {
-            if (active) setIsAdmin(Boolean(profile?.is_admin));
-          });
+      if (!session?.user) {
+        setIsAdmin(false);
+        return;
       }
+
+      void supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", session.user.id)
+        .maybeSingle()
+        .then(({ data: profile }) => {
+          if (active) setIsAdmin(Boolean(profile?.is_admin));
+        });
     });
 
     return () => {
@@ -62,64 +66,70 @@ export default function Navbar({ games = [] }: NavbarProps) {
     };
   }, []);
 
-  const desktopGames = games.slice(0, 5);
+  function handleSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    router.push(query ? `/products?q=${encodeURIComponent(query)}` : "/products");
+    setMenuOpen(false);
+  }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3.5 md:px-6">
+    <header className="sticky top-0 z-50 border-b border-slate-800/70 bg-slate-950/90 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
         <Link
           href="/"
-          className="shrink-0 text-lg font-semibold tracking-tight text-white md:text-xl"
+          className="shrink-0 text-lg font-semibold tracking-tight text-white"
         >
           {SITE_NAME}
         </Link>
 
-        <nav className="hidden items-center gap-5 text-sm text-slate-300 lg:flex">
+        <nav className="hidden items-center gap-6 text-sm text-slate-300 lg:flex">
           <Link href="/" className="transition hover:text-white">
             Home
           </Link>
           <Link href="/products" className="transition hover:text-white">
             Accounts
           </Link>
-          {desktopGames.map((game) => (
-            <Link
-              key={game.id}
-              href={`/products?game=${game.slug}`}
-              className="max-w-[9rem] truncate transition hover:text-white"
-              title={game.name}
-            >
-              {game.name}
-            </Link>
-          ))}
-          {user && (
-            <Link href="/account/wishlist" className="transition hover:text-white">
-              Wishlist
-            </Link>
-          )}
-        </nav>
-
-        <div className="flex items-center gap-2 sm:gap-2.5">
           <a
             href={buildWhatsAppUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium transition hover:bg-emerald-500 sm:inline-block"
-            title={WHATSAPP_DISPLAY}
+            className="transition hover:text-white"
           >
-            WhatsApp Us
+            Contact
           </a>
+        </nav>
 
+        <form
+          onSubmit={handleSearch}
+          className="ml-auto hidden max-w-xs flex-1 md:block lg:max-w-sm"
+          role="search"
+        >
+          <label className="sr-only" htmlFor="nav-search">
+            Search accounts
+          </label>
+          <input
+            id="nav-search"
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search accounts..."
+            className="w-full rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-2 text-sm outline-none transition focus:border-blue-500/60"
+          />
+        </form>
+
+        <div className="flex items-center gap-2">
           {user ? (
             <Link
               href="/account"
-              className="hidden rounded-lg border border-slate-700 px-3 py-2 text-sm transition hover:border-blue-500 sm:inline-block"
+              className="hidden rounded-xl border border-slate-700 px-3 py-2 text-sm transition hover:border-slate-500 sm:inline-block"
             >
               Account
             </Link>
           ) : (
             <Link
               href="/login"
-              className="hidden rounded-lg border border-slate-700 px-3 py-2 text-sm transition hover:border-blue-500 sm:inline-block"
+              className="hidden rounded-xl border border-slate-700 px-3 py-2 text-sm transition hover:border-slate-500 sm:inline-block"
             >
               Login
             </Link>
@@ -128,7 +138,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
           {isAdmin && (
             <Link
               href="/admin"
-              className="hidden rounded-lg border border-amber-800/60 px-3 py-2 text-sm text-amber-300 transition hover:border-amber-500 md:inline-block"
+              className="hidden rounded-xl border border-amber-800/50 px-3 py-2 text-sm text-amber-300 transition hover:border-amber-600 md:inline-block"
             >
               Admin
             </Link>
@@ -137,17 +147,27 @@ export default function Navbar({ games = [] }: NavbarProps) {
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
-            className="rounded-lg border border-slate-700 px-3 py-2 text-sm lg:hidden"
+            className="rounded-xl border border-slate-700 px-3 py-2 text-sm lg:hidden"
             aria-expanded={menuOpen}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
           >
-            <span aria-hidden="true">{menuOpen ? "Close" : "Menu"}</span>
+            {menuOpen ? "Close" : "Menu"}
           </button>
         </div>
       </div>
 
       {menuOpen && (
-        <nav className="max-h-[70vh] overflow-y-auto border-t border-slate-800 px-4 py-4 lg:hidden">
+        <nav className="border-t border-slate-800 px-4 py-4 lg:hidden">
+          <form onSubmit={handleSearch} className="mb-4">
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search accounts..."
+              className="w-full rounded-xl border border-slate-800 bg-slate-900 px-4 py-2.5 text-sm outline-none focus:border-blue-500/60"
+            />
+          </form>
+
           <div className="flex flex-col gap-3 text-sm text-slate-300">
             <Link href="/" onClick={() => setMenuOpen(false)}>
               Home
@@ -155,7 +175,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
             <Link href="/products" onClick={() => setMenuOpen(false)}>
               Accounts
             </Link>
-            {games.map((game) => (
+            {games.slice(0, 6).map((game) => (
               <Link
                 key={game.id}
                 href={`/products?game=${game.slug}`}
@@ -165,16 +185,15 @@ export default function Navbar({ games = [] }: NavbarProps) {
               </Link>
             ))}
             {user && (
-              <>
-                <Link href="/account/wishlist" onClick={() => setMenuOpen(false)}>
-                  Wishlist
-                </Link>
-                <Link href="/account" onClick={() => setMenuOpen(false)}>
-                  Account
-                </Link>
-              </>
+              <Link href="/account/wishlist" onClick={() => setMenuOpen(false)}>
+                Wishlist
+              </Link>
             )}
-            {!user && (
+            {user ? (
+              <Link href="/account" onClick={() => setMenuOpen(false)}>
+                Account
+              </Link>
+            ) : (
               <>
                 <Link href="/login" onClick={() => setMenuOpen(false)}>
                   Login
@@ -190,7 +209,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
               rel="noopener noreferrer"
               onClick={() => setMenuOpen(false)}
             >
-              WhatsApp Us
+              Contact on WhatsApp
             </a>
             {isAdmin && (
               <Link href="/admin" onClick={() => setMenuOpen(false)}>

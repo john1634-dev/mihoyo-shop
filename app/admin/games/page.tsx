@@ -300,8 +300,7 @@ export default function AdminGamesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm text-slate-500">
@@ -617,7 +616,6 @@ export default function AdminGamesPage() {
             })}
           </div>
         )}
-      </div>
-    </main>
+    </div>
   );
 }

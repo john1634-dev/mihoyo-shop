@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         <div className="mt-8 space-y-4 text-sm leading-relaxed text-slate-300">
           <p>
             If you create an account, we store authentication and profile data
-            needed for wishlist, reviews, and order history viewing.
+            needed for your wishlist and account settings.
           </p>
           <p>
             Purchase conversations on WhatsApp or Shopee are handled on those

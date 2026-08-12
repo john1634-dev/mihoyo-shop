@@ -9,7 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getProfile, type Profile } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
-import { toUserError } from "@/lib/errors";
+import { buildWhatsAppUrl } from "@/lib/config";
 
 export default function AccountPage() {
   return (
@@ -23,9 +23,7 @@ function AccountContent() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [orderCount, setOrderCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -44,24 +42,15 @@ function AccountContent() {
       }
 
       const profileData = await getProfile(current.id);
-      const { count, error: countError } = await supabase
-        .from("orders")
-        .select("id", { count: "exact", head: true })
-        .eq("customer_id", current.id);
 
       if (!active) return;
 
-      if (countError) {
-        setError(toUserError(countError.message));
-      }
-
       setUser(current);
       setProfile(profileData);
-      setOrderCount(count || 0);
       setLoading(false);
     }
 
-    load();
+    void load();
 
     return () => {
       active = false;
@@ -79,108 +68,86 @@ function AccountContent() {
     <main className="flex min-h-screen flex-col bg-slate-950 text-white">
       <Navbar />
 
-      <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 md:px-6">
-        <h1 className="text-3xl font-bold">My Account</h1>
-        <p className="mt-2 text-slate-400">Manage your profile and orders</p>
+      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 md:px-6">
+        <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
+        <p className="mt-2 text-slate-400">
+          Manage your profile and saved listings.
+        </p>
 
         {loading ? (
-          <p className="mt-10 text-slate-400">Loading account...</p>
-        ) : error ? (
-          <div className="mt-10 rounded-xl border border-red-900 bg-red-950/40 p-4 text-red-400">
-            {error}
+          <div className="mt-10 animate-pulse space-y-4">
+            <div className="h-40 rounded-2xl bg-slate-900" />
+            <div className="h-24 rounded-2xl bg-slate-900" />
           </div>
         ) : (
-          <div className="mt-10 space-y-6">
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <h2 className="text-xl font-semibold">Profile</h2>
-              <div className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
+          <div className="mt-10 space-y-5">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+              <h2 className="text-lg font-semibold">Profile</h2>
+              <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                 <div>
-                  <div className="text-xs text-slate-500">Email</div>
-                  <div className="mt-1">{user?.email}</div>
+                  <dt className="text-xs text-slate-500">Email</dt>
+                  <dd className="mt-1">{user?.email}</dd>
                 </div>
                 <div>
-                  <div className="text-xs text-slate-500">Name</div>
-                  <div className="mt-1">
+                  <dt className="text-xs text-slate-500">Name</dt>
+                  <dd className="mt-1">
                     {profile?.full_name ||
                       user?.user_metadata?.full_name ||
-                      "-"}
-                  </div>
+                      "—"}
+                  </dd>
                 </div>
-                <div>
-                  <div className="text-xs text-slate-500">Account created</div>
-                  <div className="mt-1">
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-slate-500">Member since</dt>
+                  <dd className="mt-1">
                     {user?.created_at
-                      ? new Date(user.created_at).toLocaleString("en-MY", {
+                      ? new Date(user.created_at).toLocaleDateString("en-MY", {
                           dateStyle: "medium",
                         })
-                      : "-"}
-                  </div>
+                      : "—"}
+                  </dd>
                 </div>
-                <div>
-                  <div className="text-xs text-slate-500">Orders</div>
-                  <div className="mt-1">{orderCount}</div>
-                </div>
-              </div>
+              </dl>
             </section>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <div className="flex items-center justify-between gap-4">
+            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">Wishlist</h2>
+                  <h2 className="text-lg font-semibold">Wishlist</h2>
                   <p className="mt-1 text-sm text-slate-400">
-                    View saved products
+                    Accounts you have saved for later.
                   </p>
                 </div>
                 <Link
                   href="/account/wishlist"
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500"
+                  className="inline-flex justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium transition hover:bg-blue-500"
                 >
-                  View Wishlist
+                  View wishlist
                 </Link>
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold">Referral Program</h2>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Share your link and track referrals
-                  </p>
-                </div>
-                <Link
-                  href="/account/affiliate"
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500"
-                >
-                  Affiliate Dashboard
-                </Link>
-              </div>
-            </section>
-
-            <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold">Order History</h2>
-                  <p className="mt-1 text-sm text-slate-400">
-                    View your past purchases
-                  </p>
-                </div>
-                <Link
-                  href="/account/orders"
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-500"
-                >
-                  View Orders
-                </Link>
-              </div>
+            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+              <h2 className="text-lg font-semibold">Need help?</h2>
+              <p className="mt-2 text-sm text-slate-400">
+                Contact us on WhatsApp for availability and purchase support.
+              </p>
+              <a
+                href={buildWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold transition hover:bg-emerald-500"
+              >
+                Chat on WhatsApp
+              </a>
             </section>
 
             <button
               type="button"
               onClick={logout}
               disabled={loggingOut}
-              className="rounded-xl border border-slate-700 px-5 py-3 text-sm hover:border-red-500 hover:text-red-400 disabled:opacity-50"
+              className="rounded-xl border border-slate-700 px-5 py-3 text-sm transition hover:border-red-500/60 hover:text-red-300 disabled:opacity-50"
             >
-              {loggingOut ? "Logging out..." : "Logout"}
+              {loggingOut ? "Logging out..." : "Log out"}
             </button>
           </div>
         )}

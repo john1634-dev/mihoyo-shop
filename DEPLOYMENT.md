@@ -40,10 +40,6 @@ npm start
 | `NEXT_PUBLIC_SITE_URL` | Yes (prod) | `https://your-domain.com` |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | Recommended | Digits, e.g. `60102431634` |
 | `NEXT_PUBLIC_SHOPEE_URL` | Recommended | `https://shopee.com.my/gameslot` |
-| `RESEND_API_KEY` | Optional | Email |
-| `EMAIL_FROM` | Optional | Email from |
-
-Do **not** set Stripe keys. Website checkout has been removed.
 
 Never put `SUPABASE_SERVICE_ROLE_KEY` in any `NEXT_PUBLIC_*` variable.
 
@@ -52,6 +48,7 @@ Never put `SUPABASE_SERVICE_ROLE_KEY` in any `NEXT_PUBLIC_*` variable.
 Run existing migrations as needed, plus optional:
 
 - `supabase/add_product_shopee_url.sql` — optional per-product Shopee link
+- `supabase/add_game_image.sql` — game category images + storage bucket
 
 ## Purchase flow
 

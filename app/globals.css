@@ -3,9 +3,12 @@
 :root {
   --background: #020617;
   --foreground: #f8fafc;
-  --accent: #2563eb;
+  --accent: #3b82f6;
+  --accent-muted: #1d4ed8;
   --surface: #0f172a;
+  --surface-elevated: #111827;
   --border: #1e293b;
+  --muted: #94a3b8;
 }
 
 @theme inline {
@@ -23,7 +26,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), ui-sans-serif, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 ::selection {
@@ -42,4 +45,25 @@ details > summary {
 
 details > summary::-webkit-details-marker {
   display: none;
+}
+
+/* Premium card hover utility */
+.card-hover {
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px -20px rgba(59, 130, 246, 0.35);
+}
+
+/* Subtle grid background for hero sections */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
 }

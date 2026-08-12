@@ -12,7 +12,6 @@ function redactSecrets(value: string): string {
     .replace(/whsec_[A-Za-z0-9]+/g, "[REDACTED_SECRET]");
 }
 
-/** Log raw server errors without leaking secrets to clients. */
 export function logServerError(context: string, error: unknown): void {
   if (error && typeof error === "object") {
     const e = error as ErrorLike;
@@ -38,44 +37,12 @@ export function toUserError(error: unknown): string {
 
   const message = raw.toUpperCase();
 
-  if (message.includes("PRODUCT_UNAVAILABLE")) {
-    return "One or more accounts are no longer available. Please refresh and try again.";
-  }
-
   if (message.includes("PRODUCT_NOT_FOUND")) {
-    return "A product could not be found. Please refresh and try again.";
-  }
-
-  if (message.includes("EMPTY_CART")) {
-    return "No products selected.";
-  }
-
-  if (message.includes("DUPLICATE_PRODUCT")) {
-    return "Each game account can only be purchased once.";
-  }
-
-  if (message.includes("INVALID_NAME")) {
-    return "Please enter your full name.";
+    return "This listing could not be found. Please refresh and try again.";
   }
 
   if (message.includes("INVALID_EMAIL")) {
     return "Please enter a valid email address.";
-  }
-
-  if (message.includes("INVALID_WHATSAPP")) {
-    return "Please enter a valid WhatsApp number.";
-  }
-
-  if (message.includes("ORDER_NOT_FOUND")) {
-    return "Order not found.";
-  }
-
-  if (message.includes("COUPON")) {
-    return "This coupon is not valid for your order.";
-  }
-
-  if (message.includes("PURCHASE_REQUIRED")) {
-    return "You can only review products you have purchased.";
   }
 
   if (message.includes("SHOPEE")) {
@@ -86,7 +53,6 @@ export function toUserError(error: unknown): string {
     return "WhatsApp is not configured yet. Please try again later.";
   }
 
-  // Never expose internal / database / auth internals
   if (
     message.includes("JWT") ||
     message.includes("RLS") ||
@@ -98,8 +64,8 @@ export function toUserError(error: unknown): string {
     message.includes("COLUMN") ||
     message.includes("RELATION")
   ) {
-    return "We could not complete your request right now. Please try again in a moment.";
+    return "Something went wrong. Please try again.";
   }
 
-  return "We could not complete your request right now. Please try again.";
+  return "Something went wrong. Please try again.";
 }
