@@ -3,8 +3,42 @@ export const SITE_TAGLINE = "Premium Game Account Marketplace";
 export const SITE_DESCRIPTION =
   "Premium game accounts for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and more. Browse curated listings and purchase via WhatsApp or Shopee.";
 
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+/** Canonical production origin — used when env is missing or invalid in production builds. */
+export const PRODUCTION_SITE_URL = "https://www.baitugames.com";
+
+const LOCAL_DEV_SITE_URL = "http://localhost:3000";
+
+function isNonProductionHost(url: string): boolean {
+  const lower = url.toLowerCase();
+  return (
+    lower.includes("localhost") ||
+    lower.includes("127.0.0.1") ||
+    lower.includes("vercel.app")
+  );
+}
+
+/**
+ * Resolves the public site origin for sitemap, canonical URLs, metadataBase, and OG.
+ * Production never falls back to localhost when NEXT_PUBLIC_SITE_URL is unset or invalid.
+ */
+export function resolveSiteUrl(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+
+  if (fromEnv) {
+    if (process.env.NODE_ENV === "production" && isNonProductionHost(fromEnv)) {
+      return PRODUCTION_SITE_URL;
+    }
+    return fromEnv;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return PRODUCTION_SITE_URL;
+  }
+
+  return LOCAL_DEV_SITE_URL;
+}
+
+export const SITE_URL = resolveSiteUrl();
 
 export const WHATSAPP_NUMBER = (
   process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "60102431634"
