@@ -146,8 +146,8 @@ function ProductsContent() {
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 md:px-6">
         <div className="max-w-2xl">
           {activeGame && getGameImageUrl(activeGame) ? (
-            <div className="relative mb-5 h-28 w-full max-w-sm overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
-              <GameImage game={activeGame} sizes="384px" />
+            <div className="relative mb-5 aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
+              <GameImage game={activeGame} variant="header" />
             </div>
           ) : null}
           <h1 className="text-3xl font-bold md:text-4xl">
@@ -224,12 +224,8 @@ function ProductsContent() {
                 }`}
               >
                 {gameImage ? (
-                  <span className="relative h-6 w-6 overflow-hidden rounded-full border border-slate-700">
-                    <GameImage
-                      game={game}
-                      sizes="24px"
-                      className="object-cover"
-                    />
+                  <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-full border border-slate-700">
+                    <GameImage game={game} variant="avatar" />
                   </span>
                 ) : null}
                 <span>{game.name}</span>

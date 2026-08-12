@@ -226,7 +226,7 @@ export default function Home() {
                 className="card-hover rounded-2xl border border-slate-800/90 bg-slate-900/50 p-4"
               >
                 <div className="relative mb-4 aspect-[16/10] overflow-hidden rounded-xl bg-slate-800">
-                  <GameImage game={game} />
+                  <GameImage game={game} variant="card" />
                 </div>
                 <h3 className="font-semibold">{game.name}</h3>
                 <p className="mt-1 text-sm text-slate-400">

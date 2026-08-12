@@ -1,21 +1,32 @@
 import Image from "next/image";
-import { getGameImageUrl } from "@/lib/games";
+import {
+  GAME_IMAGE_QUALITY,
+  GAME_IMAGE_SIZES,
+  getGameImageUrl,
+  type GameImageVariant,
+} from "@/lib/games";
 import type { Game } from "@/lib/types";
 
 type GameImageProps = {
   game: Pick<Game, "name" | "image_url" | "banner_url" | "mobile_banner_url" | "logo_url">;
   className?: string;
+  /** Preset tuned to the rendered slot — preferred over manual sizes. */
+  variant?: GameImageVariant;
   sizes?: string;
   priority?: boolean;
+  quality?: number;
 };
 
 export default function GameImage({
   game,
   className = "object-cover",
-  sizes = "(max-width: 640px) 100vw, 25vw",
+  variant = "card",
+  sizes,
   priority = false,
+  quality = GAME_IMAGE_QUALITY,
 }: GameImageProps) {
   const src = getGameImageUrl(game);
+  const resolvedSizes = sizes ?? GAME_IMAGE_SIZES[variant];
 
   if (!src) {
     return (
@@ -35,7 +46,8 @@ export default function GameImage({
       src={src}
       alt={game.name}
       fill
-      sizes={sizes}
+      sizes={resolvedSizes}
+      quality={quality}
       className={className}
       priority={priority}
       loading={priority ? undefined : "lazy"}

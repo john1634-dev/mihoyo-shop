@@ -8,7 +8,21 @@ type GameImageFields = Pick<
   "image_url" | "banner_url" | "mobile_banner_url" | "logo_url"
 >;
 
-/** Primary category image with legacy fallbacks for older rows. */
+/** Display-size hints for next/image — browser multiplies by DPR for srcset. */
+export const GAME_IMAGE_SIZES = {
+  /** Homepage / products game cards — 1 col mobile, 2 col tablet, 4 col desktop */
+  card: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px",
+  /** Products page active-game banner — full width on mobile, max 384px desktop */
+  header: "(max-width: 640px) calc(100vw - 48px), 384px",
+  /** Filter chip avatar — 24px CSS box, allow 2x/3x DPR */
+  avatar: "64px",
+} as const;
+
+export type GameImageVariant = keyof typeof GAME_IMAGE_SIZES;
+
+/** Category images only — product cards keep next/image default (75). */
+export const GAME_IMAGE_QUALITY = 90;
+
 export function getGameImageUrl(game: GameImageFields): string | null {
   return (
     game.image_url ||
