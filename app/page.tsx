@@ -1,15 +1,9 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import GameCategoryCard from "@/components/GameCategoryCard";
 import HeroVisual from "@/components/HeroVisual";
 import TrustBar from "@/components/TrustBar";
-import { ProductGridSkeleton } from "@/components/ProductCardSkeleton";
 import { WhatsAppIcon } from "@/components/icons";
 import {
   SITE_NAME,
@@ -17,13 +11,18 @@ import {
   SHOPEE_STORE_URL,
 } from "@/lib/config";
 import {
-  PUBLIC_PRODUCT_SELECT,
+  buildAccountCounts,
+  fetchActiveGames,
+  fetchAvailableProducts,
+} from "@/lib/catalog-server";
+import {
   getJustAddedProducts,
   getRecommendedProductIds,
   getRecommendedProducts,
 } from "@/lib/products-public";
-import { toUserError } from "@/lib/errors";
-import type { Game, Product } from "@/lib/types";
+import type { Product } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 
 const WHY_US = [
   {
@@ -124,81 +123,20 @@ function ProductSection({
   );
 }
 
-export default function Home() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [accountCounts, setAccountCounts] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+export default async function Home() {
+  const [games, products] = await Promise.all([
+    fetchActiveGames(),
+    fetchAvailableProducts(),
+  ]);
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadData() {
-      setLoading(true);
-      setError("");
-
-      const [gamesResult, productsResult] = await Promise.all([
-        supabase
-          .from("games")
-          .select("id,name,slug,description,image_url,logo_url,banner_url,mobile_banner_url,is_active,sort_order")
-          .eq("is_active", true)
-          .order("sort_order", { ascending: true }),
-        supabase
-          .from("products")
-          .select(PUBLIC_PRODUCT_SELECT)
-          .eq("status", "available")
-          .order("created_at", { ascending: false }),
-      ]);
-
-      if (!active) return;
-
-      if (gamesResult.error || productsResult.error) {
-        const productsError = Boolean(productsResult.error);
-        setError(
-          productsError
-            ? "Something went wrong. Please try again."
-            : toUserError(gamesResult.error?.message || "Load failed")
-        );
-        setLoading(false);
-        return;
-      }
-
-      const loadedProducts = (productsResult.data || []) as Product[];
-      const counts: Record<string, number> = {};
-
-      for (const product of loadedProducts) {
-        if (product.game_id) {
-          counts[product.game_id] = (counts[product.game_id] || 0) + 1;
-        }
-      }
-
-      setGames((gamesResult.data || []) as Game[]);
-      setAccountCounts(counts);
-      setProducts(loadedProducts);
-      setLoading(false);
-    }
-
-    void loadData();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const recommendedProducts = useMemo(
-    () => getRecommendedProducts(products),
-    [products]
-  );
-  const recommendedIds = useMemo(
-    () => getRecommendedProductIds(products),
-    [products]
-  );
-  const justAddedProducts = useMemo(() => {
-    const deduped = getJustAddedProducts(products, recommendedIds);
-    if (deduped.length > 0) return deduped;
-    return getJustAddedProducts(products);
-  }, [products, recommendedIds]);
+  const accountCounts = buildAccountCounts(products);
+  const recommendedProducts = getRecommendedProducts(products);
+  const recommendedIds = getRecommendedProductIds(products);
+  const dedupedJustAdded = getJustAddedProducts(products, recommendedIds);
+  const justAddedProducts =
+    dedupedJustAdded.length > 0
+      ? dedupedJustAdded
+      : getJustAddedProducts(products);
 
   return (
     <main className="flex min-h-screen flex-col bg-slate-950 text-white">
@@ -225,7 +163,7 @@ export default function Home() {
             </div>
           </div>
 
-          {!loading && (games.length > 0 || products.length > 0) && (
+          {(games.length > 0 || products.length > 0) && (
             <div className="w-full max-w-md lg:max-w-xl lg:flex-shrink-0">
               <HeroVisual games={games} products={products} />
             </div>
@@ -243,19 +181,11 @@ export default function Home() {
           </p>
         </div>
 
-        {loading && <div className="mt-8"><ProductGridSkeleton count={4} /></div>}
-
-        {error && (
-          <p className="mt-8 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-            {error}
-          </p>
-        )}
-
-        {!loading && !error && games.length === 0 && (
+        {games.length === 0 && (
           <p className="mt-8 text-slate-400">No games available.</p>
         )}
 
-        {!loading && !error && games.length > 0 && (
+        {games.length > 0 && (
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
             {games.map((game) => (
               <GameCategoryCard
@@ -268,31 +198,23 @@ export default function Home() {
         )}
       </section>
 
-      {loading ? (
-        <div className="mx-auto w-full max-w-7xl px-4 pb-14 md:px-6">
-          <ProductGridSkeleton />
-        </div>
-      ) : (
-        <>
-          <ProductSection
-            title="Recommended accounts"
-            subtitle="Available listings with the most complete details"
-            products={recommendedProducts}
-            viewAllHref="/products"
-            viewAllLabel="View all"
-          />
+      <ProductSection
+        title="Recommended accounts"
+        subtitle="Available listings with the most complete details"
+        products={recommendedProducts}
+        viewAllHref="/products"
+        viewAllLabel="View all"
+      />
 
-          <section className="border-y border-white/[0.06] bg-slate-900/25">
-            <ProductSection
-              title="Just added"
-              subtitle="Newest available accounts in our catalogue"
-              products={justAddedProducts}
-              viewAllHref="/products?sort=newest"
-              viewAllLabel="See newest"
-            />
-          </section>
-        </>
-      )}
+      <section className="border-y border-white/[0.06] bg-slate-900/25">
+        <ProductSection
+          title="Just added"
+          subtitle="Newest available accounts in our catalogue"
+          products={justAddedProducts}
+          viewAllHref="/products?sort=newest"
+          viewAllLabel="See newest"
+        />
+      </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14">
         <h2 className="section-title">Why choose {SITE_NAME}</h2>
@@ -390,8 +312,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </main>
   );
 }

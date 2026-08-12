@@ -1,7 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
 import PurchaseButtons from "@/components/PurchaseButtons";
@@ -107,7 +106,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
             Browse accounts
           </Link>
         </div>
-        <Footer />
       </main>
     );
   }
@@ -322,8 +320,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
         gameName={game?.name}
         available={isAvailable}
       />
-
-      <Footer />
     </main>
   );
 }

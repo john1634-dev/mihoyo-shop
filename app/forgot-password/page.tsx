@@ -3,7 +3,6 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { SITE_URL } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
 import { toUserError } from "@/lib/errors";
@@ -102,7 +101,6 @@ export default function ForgotPasswordPage() {
           </p>
         </form>
       </div>
-      <Footer />
     </main>
   );
 }

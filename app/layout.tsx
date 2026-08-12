@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Footer from "@/components/Footer";
 import ToastHost from "@/components/ToastHost";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import {
@@ -70,9 +71,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen overflow-x-hidden bg-slate-950 font-sans text-white antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col overflow-x-hidden bg-slate-950 font-sans text-white antialiased`}
       >
         {children}
+        <Footer />
         <FloatingWhatsApp />
         <ToastHost />
       </body>

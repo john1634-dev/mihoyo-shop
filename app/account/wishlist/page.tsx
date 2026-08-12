@@ -6,7 +6,6 @@ import Link from "next/link";
 
 import AccountGuard from "@/components/AccountGuard";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { getAccessToken } from "@/lib/auth";
 import { formatPrice } from "@/lib/config";
 
@@ -186,7 +185,6 @@ export default function WishlistPage() {
           )}
         </div>
 
-        <Footer />
       </main>
     </AccountGuard>
   );

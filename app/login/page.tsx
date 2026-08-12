@@ -4,7 +4,6 @@ import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { SITE_NAME } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
 import { toUserError } from "@/lib/errors";
@@ -115,7 +114,6 @@ export default function LoginPage() {
           <LoginForm />
         </Suspense>
       </div>
-      <Footer />
     </main>
   );
 }

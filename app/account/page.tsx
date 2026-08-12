@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import AccountGuard from "@/components/AccountGuard";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { getProfile, type Profile } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { buildWhatsAppUrl } from "@/lib/config";
@@ -153,7 +152,6 @@ function AccountContent() {
         )}
       </div>
 
-      <Footer />
     </main>
   );
 }

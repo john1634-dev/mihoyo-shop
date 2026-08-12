@@ -4,7 +4,6 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import { toUserError } from "@/lib/errors";
 
@@ -166,7 +165,6 @@ export default function ResetPasswordPage() {
           </form>
         )}
       </div>
-      <Footer />
     </main>
   );
 }
