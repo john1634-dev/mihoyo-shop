@@ -20,11 +20,11 @@ export default function ProductPurchaseBar({
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-slate-950/95 backdrop-blur-xl lg:hidden">
       <div className="mx-auto max-w-lg px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="mb-2 flex items-baseline justify-between gap-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+        <div className="mb-2 flex min-w-0 items-baseline justify-between gap-3">
+          <p className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
             Price
           </p>
-          <p className="text-xl font-bold leading-none text-white">
+          <p className="min-w-0 truncate text-xl font-bold leading-none text-white">
             {formatPrice(Number(product.price), product.currency)}
           </p>
         </div>
@@ -34,6 +34,7 @@ export default function ProductPurchaseBar({
           available
           layout="stack"
           size="sm"
+          className="w-full min-w-0"
         />
       </div>
     </div>

@@ -393,7 +393,7 @@ details > summary::-webkit-details-marker {
 
 /* Mobile safe area for sticky purchase bar + floating WhatsApp */
 .pb-purchase-bar {
-  padding-bottom: calc(9.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 1024px) {
@@ -408,6 +408,13 @@ details > summary::-webkit-details-marker {
 
 @media (max-width: 1023px) {
   .floating-whatsapp {
-    bottom: calc(9.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(10.25rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* PDP footer clearance when sticky purchase bar is present */
+@media (max-width: 1023px) {
+  body:has(.has-purchase-bar) footer {
+    padding-bottom: calc(10rem + env(safe-area-inset-bottom, 0px));
   }
 }

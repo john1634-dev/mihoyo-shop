@@ -12,6 +12,7 @@ import {
 } from "@/lib/config";
 import {
   buildAccountCounts,
+  buildGameNameMap,
   fetchActiveGames,
   fetchAvailableProducts,
 } from "@/lib/catalog-server";
@@ -91,12 +92,14 @@ function ProductSection({
   products,
   viewAllHref,
   viewAllLabel,
+  gameNameById,
 }: {
   title: string;
   subtitle: string;
   products: Product[];
   viewAllHref: string;
   viewAllLabel: string;
+  gameNameById: Map<string, string>;
 }) {
   if (products.length === 0) return null;
 
@@ -116,7 +119,11 @@ function ProductSection({
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            gameNameById={gameNameById}
+          />
         ))}
       </div>
     </section>
@@ -130,6 +137,9 @@ export default async function Home() {
   ]);
 
   const accountCounts = buildAccountCounts(products);
+  const gameNameById = buildGameNameMap(games);
+  const stockedGames = games.filter((game) => (accountCounts[game.id] || 0) > 0);
+  const popularGames = stockedGames.length > 0 ? stockedGames : games;
   const recommendedProducts = getRecommendedProducts(products);
   const recommendedIds = getRecommendedProductIds(products);
   const dedupedJustAdded = getJustAddedProducts(products, recommendedIds);
@@ -151,6 +161,10 @@ export default async function Home() {
 
             <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-400 md:text-base">
               Find premium game accounts at competitive prices.
+            </p>
+
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500">
+              Buy via Shopee or chat with us on WhatsApp.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -185,9 +199,9 @@ export default async function Home() {
           <p className="mt-8 text-slate-400">No games available.</p>
         )}
 
-        {games.length > 0 && (
+        {popularGames.length > 0 && (
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
-            {games.map((game) => (
+            {popularGames.map((game) => (
               <GameCategoryCard
                 key={game.id}
                 game={game}
@@ -204,6 +218,7 @@ export default async function Home() {
         products={recommendedProducts}
         viewAllHref="/products"
         viewAllLabel="View all"
+        gameNameById={gameNameById}
       />
 
       <section className="border-y border-white/[0.06] bg-slate-900/25">
@@ -213,6 +228,7 @@ export default async function Home() {
           products={justAddedProducts}
           viewAllHref="/products?sort=newest"
           viewAllLabel="See newest"
+          gameNameById={gameNameById}
         />
       </section>
 

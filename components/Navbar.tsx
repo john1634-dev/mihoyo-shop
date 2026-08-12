@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { SITE_NAME, buildWhatsAppUrl } from "@/lib/config";
-import { WhatsAppIcon } from "@/components/icons";
+import { WhatsAppIcon, SearchIcon } from "@/components/icons";
 import { supabase } from "@/lib/supabase";
 
 type NavbarProps = {
@@ -15,6 +15,7 @@ type NavbarProps = {
 export default function Navbar({ games = [] }: NavbarProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -79,6 +80,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
     const query = searchQuery.trim();
     router.push(query ? `/products?q=${encodeURIComponent(query)}` : "/products");
     setMenuOpen(false);
+    setMobileSearchOpen(false);
   }
 
   return (
@@ -131,6 +133,31 @@ export default function Navbar({ games = [] }: NavbarProps) {
         </form>
 
         <div className="flex items-center gap-2">
+          <a
+            href={buildWhatsAppUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Chat with us on WhatsApp"
+            className="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] px-3 py-2 text-sm text-emerald-400/90 transition hover:border-emerald-600/35 hover:text-emerald-300 lg:inline-flex"
+          >
+            <WhatsAppIcon className="h-4 w-4" />
+            <span className="hidden xl:inline">WhatsApp</span>
+          </a>
+
+          <button
+            type="button"
+            onClick={() => {
+              setMobileSearchOpen((open) => !open);
+              setMenuOpen(false);
+            }}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] text-slate-300 transition hover:border-slate-500 hover:text-white md:hidden"
+            aria-label="Search"
+            aria-expanded={mobileSearchOpen}
+            aria-controls="mobile-nav-search-panel"
+          >
+            <SearchIcon className="h-4 w-4" />
+          </button>
+
           {user && (
             <Link
               href="/account/wishlist"
@@ -176,6 +203,28 @@ export default function Navbar({ games = [] }: NavbarProps) {
           </button>
         </div>
       </div>
+
+      {mobileSearchOpen && (
+        <div
+          id="mobile-nav-search-panel"
+          className="border-t border-white/[0.06] px-4 py-2 md:hidden"
+        >
+          <form onSubmit={handleSearch} role="search">
+            <label className="sr-only" htmlFor="mobile-nav-search-compact">
+              Search accounts
+            </label>
+            <input
+              id="mobile-nav-search-compact"
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search accounts..."
+              autoFocus
+              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2 text-sm outline-none transition focus:border-blue-500/50"
+            />
+          </form>
+        </div>
+      )}
 
       {menuOpen && (
         <nav className="border-t border-white/[0.06] px-4 py-4 lg:hidden" aria-label="Mobile">

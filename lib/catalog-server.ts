@@ -12,6 +12,16 @@ export type ProductListFilters = {
   status?: string;
 };
 
+/** Maps legacy `featured` / `default` URLs to newest-first ordering. */
+export function normalizeProductSort(sort?: string): string {
+  if (!sort || sort === "featured" || sort === "default") return "newest";
+  return sort;
+}
+
+export function buildGameNameMap(games: Game[]): Map<string, string> {
+  return new Map(games.map((game) => [game.id, game.name]));
+}
+
 export async function fetchActiveGames(): Promise<Game[]> {
   const { data, error } = await supabase
     .from("games")
@@ -48,7 +58,7 @@ export async function fetchFilteredProducts(
 ): Promise<Product[]> {
   const gameSlug = filters.game?.trim() || "";
   const searchQuery = filters.q?.trim() || "";
-  const sort = filters.sort || "featured";
+  const sort = normalizeProductSort(filters.sort);
   const statusFilter = filters.status || "available";
 
   let query = supabase.from("products").select(PUBLIC_PRODUCT_SELECT);

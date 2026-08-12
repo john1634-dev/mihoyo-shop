@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -8,13 +8,49 @@ import ProductCard from "@/components/ProductCard";
 import GameImage from "@/components/GameImage";
 import { CloseIcon, FilterIcon } from "@/components/icons";
 import { getGameImageUrl } from "@/lib/games";
+import { normalizeProductSort } from "@/lib/catalog-server";
 import type { Game, Product } from "@/lib/types";
 
-type FilterValues = {
-  q: string;
-  sort: string;
-  status: string;
+type FilterOverrides = {
+  game?: string;
+  q?: string;
+  sort?: string;
+  status?: string;
 };
+
+const STATUS_LABELS: Record<string, string> = {
+  sold: "Sold out",
+  all: "Available + Sold",
+};
+
+const SORT_LABELS: Record<string, string> = {
+  "price-asc": "Price: Low to High",
+  "price-desc": "Price: High to Low",
+};
+
+function buildProductListHref(
+  current: {
+    gameSlug: string;
+    searchQuery: string;
+    sort: string;
+    statusFilter: string;
+  },
+  overrides: FilterOverrides = {}
+) {
+  const params = new URLSearchParams();
+  const nextGame = overrides.game ?? current.gameSlug;
+  const nextQ = overrides.q ?? current.searchQuery;
+  const nextSort = normalizeProductSort(overrides.sort ?? current.sort);
+  const nextStatus = overrides.status ?? current.statusFilter;
+
+  if (nextGame) params.set("game", nextGame);
+  if (nextQ.trim()) params.set("q", nextQ.trim());
+  if (nextSort !== "newest") params.set("sort", nextSort);
+  if (nextStatus !== "available") params.set("status", nextStatus);
+
+  const query = params.toString();
+  return query ? `/products?${query}` : "/products";
+}
 
 type ProductFiltersProps = {
   games: Game[];
@@ -22,13 +58,8 @@ type ProductFiltersProps = {
   searchQuery: string;
   sort: string;
   statusFilter: string;
-  buildHref: (overrides: {
-    game?: string;
-    q?: string;
-    sort?: string;
-    status?: string;
-  }) => string;
-  onApply: (values: FilterValues) => void;
+  buildHref: (overrides: FilterOverrides) => string;
+  onNavigate: (overrides: FilterOverrides) => void;
   onClear: () => void;
 };
 
@@ -39,40 +70,40 @@ function ProductFilters({
   sort,
   statusFilter,
   buildHref,
-  onApply,
+  onNavigate,
   onClear,
 }: ProductFiltersProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
-  const [localSort, setLocalSort] = useState(sort);
-  const [localStatus, setLocalStatus] = useState(statusFilter);
 
-  function applyFilters(event?: React.FormEvent) {
-    event?.preventDefault();
-    onApply({
-      q: localSearch,
-      sort: localSort,
-      status: localStatus,
-    });
+  function submitSearch(event: React.FormEvent) {
+    event.preventDefault();
+    onNavigate({ q: localSearch });
   }
 
   return (
-    <form onSubmit={applyFilters} className="space-y-5">
-      <div>
-        <label
-          htmlFor="product-search"
-          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
-        >
+    <div className="space-y-5">
+      <form onSubmit={submitSearch} className="space-y-5">
+        <div>
+          <label
+            htmlFor="product-search"
+            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+          >
+            Search
+          </label>
+          <input
+            id="product-search"
+            type="search"
+            value={localSearch}
+            onChange={(event) => setLocalSearch(event.target.value)}
+            placeholder="Search accounts..."
+            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-blue-500"
+          />
+        </div>
+
+        <button type="submit" className="btn-primary w-full">
           Search
-        </label>
-        <input
-          id="product-search"
-          type="search"
-          value={localSearch}
-          onChange={(event) => setLocalSearch(event.target.value)}
-          placeholder="Search accounts..."
-          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-blue-500"
-        />
-      </div>
+        </button>
+      </form>
 
       <div>
         <label
@@ -83,11 +114,10 @@ function ProductFilters({
         </label>
         <select
           id="product-sort"
-          value={localSort}
-          onChange={(event) => setLocalSort(event.target.value)}
+          value={sort}
+          onChange={(event) => onNavigate({ sort: event.target.value })}
           className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm"
         >
-          <option value="featured">Featured</option>
           <option value="newest">Newest</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>
@@ -103,8 +133,8 @@ function ProductFilters({
         </label>
         <select
           id="product-status"
-          value={localStatus}
-          onChange={(event) => setLocalStatus(event.target.value)}
+          value={statusFilter}
+          onChange={(event) => onNavigate({ status: event.target.value })}
           className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm"
         >
           <option value="available">Available</option>
@@ -144,15 +174,56 @@ function ProductFilters({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 pt-2">
-        <button type="submit" className="btn-primary w-full">
-          Apply filters
-        </button>
+      <div className="pt-2">
         <button type="button" onClick={onClear} className="btn-secondary w-full">
           Clear filters
         </button>
       </div>
-    </form>
+    </div>
+  );
+}
+
+type ActiveFilterChip = {
+  key: string;
+  label: string;
+  href: string;
+};
+
+function ActiveFilters({
+  chips,
+  onClear,
+}: {
+  chips: ActiveFilterChip[];
+  onClear: () => void;
+}) {
+  if (chips.length === 0) return null;
+
+  return (
+    <div className="mt-6 flex flex-wrap items-center gap-2">
+      <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        Active:
+      </span>
+      {chips.map((chip) => (
+        <Link
+          key={chip.key}
+          href={chip.href}
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/[0.1] bg-slate-900/80 px-2.5 py-1 text-xs text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
+        >
+          <span className="truncate">{chip.label}</span>
+          <span className="shrink-0 text-slate-500" aria-hidden>
+            ×
+          </span>
+          <span className="sr-only">Remove {chip.label} filter</span>
+        </Link>
+      ))}
+      <button
+        type="button"
+        onClick={onClear}
+        className="text-xs font-medium text-blue-400 transition hover:text-blue-300"
+      >
+        Clear filters
+      </button>
+    </div>
   );
 }
 
@@ -177,36 +248,25 @@ export default function ProductsClient({
   const [filterOpen, setFilterOpen] = useState(false);
 
   const activeGame = games.find((game) => game.slug === gameSlug);
+  const gameNameById = useMemo(
+    () => new Map(games.map((game) => [game.id, game.name])),
+    [games]
+  );
+  const normalizedSort = normalizeProductSort(sort);
 
-  function buildHref(overrides: {
-    game?: string;
-    q?: string;
-    sort?: string;
-    status?: string;
-  }) {
-    const params = new URLSearchParams();
-    const nextGame = overrides.game ?? gameSlug;
-    const nextQ = overrides.q ?? searchQuery;
-    const nextSort = overrides.sort ?? sort;
-    const nextStatus = overrides.status ?? statusFilter;
+  const filterState = {
+    gameSlug,
+    searchQuery,
+    sort,
+    statusFilter,
+  };
 
-    if (nextGame) params.set("game", nextGame);
-    if (nextQ.trim()) params.set("q", nextQ.trim());
-    if (nextSort !== "featured") params.set("sort", nextSort);
-    if (nextStatus !== "available") params.set("status", nextStatus);
-
-    const query = params.toString();
-    return query ? `/products?${query}` : "/products";
+  function buildHref(overrides: FilterOverrides) {
+    return buildProductListHref(filterState, overrides);
   }
 
-  function applyFilters(values: FilterValues) {
-    router.push(
-      buildHref({
-        q: values.q,
-        sort: values.sort,
-        status: values.status,
-      })
-    );
+  function navigateFilters(overrides: FilterOverrides) {
+    router.push(buildHref(overrides));
     setFilterOpen(false);
   }
 
@@ -215,16 +275,50 @@ export default function ProductsClient({
     setFilterOpen(false);
   }
 
+  const activeFilterChips: ActiveFilterChip[] = [];
+
+  if (activeGame) {
+    activeFilterChips.push({
+      key: "game",
+      label: activeGame.name,
+      href: buildProductListHref(filterState, { game: "" }),
+    });
+  }
+
+  if (searchQuery.trim()) {
+    activeFilterChips.push({
+      key: "q",
+      label: `Search: ${searchQuery.trim()}`,
+      href: buildProductListHref(filterState, { q: "" }),
+    });
+  }
+
+  if (statusFilter !== "available") {
+    activeFilterChips.push({
+      key: "status",
+      label: STATUS_LABELS[statusFilter] || statusFilter,
+      href: buildProductListHref(filterState, { status: "available" }),
+    });
+  }
+
+  if (normalizedSort !== "newest") {
+    activeFilterChips.push({
+      key: "sort",
+      label: SORT_LABELS[normalizedSort] || normalizedSort,
+      href: buildProductListHref(filterState, { sort: "newest" }),
+    });
+  }
+
   const filterPanel = (
     <ProductFilters
-      key={`${gameSlug}-${searchQuery}-${sort}-${statusFilter}`}
+      key={`${gameSlug}-${searchQuery}-${normalizedSort}-${statusFilter}`}
       games={games}
       gameSlug={gameSlug}
       searchQuery={searchQuery}
-      sort={sort}
+      sort={normalizedSort}
       statusFilter={statusFilter}
       buildHref={buildHref}
-      onApply={applyFilters}
+      onNavigate={navigateFilters}
       onClear={clearFilters}
     />
   );
@@ -243,9 +337,15 @@ export default function ProductsClient({
             </li>
             <li aria-hidden>/</li>
             <li>
-              <Link href="/products" className="hover:text-white">
-                Games
-              </Link>
+              {activeGame ? (
+                <Link href="/products" className="hover:text-white">
+                  Accounts
+                </Link>
+              ) : (
+                <span className="text-slate-300" aria-current="page">
+                  Accounts
+                </span>
+              )}
             </li>
             {activeGame && (
               <>
@@ -265,12 +365,14 @@ export default function ProductsClient({
             </div>
           ) : null}
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            {activeGame ? `${activeGame.name} Accounts` : "Game Accounts"}
+            {activeGame ? `${activeGame.name} Accounts` : "Accounts"}
           </h1>
           <p className="mt-3 text-slate-400">
             Premium listings with clear details. Purchase via Shopee or WhatsApp.
           </p>
         </div>
+
+        <ActiveFilters chips={activeFilterChips} onClear={clearFilters} />
 
         <div className="mt-8 flex items-center justify-between gap-3 lg:hidden">
           <p className="text-sm text-slate-500">
@@ -296,7 +398,7 @@ export default function ProductsClient({
             </div>
           </aside>
 
-          <div>
+          <div className="min-w-0">
             <p className="mb-6 hidden text-sm text-slate-500 lg:block">
               {products.length} account{products.length === 1 ? "" : "s"} found
             </p>
@@ -324,7 +426,7 @@ export default function ProductsClient({
                   <ProductCard
                     key={product.id}
                     product={product}
-                    gameName={activeGame?.name}
+                    gameNameById={gameNameById}
                   />
                 ))}
               </div>

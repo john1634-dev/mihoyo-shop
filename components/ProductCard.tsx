@@ -28,11 +28,33 @@ function descriptionPreview(description: string | null | undefined): string | nu
 type ProductCardProps = {
   product: Product & { games?: { name?: string; slug?: string } | null };
   gameName?: string;
+  gameNameById?: Map<string, string>;
 };
 
-export default function ProductCard({ product, gameName }: ProductCardProps) {
+function resolveGameName(
+  product: Product & { games?: { name?: string; slug?: string } | null },
+  gameName?: string,
+  gameNameById?: Map<string, string>
+): string | null {
+  const explicit = gameName?.trim();
+  if (explicit) return explicit;
+
+  if (product.game_id) {
+    const fromMap = gameNameById?.get(product.game_id);
+    if (fromMap) return fromMap;
+  }
+
+  const joined = product.games?.name?.trim();
+  return joined || null;
+}
+
+export default function ProductCard({
+  product,
+  gameName,
+  gameNameById,
+}: ProductCardProps) {
   const isAvailable = product.status === "available";
-  const resolvedGame = gameName || product.games?.name || null;
+  const resolvedGame = resolveGameName(product, gameName, gameNameById);
   const badges = getProductBadges(product);
   const summary = accountSummaryLine(product);
   const preview = descriptionPreview(product.description);
@@ -115,9 +137,9 @@ export default function ProductCard({ product, gameName }: ProductCardProps) {
 
           <Link
             href={productHref}
-            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 transition duration-200 hover:text-blue-300 sm:text-sm"
+            className="mt-3 inline-flex min-h-[2.25rem] w-full items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/5 px-3 py-2 text-xs font-semibold text-blue-300 transition duration-200 hover:border-blue-400/50 hover:bg-blue-500/10 hover:text-blue-200 sm:min-h-[2.5rem] sm:text-sm"
           >
-            View Account
+            View details &amp; buy
             <ArrowRightIcon className="h-3.5 w-3.5 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none sm:h-4 sm:w-4" />
           </Link>
         </div>

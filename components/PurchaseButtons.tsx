@@ -67,8 +67,8 @@ export default function PurchaseButtons({
 
   const wrap =
     layout === "row"
-      ? "grid grid-cols-1 gap-2 sm:grid-cols-2"
-      : "flex flex-col gap-2.5";
+      ? "grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2"
+      : "flex w-full min-w-0 flex-col gap-2.5";
 
   return (
     <div className={`${wrap} ${className}`}>

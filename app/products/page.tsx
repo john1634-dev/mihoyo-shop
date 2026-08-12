@@ -2,6 +2,7 @@ import ProductsClient from "@/components/ProductsClient";
 import {
   fetchActiveGames,
   fetchFilteredProducts,
+  normalizeProductSort,
 } from "@/lib/catalog-server";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   const gameSlug = params.game?.trim() || "";
   const searchQuery = params.q?.trim() || "";
-  const sort = params.sort?.trim() || "featured";
+  const sort = normalizeProductSort(params.sort?.trim());
   const statusFilter = params.status?.trim() || "available";
 
   const games = await fetchActiveGames();

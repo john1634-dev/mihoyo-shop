@@ -162,7 +162,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const breadcrumbItems = [
     { name: "Home", path: "/" },
-    { name: "Games", path: "/products" },
+    { name: "Accounts", path: "/products" },
     ...(game
       ? [{ name: game.name, path: `/products?game=${game.slug}` }]
       : []),
@@ -182,7 +182,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(breadcrumbItems);
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-950 text-white">
+    <main className="has-purchase-bar flex min-h-screen flex-col overflow-x-hidden bg-slate-950 text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
@@ -245,7 +245,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </span>
               </div>
 
-              <h1 className="mt-4 text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl lg:text-4xl">
+              <h1 className="mt-4 line-clamp-3 text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl lg:line-clamp-none lg:text-4xl">
                 {product.title}
               </h1>
 
