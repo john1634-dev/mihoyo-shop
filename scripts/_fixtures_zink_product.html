@@ -1,0 +1,799 @@
+
+
+<!DOCTYPE html>
+
+<html lang="vi" class="light">
+<head>
+    <meta charset="utf-8">
+    <title id="headTitle">Hệ thống bán Tài khoản & Gói nạp Game - ZinkGame</title>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=0, minimal-ui">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="author" content="cloudzone">
+    <meta name="csrf-token" content="4AXVojZZFg9JPcCHgl0bcHh1oUQOFQ2N2WWGKAoM">
+    <link rel="icon" type="image/png" href="/admin-njcj/content/img/favicon.png" />
+
+    <link href="/content/fonts/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/content/dist/css/app.css" />
+    <link href="/content/css/css.css?token=2023010619" rel="stylesheet">
+
+    <link href="/content/css/usercss3.css?token=2023010619" rel="stylesheet">
+    <link href="/content/css/usercss.css?token=2023010619" rel="stylesheet">
+    <link href="/content/css/usercss2.css?token=2023010619" rel="stylesheet">
+    <link rel="stylesheet" href="/content/css/user2/waves.min.css" type="text/css" media="all">
+
+    <link rel="stylesheet" type="text/css" href="/content/css/user2/feather.css">
+    <link rel="stylesheet" type="text/css" href="/content/css/user2/widget.css">
+    <link rel="stylesheet" type="text/css" href="/content/css/user2/pages.css">
+
+    <link rel="stylesheet" href="/content/libraries/toastr/toastr.min.css">
+    <link rel="stylesheet" href="/content/libraries/toggle/bootstrap4-toggle.min.css">
+    <script defer src="https://unpkg.com/alpinejs@3.2.4/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="/content/libraries/select2/css/select2.min.css">
+    <link rel="stylesheet" href="/content/css/home.css">
+    <link rel="stylesheet" href="/content/css/common.css">
+</head>
+<body class="py-5 md:py-0 bg-black/[0.15] dark:bg-transparent">
+    
+
+<div class="mobile-menu md:hidden">
+    <div class="mobile-menu-bar">
+        <a href="/" class="flex mr-auto">
+            <img src="/content/images/logo.png" alt="Logo Cloudzone" class="h-16">
+        </a>
+        <a href="javascript:void(0)" id="mobile-menu-toggler"><i data-lucide="bar-chart-2" class="w-8 h-8 text-white transform -rotate-90"></i></a>
+    </div>
+    <ul class="border-t border-white/[0.08] py-5 hidden">
+        <li>
+            <a href="/" class="menu">
+                <div class="menu__icon"><i data-lucide="home"></i></div>
+                <div class="menu__title">Trang chủ </div>
+            </a>
+        </li>
+
+        <li>
+            <a href="javascript:void(0)" class="menu ">
+                <div class="menu__icon"><i data-lucide="shopping-cart"></i></div>
+                <div class="menu__title">Mua tài khoản<i data-lucide="chevron-down" class="menu__sub-icon transform rotate-180"></i></div>
+            </a>
+            <ul class="">
+                
+                        <li>
+                            <a href='/category/account/genshin-impact' class="menu ">
+                                
+                                <div class="menu__title">Genshin Impact</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/account/honkai-star-rail' class="menu ">
+                                
+                                <div class="menu__title">Honkai Star Rail</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/account/lien-quan-mobi' class="menu ">
+                                
+                                <div class="menu__title">Acc REROLL Genshins impact</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/account/wuthering-waves' class="menu ">
+                                
+                                <div class="menu__title">Wuthering Waves</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/account/where-winds-meet' class="menu ">
+                                
+                                <div class="menu__title">Where Winds Meet</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/account/arknights-endfield' class="menu ">
+                                
+                                <div class="menu__title">Arknights: Endfield</div>
+                            </a>
+                        </li>
+                    
+            </ul>
+        </li>
+
+        <li>
+            <a href="javascript:void(0)" class="menu ">
+                <div class="menu__icon"><i data-lucide="layers"></i></div>
+                <div class="menu__title">Nạp games <i data-lucide="chevron-down" class="menu__sub-icon transform rotate-180"></i></div>
+            </a>
+            <ul class="">
+                
+                        <li>
+                            <a href='/category/package/genshin-impact' class="menu ">
+                                
+                                <div class="menu__title">Genshin Impact</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/package/honkai-star-rail' class="menu ">
+                                
+                                <div class="menu__title">Honkai Star Rail</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/package/call-of-dragons' class="menu ">
+                                
+                                <div class="menu__title">Call Of Dragons</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/package/tower-of-fantasy-global' class="menu ">
+                                
+                                <div class="menu__title">Tower of Fantasy - Global</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/package/wuthering-waves' class="menu ">
+                                
+                                <div class="menu__title">Wuthering Waves</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/package/where-winds-meet' class="menu ">
+                                
+                                <div class="menu__title">Where Winds Meet</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/package/arknights-endfield' class="menu ">
+                                
+                                <div class="menu__title">Arknights: Endfield</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/package/zenless-zone-zero' class="menu ">
+                                
+                                <div class="menu__title">Zenless Zone Zero</div>
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href='/category/package/dau-la-dai-luc-san-hon' class="menu ">
+                                
+                                <div class="menu__title">Đấu La Đại Lục - Săn Hồn</div>
+                            </a>
+                        </li>
+                    
+            </ul>
+        </li>
+
+
+
+        <li>
+            <a href="javascript:void(0)" class="menu ">
+                <div class="menu__icon"><i data-lucide="credit-card"></i></div>
+                <div class="menu__title"> Nạp tiền <i data-lucide="chevron-down" class="menu__sub-icon transform rotate-180"></i></div>
+            </a>
+            <ul class="">
+
+
+                 <li class="">
+                    <a href="/top-up/history"
+                        class="menu">
+                        <div class="menu__icon"><i class="fa-duotone fa-rectangle-history"></i></div>
+                        <div class="menu__title">Lịch sử nạp </div>
+                    </a>
+                </li>
+               <li class="">
+                    <a href="/top-up/bank"
+                        class="menu">
+                        <div class="menu__icon"><i class="fa-solid fa-building-columns"></i></div>
+                        <div class="menu__title">Nạp bằng Bank, Ví </div>
+                    </a>
+                </li>
+               <li class="">
+                    <a href="/top-up/recharge-card"
+                        class="menu">
+                        <div class="menu__icon"><i class="fa-regular fa-cards-blank"></i></div>
+                        <div class="menu__title">Nạp bằng Thẻ cào </div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+
+
+        <li>
+            <a href="javascript:void(0)" class="menu ">
+                <div class="menu__icon"><i data-lucide="clipboard"></i></div>
+                <div class="menu__title"> Đơn hàng  <i data-lucide="chevron-down" class="menu__sub-icon transform rotate-180"></i></div>
+            </a>
+            <ul class="">
+
+                <li class="">
+                    <a href="/order/cart" id="MobileMenu_categoryOrderCart" class="menu">
+                        <div class="menu__icon"><i class="fa-duotone fa-cart-shopping"></i></div>
+                        <div class="menu__title">Giỏ hàng </div>
+                    </a>
+                </li>
+               <li class="">
+                    <a href="/order/history" id="MobileMenu_categoryOrderHistory" class="menu">
+                        <div class="menu__icon"><i class="fa-duotone fa-rectangle-vertical-history"></i></div>
+                        <div class="menu__title">Lịch sử đặt hàng </div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
+    <div id="bgMenu" class="flex overflow-hidden" style="background-image:url(&#39;/images/bba190f0935d423f90f3fc34963c1aaa.jpg&#39;);background-attachment:fixed;">
+        
+
+<nav class="side-nav">
+    <a href="/" class="intro-x flex items-center pl-5 pt-4 mt-3">
+        <img class="xl:block" src="/content/images/logo.png" alt="Logo" width="140">
+        <span class="logo-mini text-white text-2xl"><i class="fas fa-cloud"></i></span>
+    </a>
+    <div class="side-nav__devider my-6"></div>
+    <ul>
+        <li id="menu_home">
+            <a href="/" id="SideNav_categoryHome" class="side-menu side-menu-main">
+                <div class="side-menu__icon"><i data-lucide="home"></i></div>
+                <div class="side-menu__title">Trang chủ </div>
+            </a>
+        </li>
+
+        <li id="menu_product">
+            <a href="javascript:void(0)" id="SideNav_categoryAccount" class="side-menu side-menu-main ">
+                <div class="side-menu__icon"><i data-lucide="shopping-cart"></i></div>
+                <div class="side-menu__title">
+                    Mua tài khoản
+                    <div class="side-menu__sub-icon "><i data-lucide="chevron-down"></i></div>
+                </div>
+            </a>
+
+            <ul id="SideNav_categoryAccountSub">
+                
+                        <li class="side-menu-li">
+                            <a href='/category/account/genshin-impact' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Genshin Impact </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                            <a href='/category/account/honkai-star-rail' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Honkai Star Rail </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                            <a href='/category/account/lien-quan-mobi' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Acc REROLL Genshins impact </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                            <a href='/category/account/wuthering-waves' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Wuthering Waves </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                            <a href='/category/account/where-winds-meet' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Where Winds Meet </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                            <a href='/category/account/arknights-endfield' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Arknights: Endfield </div>
+                            </a>
+                        </li>
+                    
+            </ul>
+        </li>
+
+
+        <li id="menu_servive">
+            <a href="javascript:void(0)" id="SideNav_categoryPackage" class="side-menu side-menu-main ">
+                <div class="side-menu__icon"><i data-lucide="layers"></i></div>
+                <div class="side-menu__title">
+                    Nạp games
+                    <div class="side-menu__sub-icon "><i data-lucide="chevron-down"></i></div>
+                </div>
+            </a>
+            <ul id="SideNav_categoryPackageSub">
+                 
+                        <li class="side-menu-li">
+                             <a href='/category/package/genshin-impact' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Genshin Impact </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                             <a href='/category/package/honkai-star-rail' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Honkai Star Rail </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                             <a href='/category/package/call-of-dragons' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Call Of Dragons </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                             <a href='/category/package/tower-of-fantasy-global' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Tower of Fantasy - Global </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                             <a href='/category/package/wuthering-waves' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Wuthering Waves </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                             <a href='/category/package/where-winds-meet' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Where Winds Meet </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                             <a href='/category/package/arknights-endfield' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Arknights: Endfield </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                             <a href='/category/package/zenless-zone-zero' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Zenless Zone Zero </div>
+                            </a>
+                        </li>
+                    
+                        <li class="side-menu-li">
+                             <a href='/category/package/dau-la-dai-luc-san-hon' class='side-menu side-menu-sub'>
+                                <div class="side-menu__icon"></div>
+                                <div class="side-menu__title">Đấu La Đại Lục - Săn Hồn </div>
+                            </a>
+                        </li>
+                    
+            </ul>
+        </li>
+
+        <li id="menu_payment">
+           <a href="javascript:void(0)"
+                class="side-menu side-menu-main">
+                <div class="side-menu__icon"><i data-lucide="dollar-sign"></i></div>
+                <div class="side-menu__title">
+                    Nạp tiền
+                    <div class="side-menu__sub-icon "><i data-lucide="chevron-down"></i></div>
+                </div>
+            </a>
+            <ul class="">
+                <li class="side-menu-li">
+                    <a href="/top-up/history"
+                        class="side-menu side-menu-sub">
+                        <div class="side-menu__icon"><i class="fa-duotone fa-rectangle-history"></i></div>
+                        <div class="side-menu__title">Lịch sử nạp </div>
+                    </a>
+                </li>
+                <li class="side-menu-li">
+                    <a href="/top-up/bank"
+                        class="side-menu side-menu-sub">
+                        <div class="side-menu__icon"><i class="fa-solid fa-building-columns"></i></div>
+                        <div class="side-menu__title">Nạp bằng Banking</div>
+                    </a>
+                </li>
+                 <li class="side-menu-li">
+                    <a href="/top-up/momo"
+                        class="side-menu side-menu-sub">
+                        <div class="side-menu__icon"><i class="fa-solid fa-building-columns"></i></div>
+                        <div class="side-menu__title">Nạp bằng Ví MoMo</div>
+                    </a>
+                </li>
+                <li class="side-menu-li">
+                    <a href="/top-up/phone-card"
+                        class="side-menu side-menu-sub">
+                        <div class="side-menu__icon"><i class="fa-regular fa-cards-blank"></i></div>
+                        <div class="side-menu__title">Nạp bằng Thẻ cào </div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li id="menu_order">
+            <a href="javascript:void(0)" id="SideNav_categoryOrder" class="side-menu side-menu-main">
+                <div class="side-menu__icon"><i data-lucide="credit-card"></i></div>
+                <div class="side-menu__title">
+                    Đơn hàng 
+                     <div class="side-menu__sub-icon "><i data-lucide="chevron-down"></i></div>
+                </div>
+            </a>
+            <ul id="SideNav_categoryOrderSub" class="">
+                <li class="side-menu-li">
+                    <a href="/order/cart" id="SideNav_categoryOrderCart" class="side-menu side-menu-sub">
+                        <div class="side-menu__icon"><i class="fa-duotone fa-cart-shopping"></i></div>
+                        <div class="side-menu__title">Giỏ hàng </div>
+                    </a>
+                </li>
+                <li class="side-menu-li">
+                    <a href="/order/history" id="SideNav_categoryOrderHistory" class="side-menu side-menu-sub">
+                        <div class="side-menu__icon"><i class="fa-duotone fa-rectangle-vertical-history"></i></div>
+                        <div class="side-menu__title">Lịch sử đặt hàng </div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li style="margin-top: 15px;">
+            <a target="_blank" href="https://www.facebook.com/groups/zinkgame">
+                <img src="/content/images/link/1.jpg?v=1" style="width: 100%; border-radius: 15px;" />
+            </a>
+        </li>
+         <li style="margin-top: 15px;">
+            <a target="_blank" href="https://www.facebook.com/groups/callofdragons.official.zinkgame">
+                <img src="/content/images/link/2.jpg?v=1" style="width: 100%; border-radius: 15px;" />
+            </a>
+        </li>
+         <li style="margin-top: 15px;">
+            <a target="_blank" href="https://www.facebook.com/groups/honkaistarrail.official.zinkg">
+                <img src="/content/images/link/3.jpg?v=1" style="width: 100%; border-radius: 15px;" />
+            </a>
+        </li>
+        <li style="margin-top: 15px;">
+            <a target="_blank" href="https://www.facebook.com/groups/honkai.star.rail.official.zinkgame2">
+                <img src="/content/images/link/4.jpg?v=1" style="width: 100%; border-radius: 15px;" />
+            </a>
+        </li>
+       
+       
+    </ul>
+</nav>
+        <div id="bgMain" class="content" style="background-image:url(&#39;/images/826f2aa0901b4bf7bdfc51d7482714c6.jpg&#39;);background-attachment:fixed;">
+            
+
+<div class="top-bar -mx-0 px-4 md:mx-0 md:px-0">
+    <nav id="left-quick-access-pc" class="-intro-x mr-auto sm:flex">
+        <ol></ol>
+    </nav>
+    <div class="intro-x dropdown login-as-admin mr-2"></div>
+
+    <div id="TopBar_accountLogin" class="intro-x dropdown mr-auto sm:mr-1 account-balance">
+        <a href="/account/login">
+            <div class="navbar-custom-link">
+                <div class="icon-custom-link">
+                    <i class="fa-duotone fa-right-to-bracket"></i>
+                </div>
+                <div class="custom-link">
+                    <span class="mytooltip tooltip-effect-9">Đăng nhập</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div id="TopBar_accountRegister" class="intro-x dropdown mr-auto sm:mr-1 account-balance">
+        <a href="/account/register">
+            <div class="navbar-custom-link">
+                <div class="icon-custom-link">
+                    <i class="fa-duotone fa-id-card"></i>
+                </div>
+                <div class="custom-link">
+                    <span class="mytooltip tooltip-effect-9">Đăng ký</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div id="TopBar_accountAvatarLogin" class="intro-x dropdown w-8 h-8">
+        <div class="dropdown-toggle w-8 h-8 rounded-full overflow-hidden shadow-lg image-fit zoom-in header-avatar" role="button" aria-expanded="false" data-tw-toggle="dropdown">
+            <a href="/account/login">
+                <img src="/content/images/avatar.png" />
+            </a>
+        </div>
+    </div>
+
+    
+
+    
+
+    
+    
+</div>
+
+            <div class="app-content">
+                <div class="page-header">
+                    <div class="row align-items-end" style="background-color: hsl(0deg 0% 100% / 70%); padding: 5px 10px; color: #333; border-radius: 10px;">
+                        <div class="col-12 col-lg-12">
+                            <div class="page-header-breadcrumb">
+                                <ul class=" breadcrumb breadcrumb-title" style="height: 1.5em; overflow: hidden; display: -webkit-inline-box; float: inherit !important;">
+                                    <li class="breadcrumb-item"><a href="/" style="color: #333;"><i class="fas fa-tachometer-alt"></i>Trang chủ</a></li>
+                                    <li class="breadcrumb-item active"><i class="fas fa-cloud"></i>&nbsp;<span id="category">Genshin Impact</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-content">
+                    <div class="row" style="margin-bottom: 50px;">
+                        <div class="col-md-6 col-12 product-avatar-block">
+                            <img src="/images/a20e8b5b135247e2baec6fcd6b2a15ef.jpg?w=600" id="avatar" alt="Hình đại diện" style="border-radius: 15px;" />
+                        </div>
+                        
+                        <div class="col-md-6 col-12" style="background-color: rgb(255 255 255 / 60%); padding: 15px; border-radius: 15px;">
+                            <h1 id="title" style="font-size: 2rem; color: #05649b; margin-bottom: 20px;">H4702 nguồn cn neu c6 v&#224; những người bạn</h1>
+                            <div class="product-detail-price-block" style="margin-bottom: 20px;">
+                                <span id="price" style="font-size: 1.8rem; font-weight: bold; color: #333;">3,500,000đ</span>
+                                
+                            </div>
+                            <div class="row">
+                                
+                            </div>
+                            <div class="row">
+                                <div id="amountBlock" class="col-4" style="display: none;">
+                                    <div class="input-group" style="margin-top: 0;">
+                                        <div class="input-group-prepend">
+                                            <button id="minus" style="min-width: 2.5rem" class="btn btn-decrement btn-outline-secondary" type="button"><strong>-</strong></button>
+                                        </div>
+                                        <input id="amount" type="text" inputmode="decimal" style="text-align: center" class="form-control" value="1" />
+                                        <div class="input-group-append">
+                                            <button id="plus" style="min-width: 2.5rem" class="btn btn-increment btn-outline-secondary" type="button"><strong>+</strong></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="orderBlock" class="col-md-8 col-12">
+                                    <a id="order" href="javascript:;" class="btn btn-block btn-primary">Đặt hàng</a>
+                                </div>
+                            </div>
+                        </div>
+                         
+                        <div id="infoBlock" class="col-12" style="margin-top: 30px;">
+                            <div id="info" style="background-color: rgb(255 255 255 / 77%);padding: 15px;border-radius: 10px;"><p><img src="../../images/18ed8eb9aedd43eeb8f4491b5d13a430.jpg"></p></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="row align-items-end">
+                            <div class="col-12 col-lg-8">
+                                <div class="page-header-title">
+                                    <div class="pcoded-mtext">
+                                        <h1 class="h3 mb-0 title-page">
+                                            <span class="text-primary"  style="background-color: hsl(0deg 0% 100% / 70%); padding: 5px 10px; color: #333; border-radius: 10px;">Có thể bạn quan tâm!</span>
+                                        </h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="margin-bottom: 20px;">
+                           
+                        </div>
+                        <div id="productHotList" class="row">
+                            
+                                    <div class="col-md-3 col-6" style="margin-bottom: 20px;">
+                                        <div style="background: rgb(255 255 255 / 70%); border-radius: 10px;">
+                                            <a href='/product/c4f36e1b9af94a53a0767a989274d0bf'>
+                                                <img class='' src='/images/9b369eedf9a54eb6ac552d4191b4095e.jpg?w=600' style="width: 100%; border-top-left-radius: 10px; border-top-right-radius: 10px;" />
+                                                <div style="padding: 15px;">
+                                                    <div style="font-size: 14px; font-weight: bold; color: #333; margin: 5px 0; text-align: center;">S1177 siêu phẩm char trấn cung...</div>
+                                                    <div style="text-align: center;">
+                                                        <span style="font-size: 16px; font-weight: bold; color: #333;">5,000,000đ</span><span class='hide' style="font-size: 12px; font-weight: bold; margin: 0 10px; text-decoration: line-through; color: #888;">000đ</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-3 col-6" style="margin-bottom: 20px;">
+                                        <div style="background: rgb(255 255 255 / 70%); border-radius: 10px;">
+                                            <a href='/product/356d66596a754db9ad573d3f0c57fadb'>
+                                                <img class='' src='/images/8d96a0ec3005495d93d2611a29c2c15e.jpg?w=600' style="width: 100%; border-top-left-radius: 10px; border-top-right-radius: 10px;" />
+                                                <div style="padding: 15px;">
+                                                    <div style="font-size: 14px; font-weight: bold; color: #333; margin: 5px 0; text-align: center;">S1170 siêu phẩm hiyuki c6, lucy...</div>
+                                                    <div style="text-align: center;">
+                                                        <span style="font-size: 16px; font-weight: bold; color: #333;">13,500,000đ</span><span class='hide' style="font-size: 12px; font-weight: bold; margin: 0 10px; text-decoration: line-through; color: #888;">000đ</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-3 col-6" style="margin-bottom: 20px;">
+                                        <div style="background: rgb(255 255 255 / 70%); border-radius: 10px;">
+                                            <a href='/product/92c2bf9119154bfa84c7231a340910d2'>
+                                                <img class='' src='/images/d5c7c0749e9c45e0a96dd6619ea3159b.jpg?w=600' style="width: 100%; border-top-left-radius: 10px; border-top-right-radius: 10px;" />
+                                                <div style="padding: 15px;">
+                                                    <div style="font-size: 14px; font-weight: bold; color: #333; margin: 5px 0; text-align: center;">S1175 acc đẹp trong tầm giá</div>
+                                                    <div style="text-align: center;">
+                                                        <span style="font-size: 16px; font-weight: bold; color: #333;">1,700,000đ</span><span class='hide' style="font-size: 12px; font-weight: bold; margin: 0 10px; text-decoration: line-through; color: #888;">000đ</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-3 col-6" style="margin-bottom: 20px;">
+                                        <div style="background: rgb(255 255 255 / 70%); border-radius: 10px;">
+                                            <a href='/product/05fbdfda72364836a3bd48dcb4e463a5'>
+                                                <img class='' src='/images/bb31e339b448405594a0baddeee8c802.png?w=600' style="width: 100%; border-top-left-radius: 10px; border-top-right-radius: 10px;" />
+                                                <div style="padding: 15px;">
+                                                    <div style="font-size: 14px; font-weight: bold; color: #333; margin: 5px 0; text-align: center;">vi17 Seele trấn Bailu e1 trấn</div>
+                                                    <div style="text-align: center;">
+                                                        <span style="font-size: 16px; font-weight: bold; color: #333;">450,000đ</span><span class='hide' style="font-size: 12px; font-weight: bold; margin: 0 10px; text-decoration: line-through; color: #888;">000đ</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-3 col-6" style="margin-bottom: 20px;">
+                                        <div style="background: rgb(255 255 255 / 70%); border-radius: 10px;">
+                                            <a href='/product/f25a16ae894e43f6bd25d3c58e73353a'>
+                                                <img class='' src='/images/21f2a5b5e06841a2adee0d4bd127fb29.jpg?w=600' style="width: 100%; border-top-left-radius: 10px; border-top-right-radius: 10px;" />
+                                                <div style="padding: 15px;">
+                                                    <div style="font-size: 14px; font-weight: bold; color: #333; margin: 5px 0; text-align: center;">v139 Gia chủ Kamisato Ayato Bàn...</div>
+                                                    <div style="text-align: center;">
+                                                        <span style="font-size: 16px; font-weight: bold; color: #333;">400,000đ</span><span class='hide' style="font-size: 12px; font-weight: bold; margin: 0 10px; text-decoration: line-through; color: #888;">000đ</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-3 col-6" style="margin-bottom: 20px;">
+                                        <div style="background: rgb(255 255 255 / 70%); border-radius: 10px;">
+                                            <a href='/product/32adf7d258a1454ca6e1cfaf3e7d3432'>
+                                                <img class='' src='/images/59560d65ce55417f9379bf606fd5109d.jpg?w=600' style="width: 100%; border-top-left-radius: 10px; border-top-right-radius: 10px;" />
+                                                <div style="padding: 15px;">
+                                                    <div style="font-size: 14px; font-weight: bold; color: #333; margin: 5px 0; text-align: center;">a035 acc full limit 3 trấn</div>
+                                                    <div style="text-align: center;">
+                                                        <span style="font-size: 16px; font-weight: bold; color: #333;">300,000đ</span><span class='hide' style="font-size: 12px; font-weight: bold; margin: 0 10px; text-decoration: line-through; color: #888;">000đ</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-3 col-6" style="margin-bottom: 20px;">
+                                        <div style="background: rgb(255 255 255 / 70%); border-radius: 10px;">
+                                            <a href='/product/bd4d27b4d462434c845294053397f20a'>
+                                                <img class='' src='/images/bed25a716cd64e31b8735a3fb44b37a9.jpg?w=600' style="width: 100%; border-top-left-radius: 10px; border-top-right-radius: 10px;" />
+                                                <div style="padding: 15px;">
+                                                    <div style="font-size: 14px; font-weight: bold; color: #333; margin: 5px 0; text-align: center;">v335 Nahida c4 đã lệch full nhựa...</div>
+                                                    <div style="text-align: center;">
+                                                        <span style="font-size: 16px; font-weight: bold; color: #333;">400,000đ</span><span class='hide' style="font-size: 12px; font-weight: bold; margin: 0 10px; text-decoration: line-through; color: #888;">000đ</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                
+                                    <div class="col-md-3 col-6" style="margin-bottom: 20px;">
+                                        <div style="background: rgb(255 255 255 / 70%); border-radius: 10px;">
+                                            <a href='/product/b13a904227514fcc89c43c62a059c7c6'>
+                                                <img class='' src='/images/6101949cba4d4040bd95aa7a82e2c24a.jpg?w=600' style="width: 100%; border-top-left-radius: 10px; border-top-right-radius: 10px;" />
+                                                <div style="padding: 15px;">
+                                                    <div style="font-size: 14px; font-weight: bold; color: #333; margin: 5px 0; text-align: center;">G158 ar47. hutao trấn , eula...</div>
+                                                    <div style="text-align: center;">
+                                                        <span style="font-size: 16px; font-weight: bold; color: #333;">350,000đ</span><span class='hide' style="font-size: 12px; font-weight: bold; margin: 0 10px; text-decoration: line-through; color: #888;">000đ</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+
+<footer class="main-footer" style="margin-left: 0; background-color: rgb(0 0 0 / 60%); color: #fff; position: initial;">
+    
+    <div class="container-lg">
+        <div class="row">
+            <section class="col-12 col-lg-4">
+                <div class="h h4 link-active" style="font-size: 18px;">
+                    Về ZinkGame
+                </div>
+                <p>Shop mua bán acc Genshin Impact lớn nhất Việt Nam !</p>
+                <p>
+                    Shop Genshin Impact rẻ nhất và uy tin nhất!<br>
+                </p>
+                <p>Dịch vụ : Mua Bán - Nạp Game - Uy Tín</p>
+            </section>
+
+            <section class="col-12 col-lg-4">
+                <div class="h h4 link-active"  style="font-size: 18px;">
+                    Chúng tôi
+                </div>
+                <p class="m-0"></p>
+                <p>Làm việc tận tâm hỗ trợ khách hàng nhiệt tình nhất có thể !</p>
+                <p></p>
+
+            </section>
+            <section class="col-12 col-lg-4">
+                <i class="fab fa-facebook-square fa-2x mr-2"></i>
+                <i class="fab fa-youtube fa-2x"></i>
+                <p class="mt-3 fw-bold"><i class="fa fa-phone mr-2"></i>Hotline: 088 865 3888</p>
+                <p class="fw-bold"><i class="fa fa-clock mr-2"></i>Work time: 8h Sáng - 24h Tối</p>
+                <p class="fw-bold"><i class="fa fa-map-marked-alt mr-2"></i>Address: Xóm 5, Quỳnh Lưu, Nghệ An</p>
+                <p class="m-0"></p>
+            </section>
+        </div>
+    </div>
+</footer>
+
+        </div>
+    </div>
+    <input name="productID" type="hidden" id="productID" value="013b7433562445e1aa23a49a26c56675" />
+
+    <script src="/content/dist/js/app.js"></script>
+    <script src="/content/libraries/user2/jquery.min.js"></script>
+    <script src="/content/libraries/user2/popper.min.js"></script>
+    <script src="/content/libraries/user2/jquery-ui.min.js"></script>
+    <script src="/content/libraries/user2/bootstrap.min.js"></script>
+
+    <script src="/content/libraries/user2/waves.min.js"></script>
+    <script src="/content/libraries/user2/jquery.slimscroll.js"></script>
+
+    <script src="/content/libraries/js/template.js"></script>
+    <script src="/content/libraries/jquery-easing/jquery.easing.min.js"></script>
+    <script src="/content/js/user.min.js"></script>
+    <script src="/content/js/all_page.js"></script>
+    <script src="/content/libraries/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/content/libraries/sweetalert2/sweetalert2.min.js"></script>
+    <script src="/content/libraries/toastr/toastr.min.js"></script>
+    <script src="/content/libraries/bootstrap/js/bootstrap-show-password.min.js"></script>
+    <script src="/content/libraries/toggle/bootstrap4-toggle.min.js"></script>
+
+    <script src="/content/libraries/select2/js/select2.full.min.js"></script>
+    <script src="/content/js/home.js?token=2023010619"></script>
+    <script src="/content/libraries/user2/jquery.ui.touch-punch.min.js"></script>
+
+    <script src="/content/js/product.detail.js?v=tcctyqyhsvjmowq"></script>
+
+    <script src="/content/js/default.js?v=tcctyqyhsvjmowq"></script>
+    <script src="/content/js/common.js?v=tcctyqyhsvjmowq"></script>
+
+    <script>
+        $("#minus").click(function () {
+            var value = parseInt($("#amount").val());
+            if (value > 0) {
+                value = value - 1;
+                $("#amount").val(value);
+            }
+            return false;
+        });
+
+        $("#plus").click(function () {
+            var value = parseInt($("#amount").val());
+            value = value + 1;
+            $("#amount").val(value);
+            return false;
+        });
+    </script>
+</body>
+</html>

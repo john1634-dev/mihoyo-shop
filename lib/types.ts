@@ -37,6 +37,20 @@ export type Product = {
   vnd_myr_rate?: number | null;
   cost_currency?: string | null;
   cost_rate_updated_at?: string | null;
+  /** Supplier identifier (e.g. zinkgame). NULL for legacy/manual listings. */
+  source?: string | null;
+  /** External product id from supplier catalog. */
+  source_product_id?: string | null;
+  /** Supplier product URL — admin/sync only. */
+  source_product_url?: string | null;
+  /** Supplier-side status — distinct from storefront `status`. */
+  source_status?: string | null;
+  /** Last known supplier list price — admin/sync only. */
+  source_price?: number | null;
+  source_currency?: string | null;
+  last_synced_at?: string | null;
+  last_source_check_at?: string | null;
+  sync_error?: string | null;
 };
 
 export type AdminProduct = Product & {
@@ -50,4 +64,13 @@ export type ProductImage = {
   image_url: string;
   image_path: string;
   sort_order: number;
+  /** manual | supplier | generated — NULL for legacy uploads. */
+  image_source?: string | null;
+  /** pending | processing | completed | failed | skipped */
+  processing_status?: string | null;
+  /** Supplier/original URL — admin/sync only. */
+  original_image_url?: string | null;
+  /** Processed asset URL — admin/sync only. */
+  processed_image_url?: string | null;
+  processing_error?: string | null;
 };

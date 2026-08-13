@@ -16,6 +16,7 @@ function redactSecrets(value: string): string {
       return match;
     })
     .replace(/INVENTORY_ENCRYPTION_KEY[=:\s][^\s]+/gi, "INVENTORY_ENCRYPTION_KEY=[REDACTED]")
+    .replace(/TRANSLATION_API_KEY[=:\s][^\s]+/gi, "TRANSLATION_API_KEY=[REDACTED]")
     .replace(/RESEND_API_KEY[=:\s][^\s]+/gi, "RESEND_API_KEY=[REDACTED]")
     .replace(/re_[A-Za-z0-9]{20,}/g, "[REDACTED_RESEND_KEY]");
 }

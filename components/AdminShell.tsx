@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin/inventory", label: "Inventory", exact: false },
   { href: "/admin/games", label: "Games", exact: false },
   { href: "/admin/products", label: "Products", exact: false },
+  { href: "/admin/suppliers/zinkgame", label: "Suppliers", exact: false },
 ];
 
 function MenuIcon() {

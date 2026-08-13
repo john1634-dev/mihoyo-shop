@@ -10,6 +10,7 @@ import { formatPrice, SITE_NAME, SITE_URL } from "@/lib/config";
 import {
   PUBLIC_PRODUCT_SELECT,
   PUBLIC_PRODUCT_SELECT_LEGACY,
+  PUBLIC_PRODUCT_IMAGE_SELECT,
 } from "@/lib/products-public";
 import {
   getRegionLabel,
@@ -180,7 +181,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     await Promise.all([
       supabase
         .from("product_images")
-        .select("*")
+        .select(PUBLIC_PRODUCT_IMAGE_SELECT)
         .eq("product_id", product.id)
         .order("sort_order"),
       product.game_id

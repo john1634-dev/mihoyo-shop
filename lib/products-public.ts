@@ -1,12 +1,32 @@
 import type { Product } from "@/lib/types";
 
-/** Fields safe for public product queries — never include cost or admin fields. */
+/** Fields safe for public product queries — never include cost, supplier, or sync fields. */
 export const PUBLIC_PRODUCT_SELECT =
   "id,title,slug,description,price,currency,status,server,region_code,ar_level,cover_image_url,game_id,created_at";
 
 /** Fallback select when `region_code` column is not yet migrated. */
 export const PUBLIC_PRODUCT_SELECT_LEGACY =
   "id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at";
+
+/**
+ * Storefront-safe product_images columns only.
+ * Excludes image_source, processing_*, original/processed URLs, processing_error.
+ */
+export const PUBLIC_PRODUCT_IMAGE_SELECT =
+  "id,product_id,image_url,image_path,sort_order";
+
+/** Internal supplier/sync columns — must never appear in PUBLIC_* selects. */
+export const SUPPLIER_INTERNAL_PRODUCT_FIELDS = [
+  "source",
+  "source_product_id",
+  "source_product_url",
+  "source_status",
+  "source_price",
+  "source_currency",
+  "last_synced_at",
+  "last_source_check_at",
+  "sync_error",
+] as const;
 
 const NEW_PRODUCT_DAYS = 7;
 const RECOMMENDED_LIMIT = 8;
