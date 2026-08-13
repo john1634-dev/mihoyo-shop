@@ -3,7 +3,10 @@ import Image from "next/image";
 import { formatPrice } from "@/lib/config";
 import { getRegionLabel, normalizeRegionCode } from "@/lib/catalog-meta";
 import { getProductBadges, type ProductBadge } from "@/lib/products-public";
-import { customerStockLabel } from "@/lib/inventory-stock";
+import {
+  customerStockLabel,
+  stockLevelFromAvailable,
+} from "@/lib/inventory-stock";
 import { ArrowRightIcon } from "@/components/icons";
 import type { Product } from "@/lib/types";
 
@@ -11,8 +14,14 @@ const PRODUCT_IMAGE_QUALITY = 88;
 
 const BADGE_STYLES: Record<ProductBadge, string> = {
   NEW: "bg-blue-600/90 text-white",
-  SOLD_OUT: "bg-slate-950/90 text-slate-300",
+  SOLD_OUT: "bg-slate-800/90 text-slate-300",
 };
+
+const STOCK_BADGE_STYLES = {
+  in_stock: "bg-emerald-500/10 text-emerald-300 ring-emerald-500/25",
+  low_stock: "bg-amber-500/10 text-amber-300 ring-amber-500/25",
+  out_of_stock: "bg-slate-700/80 text-slate-400 ring-slate-600/40",
+} as const;
 
 function locationSummaryLine(product: Product): string | null {
   const parts: string[] = [];
@@ -85,39 +94,40 @@ export default function ProductCard({
     productStatus: product.status,
     availableCount: stockCount,
   });
+  const stockLevel = stockLevelFromAvailable(stockCount);
   const summary = locationSummaryLine(product);
   const preview = descriptionPreview(product.description);
   const productHref = `/product/${product.slug}`;
 
   return (
-    <article className="product-card group flex h-full flex-col">
+    <article className="product-card group flex h-full flex-col overflow-hidden">
       <Link
         href={productHref}
-        className="relative block overflow-hidden rounded-t-xl border border-b-0 border-white/[0.08] bg-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 sm:rounded-t-2xl"
+        className="relative block overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-slate-800">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface-elevated)]">
           {product.cover_image_url ? (
             <Image
               src={product.cover_image_url}
               alt={`${product.title}${resolvedGame ? ` — ${resolvedGame}` : ""}`}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
               quality={PRODUCT_IMAGE_QUALITY}
               className="object-cover transition duration-200 ease-out group-hover:scale-[1.02] motion-reduce:transform-none"
               loading="lazy"
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-950 text-xs text-slate-500">
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-700/40 to-slate-800 text-xs text-slate-500">
               No preview
             </div>
           )}
 
           <div
-            className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/15 to-transparent"
+            className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/70 via-transparent to-transparent"
             aria-hidden
           />
 
-          <div className="absolute left-2.5 top-2.5 flex flex-wrap gap-1 sm:left-3 sm:top-3">
+          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
             {badges.map((badge) => (
               <span
                 key={badge}
@@ -129,50 +139,51 @@ export default function ProductCard({
           </div>
 
           {!isListed || stockCount <= 0 ? (
-            <div className="absolute inset-0 bg-slate-950/50" aria-hidden />
+            <div className="absolute inset-0 bg-slate-950/35" aria-hidden />
           ) : null}
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col rounded-b-xl border border-white/[0.08] border-t-0 bg-slate-900/50 p-3 sm:rounded-b-2xl sm:p-4">
+      <div className="flex flex-1 flex-col p-4">
         {resolvedGame && (
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 sm:text-[11px]">
+          <span className="inline-flex w-fit max-w-full truncate rounded-full bg-blue-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-300 ring-1 ring-blue-500/20">
             {resolvedGame}
-          </p>
+          </span>
         )}
 
-        <Link href={productHref} className="mt-1 block">
-          <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-slate-100 transition duration-200 group-hover:text-white sm:text-[15px]">
+        <Link href={productHref} className="mt-2 block">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-100 transition duration-200 group-hover:text-white sm:text-base">
             {product.title}
           </h3>
         </Link>
 
         {summary && (
-          <p className="mt-2 text-[11px] font-medium text-slate-400 sm:text-xs">
-            {summary}
-          </p>
+          <p className="mt-2 text-xs font-medium text-slate-400">{summary}</p>
         )}
 
         {preview && (
-          <p className="mt-1.5 line-clamp-2 text-[11px] leading-relaxed text-slate-500 sm:text-xs">
+          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-500">
             {preview}
           </p>
         )}
 
-        <div className="mt-auto pt-3 sm:pt-4">
+        <div className="mt-auto pt-4">
           <p className="text-xl font-bold tracking-tight text-white sm:text-2xl">
             {formatPrice(Number(product.price), product.currency)}
           </p>
-          <p className="mt-1 text-[11px] font-medium text-slate-400 sm:text-xs">
+
+          <span
+            className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ${STOCK_BADGE_STYLES[stockLevel]}`}
+          >
             {stockLabel}
-          </p>
+          </span>
 
           <Link
             href={productHref}
-            className="mt-3 inline-flex min-h-[2.75rem] w-full items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/5 px-3 py-2 text-xs font-semibold text-blue-300 transition duration-200 hover:border-blue-400/50 hover:bg-blue-500/10 hover:text-blue-200 sm:min-h-[2.5rem] sm:text-sm"
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition duration-200 hover:bg-blue-500"
           >
-            {isListed ? "View details & buy" : "View listing"}
-            <ArrowRightIcon className="h-3.5 w-3.5 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none sm:h-4 sm:w-4" />
+            View Account
+            <ArrowRightIcon className="h-4 w-4 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none" />
           </Link>
         </div>
       </div>

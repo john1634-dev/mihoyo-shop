@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #030712;
+  --background: #0f172a;
   --foreground: #f8fafc;
   --accent: #3b82f6;
   --accent-soft: #60a5fa;
-  --surface: #0b1220;
-  --surface-elevated: #111827;
-  --border: rgba(148, 163, 184, 0.12);
+  --accent-purple: #8b5cf6;
+  --surface: #111827;
+  --surface-elevated: #172033;
+  --surface-card: #1a2744;
+  --border: rgba(148, 163, 184, 0.16);
   --muted: #94a3b8;
 }
 
@@ -70,11 +72,21 @@ body {
   color: var(--muted);
 }
 
+/* Storefront layout */
+.storefront-main {
+  background: var(--background);
+}
+
+.storefront-section-alt {
+  background: color-mix(in srgb, var(--surface) 65%, transparent);
+}
+
 /* Surfaces */
 .surface-card {
   border-radius: 1rem;
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-card) 92%, transparent);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
 }
 
 .glass-panel {
@@ -164,20 +176,31 @@ body {
   border-color: #fdba74;
 }
 
-/* Hero height targets — compact on mobile */
+/* Hero height targets — compact typography hero */
 .hero-compact {
-  min-height: clamp(380px, 55vh, 620px);
+  min-height: clamp(350px, 42vh, 500px);
 }
 
 @media (max-width: 767px) {
   .hero-compact {
-    min-height: clamp(340px, 58vh, 480px);
+    min-height: clamp(320px, 48vh, 420px);
   }
 }
 
 /* Hero split layout */
 .hero-split {
-  background: linear-gradient(160deg, #030712 0%, #0b1220 45%, #0f172a 100%);
+  background: linear-gradient(160deg, #0f172a 0%, #111827 45%, #172033 100%);
+}
+
+.hero-grid-decoration {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
+  pointer-events: none;
 }
 
 .hero-badge {
@@ -195,83 +218,52 @@ body {
 }
 
 .hero-title {
-  font-size: clamp(1.875rem, 4.5vw, 3rem);
+  font-size: clamp(2rem, 5vw, 3.25rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.08;
   color: #f8fafc;
 }
 
-.hero-visual {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.625rem;
-  min-height: 220px;
-}
-
-@media (min-width: 640px) {
-  .hero-visual {
-    min-height: 280px;
-    gap: 0.75rem;
-  }
-}
-
-.hero-visual-tile {
-  position: relative;
-  overflow: hidden;
-  border-radius: 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--surface);
-}
-
-.hero-visual-tile-1 {
-  grid-column: span 1;
-  aspect-ratio: 4 / 3;
-}
-
-.hero-visual-tile-2 {
-  grid-column: span 1;
-  aspect-ratio: 4 / 3;
-  margin-top: 1.25rem;
-}
-
-.hero-visual-tile-3 {
-  grid-column: span 1;
-  aspect-ratio: 4 / 3;
-}
-
-.hero-visual-tile-4 {
-  grid-column: span 1;
-  aspect-ratio: 4 / 3;
-  margin-top: -0.5rem;
-}
-
 /* Product & game cards */
 .product-card {
   border-radius: 1rem;
-  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-card) 94%, transparent);
+  transition:
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    transform 0.2s ease-out;
 }
 
 .product-card:hover {
-  box-shadow: 0 20px 40px -28px rgba(59, 130, 246, 0.22);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 20px 40px -24px rgba(59, 130, 246, 0.28);
+  transform: translateY(-2px);
 }
 
 .game-card {
-  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-card) 90%, transparent);
+  transition:
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    transform 0.2s ease-out;
 }
 
 .game-card:hover {
   border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-  box-shadow: 0 20px 40px -28px rgba(59, 130, 246, 0.18);
+  box-shadow: 0 20px 40px -24px rgba(59, 130, 246, 0.22);
+  transform: translateY(-2px);
 }
 
 /* Product detail */
 .product-info-panel {
   border-radius: 1rem;
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  background: color-mix(in srgb, var(--surface-card) 95%, transparent);
   padding: 1.25rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
 }
 
 @media (min-width: 640px) {
@@ -334,8 +326,8 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 50% at 20% 0%, rgba(59, 130, 246, 0.1), transparent),
-    radial-gradient(ellipse 50% 40% at 85% 15%, rgba(99, 102, 241, 0.07), transparent);
+    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(59, 130, 246, 0.14), transparent),
+    radial-gradient(ellipse 50% 40% at 90% 20%, rgba(139, 92, 246, 0.1), transparent);
   pointer-events: none;
 }
 
@@ -375,7 +367,9 @@ body {
   .animate-fade-up,
   .card-hover,
   .card-hover:hover,
+  .product-card,
   .product-card:hover,
+  .game-card,
   .game-card:hover {
     animation: none;
     transform: none;

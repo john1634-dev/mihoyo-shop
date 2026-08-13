@@ -2,7 +2,6 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import GameCategoryCard from "@/components/GameCategoryCard";
-import HeroVisual from "@/components/HeroVisual";
 import TrustBar from "@/components/TrustBar";
 import { WhatsAppIcon } from "@/components/icons";
 import {
@@ -115,7 +114,7 @@ function ProductSection({
   if (products.length === 0) return null;
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-16">
+    <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14">
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <h2 className="section-title">{title}</h2>
@@ -123,12 +122,12 @@ function ProductSection({
         </div>
         <Link
           href={viewAllHref}
-          className="shrink-0 text-sm text-blue-400 transition hover:text-blue-300"
+          className="shrink-0 text-sm font-medium text-blue-400 transition hover:text-blue-300"
         >
           {viewAllLabel}
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
         {products.map((product) => (
           <ProductCard
             key={product.id}
@@ -164,48 +163,48 @@ export default async function Home() {
       : getJustAddedProducts(products);
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-950 text-white">
+    <main className="storefront-main flex min-h-screen flex-col text-white">
       <Navbar games={games} />
 
-      <section className="hero-premium hero-split">
-        <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center gap-10 px-4 py-10 md:px-6 md:py-14 lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:py-16">
-          <div className="w-full max-w-xl animate-fade-up lg:max-w-lg">
-            <p className="hero-badge">Baitu Games</p>
+      <section className="hero-premium hero-compact relative">
+        <div className="hero-grid-decoration" aria-hidden />
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col justify-center px-4 py-12 md:px-6 md:py-16 lg:py-20">
+          <p className="eyebrow">Trusted Game Account Store</p>
 
-            <h1 className="hero-title mt-4">Premium Game Accounts</h1>
+          <h1 className="hero-title mt-5 max-w-3xl">
+            Premium Game Accounts
+            <span className="mt-1 block text-slate-300">Ready to Play</span>
+          </h1>
 
-            <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-400 md:text-base">
-              Find premium game accounts at competitive prices.
-            </p>
+          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-300 md:text-base">
+            Browse verified game accounts for Genshin Impact, Honkai: Star Rail,
+            Zenless Zone Zero, Wuthering Waves and more.
+          </p>
 
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500">
-              Pay securely by card through Stripe, or purchase via Shopee or
-              WhatsApp.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/products" className="btn-primary">
-                Browse Accounts
-              </Link>
-              <Link href="/#popular-games" className="btn-secondary">
-                Explore Games
-              </Link>
-            </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/products" className="btn-primary min-h-12 px-6">
+              Browse Accounts
+            </Link>
+            <a
+              href={buildWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary min-h-12 px-6"
+            >
+              Contact Us
+            </a>
           </div>
-
-          {(games.length > 0 || products.length > 0) && (
-            <div className="w-full max-w-md lg:max-w-xl lg:flex-shrink-0">
-              <HeroVisual games={games} products={products} />
-            </div>
-          )}
         </div>
       </section>
 
       <TrustBar />
 
-      <section id="popular-games" className="mx-auto w-full max-w-7xl px-4 py-14 md:px-6 md:py-16">
+      <section
+        id="popular-games"
+        className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14"
+      >
         <div>
-          <h2 className="section-title">Popular games</h2>
+          <h2 className="section-title">Shop by game</h2>
           <p className="section-subtitle">
             Browse by title — each category shows live availability
           </p>
@@ -216,7 +215,7 @@ export default async function Home() {
         )}
 
         {popularGames.length > 0 && (
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
             {popularGames.map((game) => (
               <GameCategoryCard
                 key={game.id}
@@ -229,7 +228,7 @@ export default async function Home() {
       </section>
 
       <ProductSection
-        title="Recommended accounts"
+        title="Featured accounts"
         subtitle="Available listings with the most complete details"
         products={recommendedProducts}
         viewAllHref="/products"
@@ -238,9 +237,9 @@ export default async function Home() {
         stockByProductId={stockByProductId}
       />
 
-      <section className="border-y border-white/[0.06] bg-slate-900/25">
+      <section className="storefront-section-alt border-y border-[var(--border)]">
         <ProductSection
-          title="Just added"
+          title="New arrivals"
           subtitle="Newest available accounts in our catalogue"
           products={justAddedProducts}
           viewAllHref="/products?sort=newest"
@@ -251,7 +250,7 @@ export default async function Home() {
       </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14">
-        <h2 className="section-title">Why choose {SITE_NAME}</h2>
+        <h2 className="section-title">Why buy from {SITE_NAME}</h2>
         <p className="section-subtitle">
           A straightforward way to discover and purchase game accounts
         </p>
@@ -267,7 +266,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="border-y border-white/[0.06] bg-slate-900/20">
+      <section className="storefront-section-alt border-y border-[var(--border)]">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">
           <h2 className="section-title">How to buy</h2>
           <p className="section-subtitle">Four simple steps from browse to delivery</p>
@@ -314,7 +313,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="border-t border-white/[0.06]">
+      <section className="border-t border-[var(--border)]">
         <div className="mx-auto max-w-7xl px-4 py-16 text-center md:px-6">
           <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
             Ready to find your next account?
@@ -323,14 +322,14 @@ export default async function Home() {
             Browse available listings or message us directly on WhatsApp.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Link href="/products" className="btn-primary">
+            <Link href="/products" className="btn-primary min-h-12">
               Browse accounts
             </Link>
             <a
               href={buildWhatsAppUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-whatsapp"
+              className="btn-whatsapp min-h-12"
             >
               <WhatsAppIcon />
               WhatsApp us
@@ -339,7 +338,7 @@ export default async function Home() {
               href={SHOPEE_STORE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-secondary"
+              className="btn-secondary min-h-12"
             >
               Shopee store
             </a>

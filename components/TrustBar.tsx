@@ -27,12 +27,12 @@ export default function TrustBar() {
   return (
     <section
       aria-label="Trust highlights"
-      className="border-y border-white/[0.06] bg-slate-900/30"
+      className="border-y border-[var(--border)] bg-[var(--surface)]/80"
     >
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-8 md:px-6 lg:grid-cols-4 lg:gap-6 lg:py-10">
         {TRUST_ITEMS.map(({ title, description, Icon }) => (
           <div key={title} className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-slate-950/60 text-blue-400">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-card)] text-blue-400">
               <Icon className="h-5 w-5" />
             </span>
             <div className="min-w-0">

@@ -269,7 +269,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(breadcrumbItems);
 
   return (
-    <main className="has-purchase-bar flex min-h-screen flex-col overflow-x-hidden bg-slate-950 text-white">
+    <main className="has-purchase-bar storefront-main flex min-h-screen flex-col overflow-x-hidden text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
@@ -394,7 +394,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {product.description && (
           <section className="mt-8 border-t border-white/[0.06] pt-8 lg:mt-10">
             <h2 className="text-lg font-semibold text-slate-100">Account details</h2>
-            <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/[0.08] bg-slate-900/40 p-5 text-sm leading-7 text-slate-300">
+            <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-[var(--border)] bg-[var(--surface-card)]/80 p-5 text-sm leading-7 text-slate-300">
               {product.description}
             </div>
           </section>

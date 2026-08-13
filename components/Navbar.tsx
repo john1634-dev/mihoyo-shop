@@ -12,6 +12,22 @@ type NavbarProps = {
   games?: { id: string; name: string; slug: string }[];
 };
 
+function MenuIcon() {
+  return (
+    <svg aria-hidden className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg aria-hidden className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function Navbar({ games = [] }: NavbarProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -75,6 +91,17 @@ export default function Navbar({ games = [] }: NavbarProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) {
+      document.body.style.overflow = "";
+      return;
+    }
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   function handleSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = searchQuery.trim();
@@ -83,18 +110,20 @@ export default function Navbar({ games = [] }: NavbarProps) {
     setMobileSearchOpen(false);
   }
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <header
       className={`sticky top-0 z-50 border-b transition duration-200 ease-out ${
         scrolled
-          ? "border-white/[0.06] bg-slate-950/95 backdrop-blur-xl"
-          : "border-transparent bg-slate-950/70 backdrop-blur-md"
+          ? "border-[var(--border)] bg-[#111827]/95 backdrop-blur-xl"
+          : "border-transparent bg-[#111827]/80 backdrop-blur-md"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
+      <div className="mx-auto flex max-w-7xl min-w-0 items-center gap-3 px-4 py-3 md:px-6">
         <Link
           href="/"
-          className="shrink-0 text-lg font-semibold tracking-tight text-white"
+          className="shrink-0 text-lg font-bold tracking-tight text-white"
         >
           {SITE_NAME}
         </Link>
@@ -128,17 +157,17 @@ export default function Navbar({ games = [] }: NavbarProps) {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search accounts..."
-            className="w-full rounded-xl border border-white/[0.08] bg-slate-900/70 px-4 py-2 text-sm outline-none transition focus:border-blue-500/50"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2 text-sm outline-none transition focus:border-blue-500/50"
           />
         </form>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <a
             href={buildWhatsAppUrl()}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat with us on WhatsApp"
-            className="hidden items-center gap-1.5 rounded-xl border border-white/[0.08] px-3 py-2 text-sm text-emerald-400/90 transition hover:border-emerald-600/35 hover:text-emerald-300 lg:inline-flex"
+            className="hidden min-h-11 items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-sm text-emerald-400/90 transition hover:border-emerald-600/35 hover:text-emerald-300 lg:inline-flex"
           >
             <WhatsAppIcon className="h-4 w-4" />
             <span className="hidden xl:inline">WhatsApp</span>
@@ -150,7 +179,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
               setMobileSearchOpen((open) => !open);
               setMenuOpen(false);
             }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] text-slate-300 transition hover:border-slate-500 hover:text-white md:hidden"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-[var(--border)] text-slate-300 transition hover:border-slate-500 hover:text-white md:hidden"
             aria-label="Search"
             aria-expanded={mobileSearchOpen}
             aria-controls="mobile-nav-search-panel"
@@ -161,7 +190,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
           {user && (
             <Link
               href="/account/wishlist"
-              className="hidden rounded-xl border border-white/[0.08] px-3 py-2 text-sm transition hover:border-slate-500 lg:inline-block"
+              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm transition hover:border-slate-500 lg:inline-flex"
             >
               Wishlist
             </Link>
@@ -170,14 +199,14 @@ export default function Navbar({ games = [] }: NavbarProps) {
           {user ? (
             <Link
               href="/account"
-              className="hidden rounded-xl border border-white/[0.08] px-3 py-2 text-sm transition hover:border-slate-500 sm:inline-block"
+              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm transition hover:border-slate-500 sm:inline-flex"
             >
               Account
             </Link>
           ) : (
             <Link
               href="/login"
-              className="hidden rounded-xl border border-white/[0.08] px-3 py-2 text-sm transition hover:border-slate-500 sm:inline-block"
+              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm transition hover:border-slate-500 sm:inline-flex"
             >
               Login
             </Link>
@@ -186,7 +215,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
           {isAdmin && (
             <Link
               href="/admin"
-              className="hidden rounded-xl border border-amber-800/40 px-3 py-2 text-sm text-amber-300 transition hover:border-amber-600 md:inline-block"
+              className="hidden min-h-11 items-center rounded-xl border border-amber-800/40 px-3 py-2 text-sm text-amber-300 transition hover:border-amber-600 md:inline-flex"
             >
               Admin
             </Link>
@@ -195,11 +224,12 @@ export default function Navbar({ games = [] }: NavbarProps) {
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
-            className="rounded-xl border border-white/[0.08] px-3 py-2 text-sm lg:hidden"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-[var(--border)] text-slate-200 lg:hidden"
             aria-expanded={menuOpen}
+            aria-controls="mobile-nav-menu"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
           >
-            {menuOpen ? "Close" : "Menu"}
+            {menuOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
         </div>
       </div>
@@ -207,7 +237,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
       {mobileSearchOpen && (
         <div
           id="mobile-nav-search-panel"
-          className="border-t border-white/[0.06] px-4 py-2 md:hidden"
+          className="border-t border-[var(--border)] px-4 py-3 md:hidden"
         >
           <form onSubmit={handleSearch} role="search">
             <label className="sr-only" htmlFor="mobile-nav-search-compact">
@@ -220,87 +250,122 @@ export default function Navbar({ games = [] }: NavbarProps) {
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search accounts..."
               autoFocus
-              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2 text-sm outline-none transition focus:border-blue-500/50"
+              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2 text-sm outline-none transition focus:border-blue-500/50"
             />
           </form>
         </div>
       )}
 
       {menuOpen && (
-        <nav className="border-t border-white/[0.06] px-4 py-4 lg:hidden" aria-label="Mobile">
-          <form onSubmit={handleSearch} className="mb-4">
-            <label className="sr-only" htmlFor="mobile-nav-search">
-              Search accounts
-            </label>
-            <input
-              id="mobile-nav-search"
-              type="search"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search accounts..."
-              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2.5 text-sm outline-none focus:border-blue-500/50"
-            />
-          </form>
+        <>
+          <button
+            type="button"
+            aria-label="Close menu overlay"
+            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            onClick={closeMenu}
+          />
+          <nav
+            id="mobile-nav-menu"
+            className="relative z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-[var(--border)] bg-[#111827] px-4 py-4 lg:hidden"
+            aria-label="Mobile"
+          >
+            <form onSubmit={handleSearch} className="mb-4">
+              <label className="sr-only" htmlFor="mobile-nav-search">
+                Search accounts
+              </label>
+              <input
+                id="mobile-nav-search"
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search accounts..."
+                className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2.5 text-sm outline-none focus:border-blue-500/50"
+              />
+            </form>
 
-          <div className="flex flex-col gap-3 text-sm text-slate-300">
-            <Link href="/" onClick={() => setMenuOpen(false)}>
-              Home
-            </Link>
-            <Link href="/#popular-games" onClick={() => setMenuOpen(false)}>
-              Games
-            </Link>
-            <Link href="/products" onClick={() => setMenuOpen(false)}>
-              Accounts
-            </Link>
-            <Link href="/#faq" onClick={() => setMenuOpen(false)}>
-              FAQ
-            </Link>
-            {games.slice(0, 6).map((game) => (
-              <Link
-                key={game.id}
-                href={`/products?game=${game.slug}`}
-                onClick={() => setMenuOpen(false)}
-                className="pl-2 text-slate-400"
+            <div className="flex flex-col gap-1 text-base text-slate-200">
+              {[
+                { href: "/", label: "Home" },
+                { href: "/#popular-games", label: "Games" },
+                { href: "/products", label: "Accounts" },
+                { href: "/#faq", label: "FAQ" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {games.slice(0, 6).map((game) => (
+                <Link
+                  key={game.id}
+                  href={`/products?game=${game.slug}`}
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center rounded-lg px-3 pl-5 text-slate-400 hover:bg-[var(--surface-card)]"
+                >
+                  {game.name}
+                </Link>
+              ))}
+              {user && (
+                <Link
+                  href="/account/wishlist"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                >
+                  Wishlist
+                </Link>
+              )}
+              {user ? (
+                <Link
+                  href="/account"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                >
+                  Account
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={closeMenu}
+                    className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={closeMenu}
+                    className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
+              <a
+                href={buildWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-emerald-300 hover:bg-[var(--surface-card)]"
               >
-                {game.name}
-              </Link>
-            ))}
-            {user && (
-              <Link href="/account/wishlist" onClick={() => setMenuOpen(false)}>
-                Wishlist
-              </Link>
-            )}
-            {user ? (
-              <Link href="/account" onClick={() => setMenuOpen(false)}>
-                Account
-              </Link>
-            ) : (
-              <>
-                <Link href="/login" onClick={() => setMenuOpen(false)}>
-                  Login
+                <WhatsAppIcon className="h-4 w-4" />
+                Chat on WhatsApp
+              </a>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={closeMenu}
+                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                >
+                  Admin
                 </Link>
-                <Link href="/register" onClick={() => setMenuOpen(false)}>
-                  Register
-                </Link>
-              </>
-            )}
-            <a
-              href={buildWhatsAppUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setMenuOpen(false)}
-              className="inline-flex items-center gap-2 text-emerald-300"
-            >
-              <WhatsAppIcon className="h-4 w-4" />
-              Chat on WhatsApp
-            </a>
-            {isAdmin && (
-              <Link href="/admin" onClick={() => setMenuOpen(false)}>
-                Admin
-              </Link>
-            )}
-          </div>
-        </nav>
+              )}
+            </div>
+          </nav>
+        </>
       )}
     </header>
   );

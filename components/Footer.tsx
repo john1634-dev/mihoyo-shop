@@ -16,20 +16,20 @@ export default async function Footer() {
     .order("sort_order", { ascending: true });
 
   return (
-    <footer className="mt-auto border-t border-white/[0.06] bg-gradient-to-b from-slate-950 to-[#020617]">
+    <footer className="mt-auto border-t border-[var(--border)] bg-gradient-to-b from-[#111827] to-[#0f172a]">
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
-            <h3 className="text-lg font-bold tracking-tight">{SITE_NAME}</h3>
-            <p className="mt-1 text-sm text-slate-400">{SITE_TAGLINE}</p>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
+            <h3 className="text-lg font-bold tracking-tight text-white">{SITE_NAME}</h3>
+            <p className="mt-1 text-sm text-slate-300">{SITE_TAGLINE}</p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">
               Premium game account listings for popular titles. Pay securely by
               card through Stripe, or purchase via Shopee or WhatsApp.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
               Games
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm text-slate-400">
@@ -52,7 +52,7 @@ export default async function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
               Quick links
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm text-slate-400">
@@ -85,7 +85,7 @@ export default async function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
               Support
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm">
@@ -118,7 +118,7 @@ export default async function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-white/[0.06] pt-6 text-center text-sm text-slate-600">
+        <div className="mt-12 border-t border-[var(--border)] pt-6 text-center text-sm text-slate-500">
           © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
         </div>
       </div>

@@ -133,7 +133,7 @@ function ProductFilters({
             value={localSearch}
             onChange={(event) => setLocalSearch(event.target.value)}
             placeholder="Search accounts..."
-            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-blue-500"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm outline-none focus:border-blue-500"
           />
         </div>
 
@@ -150,7 +150,7 @@ function ProductFilters({
             value={localServer}
             onChange={(event) => setLocalServer(event.target.value)}
             placeholder="e.g. Asia, SEA"
-            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-blue-500"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm outline-none focus:border-blue-500"
           />
         </div>
 
@@ -170,7 +170,7 @@ function ProductFilters({
           id="product-sort"
           value={sort}
           onChange={(event) => onNavigate({ sort: event.target.value })}
-          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm"
         >
           <option value="newest">Newest</option>
           <option value="price-asc">Price: Low to High</option>
@@ -189,7 +189,7 @@ function ProductFilters({
           id="product-status"
           value={statusFilter}
           onChange={(event) => onNavigate({ status: event.target.value })}
-          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm"
         >
           <option value="available">Available</option>
           <option value="sold">Sold out</option>
@@ -208,7 +208,7 @@ function ProductFilters({
           id="product-region"
           value={regionCode}
           onChange={(event) => onNavigate({ region: event.target.value })}
-          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm"
         >
           <option value="">All regions</option>
           {REGION_OPTIONS.map((region) => (
@@ -230,7 +230,7 @@ function ProductFilters({
           id="product-currency"
           value={currencyCode}
           onChange={(event) => onNavigate({ currency: event.target.value })}
-          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm"
         >
           <option value="">All currencies</option>
           {SUPPORTED_CURRENCIES.map((code) => (
@@ -465,7 +465,7 @@ export default function ProductsClient({
   );
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-950 text-white">
+    <main className="storefront-main flex min-h-screen flex-col overflow-x-hidden text-white">
       <Navbar games={games} />
 
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 md:px-6 md:py-10">
@@ -506,11 +506,10 @@ export default function ProductsClient({
             </div>
           ) : null}
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            {activeGame ? `${activeGame.name} Accounts` : "Accounts"}
+            {activeGame ? `${activeGame.name} Accounts` : "Game Accounts"}
           </h1>
           <p className="mt-3 text-slate-400">
-            Premium listings with clear details. Pay by card through Stripe, or
-            purchase via Shopee or WhatsApp.
+            Browse our available game accounts.
           </p>
         </div>
 
@@ -523,7 +522,7 @@ export default function ProductsClient({
           <button
             type="button"
             onClick={() => setFilterOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.08] bg-slate-900 px-4 py-2.5 text-sm"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2.5 text-sm"
             aria-expanded={filterOpen}
             aria-controls="mobile-filters"
           >
@@ -534,7 +533,7 @@ export default function ProductsClient({
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
-            <div className="sticky top-24 rounded-2xl border border-white/[0.06] bg-slate-900/40 p-5">
+            <div className="sticky top-24 rounded-2xl border border-[var(--border)] bg-[var(--surface-card)]/80 p-5">
               <h2 className="mb-5 text-sm font-semibold text-slate-200">Filters</h2>
               {filterPanel}
             </div>
@@ -546,10 +545,10 @@ export default function ProductsClient({
             </p>
 
             {products.length === 0 && (
-              <div className="rounded-2xl border border-slate-800 bg-slate-900 p-12 text-center">
-                <h2 className="text-xl font-semibold">No accounts found.</h2>
+              <div className="surface-card p-10 text-center sm:p-12">
+                <h2 className="text-xl font-semibold">No accounts found</h2>
                 <p className="mt-2 text-slate-400">
-                  Try adjusting your search or filters.
+                  Try changing your search or filters.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   <button type="button" onClick={clearFilters} className="btn-secondary">
@@ -563,7 +562,7 @@ export default function ProductsClient({
             )}
 
             {products.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                 {products.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -588,7 +587,7 @@ export default function ProductsClient({
           />
           <div
             id="mobile-filters"
-            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-white/[0.08] bg-slate-950 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-[var(--border)] bg-[#111827] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
             role="dialog"
             aria-modal="true"
             aria-label="Filter accounts"
