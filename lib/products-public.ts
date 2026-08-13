@@ -75,13 +75,14 @@ export function getJustAddedProducts(
 
 export function getProductBadges(
   product: Product,
-  availableStock?: number
+  availableStock?: number,
+  inventoryManaged = false
 ): ProductBadge[] {
   const badges: ProductBadge[] = [];
 
   const outOfStock =
     product.status !== "available" ||
-    (availableStock !== undefined && availableStock <= 0);
+    (inventoryManaged && (availableStock ?? 0) <= 0);
 
   if (outOfStock) {
     badges.push("SOLD_OUT");

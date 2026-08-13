@@ -141,7 +141,8 @@ const badges = getProductBadges(
     status: "available",
     created_at: new Date().toISOString(),
   },
-  0
+  0,
+  true
 );
 assert.ok(badges.includes("SOLD_OUT"));
 pass("badges_reflect_zero_stock");

@@ -49,7 +49,7 @@ if (
 if (
   homePage.includes("ProductSection") &&
   homePage.includes("GameCategoryCard") &&
-  homePage.includes("fetchProductStockCountMap")
+  homePage.includes("fetchProductStockSummaryMap")
 ) {
   pass("homepage_product_sections");
 } else {
@@ -69,9 +69,9 @@ if (
 
 // 4. ProductCard uses stock information
 if (
-  productCard.includes("customerStockLabel") &&
-  productCard.includes("availableStock") &&
-  productCard.includes("stockLevelFromAvailable")
+  productCard.includes("resolveCustomerStockDisplayFromSummary") &&
+  productCard.includes("stockSummary") &&
+  productCard.includes("aspect-[4/3]")
 ) {
   pass("product_card_stock");
 } else {
@@ -81,7 +81,7 @@ if (
 // 5. Products page remains wired to ProductsClient
 if (
   productsPage.includes("ProductsClient") &&
-  productsPage.includes("fetchProductStockCountMap") &&
+  productsPage.includes("fetchProductStockSummaryMap") &&
   productsPage.includes("generateMetadata")
 ) {
   pass("products_page_wiring");
@@ -94,7 +94,7 @@ if (
   productDetail.includes("ProductGallery") &&
   productDetail.includes("PurchaseButtons") &&
   productDetail.includes("buildProductJsonLd") &&
-  productDetail.includes("fetchSellableStockCount")
+  productDetail.includes("resolveCustomerStockDisplayFromSummary")
 ) {
   pass("product_detail_functional");
 } else {
@@ -124,7 +124,7 @@ if (
   navbar.includes("lg:hidden") &&
   navbar.includes("min-h-11") &&
   productCard.includes("line-clamp-2") &&
-  productsClient.includes("lg:grid-cols")
+  productsClient.includes("grid-cols-3")
 ) {
   pass("mobile_responsive_classes");
 } else {

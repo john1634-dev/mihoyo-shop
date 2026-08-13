@@ -24,9 +24,10 @@ import {
   buildProductMetaDescription,
   buildProductPageTitle,
 } from "@/lib/seo";
-import { fetchProductStockCountMap } from "@/lib/catalog-stock-server";
-import { customerStockLabel } from "@/lib/inventory-stock";
-import { fetchSellableStockCount } from "@/lib/inventory-stock-server";
+import { fetchProductStockSummaryMap } from "@/lib/catalog-stock-server";
+import {
+  resolveCustomerStockDisplayFromSummary,
+} from "@/lib/inventory-stock";
 import type { Metadata } from "next";
 import type { Product } from "@/lib/types";
 
@@ -207,18 +208,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ]);
 
   const related = (relatedResult.data || []) as Product[];
-  const relatedStockByProductId = await fetchProductStockCountMap(
+  const relatedStockSummaryByProductId = await fetchProductStockSummaryMap(
     related.map((item) => item.id)
   );
 
-  const availableStock = await fetchSellableStockCount(product.id);
+  const productStockSummary = await fetchProductStockSummaryMap([product.id]);
+  const stockSummary = productStockSummary[product.id];
+  const availableStock = stockSummary?.available_count ?? 0;
   const isListed = product.status === "available";
   const isAvailable = isListed;
-  const stockLabel = customerStockLabel({
+  const stockDisplay = resolveCustomerStockDisplayFromSummary({
     productStatus: product.status,
-    availableCount: availableStock,
+    summary: stockSummary,
   });
-  const showInStockSeo = isListed && availableStock > 0;
+  const showInStockSeo =
+    isListed &&
+    (!stockDisplay.inventoryManaged || availableStock > 0);
 
   const galleryImages =
     images && images.length > 0
@@ -323,12 +328,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span
                   className={
-                    isListed && availableStock > 0
+                    stockDisplay.level === "in_stock" ||
+                    stockDisplay.level === "manual_available"
                       ? "inline-flex rounded-md bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-400 ring-1 ring-emerald-500/25"
-                      : "inline-flex rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400"
+                      : stockDisplay.level === "low_stock"
+                        ? "inline-flex rounded-md bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-300 ring-1 ring-amber-500/25"
+                        : "inline-flex rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400"
                   }
                 >
-                  {isListed && availableStock > 0 ? "In Stock" : stockLabel}
+                  {stockDisplay.label}
                 </span>
               </div>
 
@@ -368,7 +376,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <p className="product-price mt-6">
                 {formatPrice(Number(product.price), listingCurrency)}
               </p>
-              <p className="mt-2 text-sm font-medium text-slate-300">{stockLabel}</p>
+              <p className="mt-2 text-sm font-medium text-slate-300">
+                {stockDisplay.label}
+              </p>
               <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
                 {listingCurrency}
               </p>
@@ -406,13 +416,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <p className="section-subtitle">
               More available listings from {game?.name || "this game"}
             </p>
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+            <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {related.map((item) => (
                 <ProductCard
                   key={item.id}
                   product={item}
                   gameName={game?.name}
-                  availableStock={relatedStockByProductId[item.id]}
+                  stockSummary={relatedStockSummaryByProductId[item.id]}
                 />
               ))}
             </div>

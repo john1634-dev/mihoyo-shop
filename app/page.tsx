@@ -15,7 +15,7 @@ import {
   fetchActiveGames,
   fetchAvailableProducts,
 } from "@/lib/catalog-server";
-import { fetchProductStockCountMap } from "@/lib/catalog-stock-server";
+import { fetchProductStockSummaryMap } from "@/lib/catalog-stock-server";
 import {
   getJustAddedProducts,
   getRecommendedProductIds,
@@ -101,7 +101,7 @@ function ProductSection({
   viewAllHref,
   viewAllLabel,
   gameNameById,
-  stockByProductId,
+  stockSummaryByProductId,
 }: {
   title: string;
   subtitle: string;
@@ -109,7 +109,7 @@ function ProductSection({
   viewAllHref: string;
   viewAllLabel: string;
   gameNameById: Map<string, string>;
-  stockByProductId?: Record<string, number>;
+  stockSummaryByProductId?: Record<string, import("@/lib/inventory-stock").ProductStockSummary>;
 }) {
   if (products.length === 0) return null;
 
@@ -127,13 +127,13 @@ function ProductSection({
           {viewAllLabel}
         </Link>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {products.map((product) => (
           <ProductCard
             key={product.id}
             product={product}
             gameNameById={gameNameById}
-            availableStock={stockByProductId?.[product.id]}
+            stockSummary={stockSummaryByProductId?.[product.id]}
           />
         ))}
       </div>
@@ -147,10 +147,10 @@ export default async function Home() {
     fetchAvailableProducts(),
   ]);
 
-  const stockByProductId = await fetchProductStockCountMap(
+  const stockSummaryByProductId = await fetchProductStockSummaryMap(
     products.map((product) => product.id)
   );
-  const accountCounts = buildAccountCounts(products, stockByProductId);
+  const accountCounts = buildAccountCounts(products, stockSummaryByProductId);
   const gameNameById = buildGameNameMap(games);
   const stockedGames = games.filter((game) => (accountCounts[game.id] || 0) > 0);
   const popularGames = stockedGames.length > 0 ? stockedGames : games;
@@ -234,7 +234,7 @@ export default async function Home() {
         viewAllHref="/products"
         viewAllLabel="View all"
         gameNameById={gameNameById}
-        stockByProductId={stockByProductId}
+        stockSummaryByProductId={stockSummaryByProductId}
       />
 
       <section className="storefront-section-alt border-y border-[var(--border)]">
@@ -245,7 +245,7 @@ export default async function Home() {
           viewAllHref="/products?sort=newest"
           viewAllLabel="See newest"
           gameNameById={gameNameById}
-          stockByProductId={stockByProductId}
+          stockSummaryByProductId={stockSummaryByProductId}
         />
       </section>
 

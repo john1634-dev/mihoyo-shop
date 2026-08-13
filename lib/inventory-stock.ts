@@ -119,6 +119,86 @@ export function stockLevelLabel(level: StockLevel): string {
   }
 }
 
+/** True when the product has at least one inventory_items row (any status). */
+export function isInventoryManagedProduct(
+  summary: Pick<ProductStockSummary, "total_count"> | null | undefined
+): boolean {
+  return (summary?.total_count ?? 0) > 0;
+}
+
+export type CustomerStockDisplayLevel =
+  | StockLevel
+  | "manual_available"
+  | "unavailable";
+
+export type CustomerStockDisplay = {
+  label: string;
+  level: CustomerStockDisplayLevel;
+  inventoryManaged: boolean;
+  availableCount: number;
+  showSoldOutBadge: boolean;
+  showOutOfStockOverlay: boolean;
+};
+
+/**
+ * Storefront stock label/badge semantics.
+ * Manual-source listings (no inventory rows) stay purchasable when status=available.
+ * Inventory-managed listings use sellable unit counts.
+ */
+export function resolveCustomerStockDisplay(input: {
+  productStatus: string | null | undefined;
+  availableCount: number;
+  inventoryManaged: boolean;
+}): CustomerStockDisplay {
+  const { productStatus, availableCount, inventoryManaged } = input;
+
+  if (productStatus !== "available") {
+    return {
+      label: "Sold Out",
+      level: "unavailable",
+      inventoryManaged,
+      availableCount,
+      showSoldOutBadge: true,
+      showOutOfStockOverlay: true,
+    };
+  }
+
+  if (!inventoryManaged) {
+    return {
+      label: "Available",
+      level: "manual_available",
+      inventoryManaged: false,
+      availableCount,
+      showSoldOutBadge: false,
+      showOutOfStockOverlay: false,
+    };
+  }
+
+  const level = stockLevelFromAvailable(availableCount);
+  return {
+    label: stockLevelLabel(level),
+    level,
+    inventoryManaged: true,
+    availableCount,
+    showSoldOutBadge: level === "out_of_stock",
+    showOutOfStockOverlay: level === "out_of_stock",
+  };
+}
+
+export function resolveCustomerStockDisplayFromSummary(input: {
+  productStatus: string | null | undefined;
+  summary?: Pick<ProductStockSummary, "available_count" | "total_count"> | null;
+}): CustomerStockDisplay {
+  const inventoryManaged = isInventoryManagedProduct(input.summary);
+  const availableCount = input.summary?.available_count ?? 0;
+
+  return resolveCustomerStockDisplay({
+    productStatus: input.productStatus,
+    availableCount,
+    inventoryManaged,
+  });
+}
+
 export function matchesAdminStockFilter(
   filter: AdminStockFilter,
   availableCount: number
