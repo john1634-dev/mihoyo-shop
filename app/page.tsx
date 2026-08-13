@@ -39,6 +39,10 @@ const WHY_US = [
     body: "Message us directly with a pre-filled enquiry and get a prompt reply.",
   },
   {
+    title: "Secure card checkout",
+    body: "Pay by card through Stripe on this site. Payment confirms your order — we source the account after payment.",
+  },
+  {
     title: "Shopee purchase option",
     body: "Prefer marketplace checkout? Continue on our Shopee store when you are ready.",
   },
@@ -57,20 +61,24 @@ const HOW_IT_WORKS = [
   },
   {
     step: "03",
-    title: "Chat with us",
-    body: "Tap Buy on Shopee or Chat on WhatsApp with a ready-made message.",
+    title: "Pick how to buy",
+    body: "Choose Buy with Card (Stripe), Buy on Shopee, or Chat on WhatsApp.",
   },
   {
     step: "04",
-    title: "Purchase",
-    body: "Complete your purchase off-site via Shopee or WhatsApp.",
+    title: "Pay & delivery",
+    body: "For Stripe orders, payment is processed securely and we source the account after payment. We verify the account and deliver it manually — not instant.",
   },
 ];
 
 const FAQ = [
   {
     q: "How do I buy an account?",
-    a: "Open an available listing and choose Buy on Shopee or Chat on WhatsApp. This website does not process payments.",
+    a: "Open an available listing and choose your preferred purchase method: Buy with Card (Stripe), Buy on Shopee, or Chat on WhatsApp. Card payment is processed securely through Stripe and confirms your order for sourcing — delivery is manual after verification.",
+  },
+  {
+    q: "Can I pay by card on this website?",
+    a: "Yes. Use Buy with Card on any available listing. Stripe processes payment securely. We source and verify the account after payment, then deliver manually via WhatsApp or email.",
   },
   {
     q: "Can I buy through Shopee?",
@@ -164,7 +172,8 @@ export default async function Home() {
             </p>
 
             <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500">
-              Buy via Shopee or chat with us on WhatsApp.
+              Pay securely by card through Stripe, or purchase via Shopee or
+              WhatsApp.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -252,7 +261,7 @@ export default async function Home() {
       <section className="border-y border-white/[0.06] bg-slate-900/20">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">
           <h2 className="section-title">How to buy</h2>
-          <p className="section-subtitle">Four simple steps from browse to purchase</p>
+          <p className="section-subtitle">Four simple steps from browse to delivery</p>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {HOW_IT_WORKS.map((item, index) => (
               <div key={item.step} className="relative surface-card p-5">

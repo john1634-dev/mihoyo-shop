@@ -24,28 +24,13 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/cart", destination: "/products", permanent: false },
-      { source: "/checkout", destination: "/products", permanent: false },
-      { source: "/orders", destination: "/products", permanent: false },
-      { source: "/orders/:path*", destination: "/products", permanent: false },
-      { source: "/orders/success", destination: "/products", permanent: false },
-      { source: "/account/orders", destination: "/account", permanent: false },
-      {
-        source: "/account/orders/:path*",
-        destination: "/account",
-        permanent: false,
-      },
+      { source: "/orders", destination: "/account/orders", permanent: false },
+      { source: "/orders/success", destination: "/checkout/success", permanent: false },
       { source: "/account/affiliate", destination: "/account", permanent: false },
-      { source: "/admin/orders", destination: "/admin", permanent: false },
-      {
-        source: "/admin/orders/:path*",
-        destination: "/admin",
-        permanent: false,
-      },
       { source: "/admin/coupons", destination: "/admin", permanent: false },
       { source: "/admin/analytics", destination: "/admin", permanent: false },
       { source: "/admin/reviews", destination: "/admin", permanent: false },
       { source: "/admin/affiliates", destination: "/admin", permanent: false },
-      { source: "/api/stripe/:path*", destination: "/products", permanent: false },
     ];
   },
   async headers() {

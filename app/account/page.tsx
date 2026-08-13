@@ -111,6 +111,23 @@ function AccountContent() {
             <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
+                  <h2 className="text-lg font-semibold">Orders</h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Card checkout orders linked to this account.
+                  </p>
+                </div>
+                <Link
+                  href="/account/orders"
+                  className="inline-flex justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium transition hover:bg-blue-500"
+                >
+                  View orders
+                </Link>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
                   <h2 className="text-lg font-semibold">Wishlist</h2>
                   <p className="mt-1 text-sm text-slate-400">
                     Accounts you have saved for later.

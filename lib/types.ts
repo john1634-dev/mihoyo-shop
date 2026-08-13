@@ -23,6 +23,8 @@ export type Product = {
   currency: string;
   status: string;
   server: string | null;
+  /** Listing region code (GLOBAL, ASIA, …). Null on legacy rows. */
+  region_code?: string | null;
   ar_level: number | null;
   cover_image_url: string | null;
   game_id: string | null;

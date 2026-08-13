@@ -9,6 +9,13 @@ import GameImage from "@/components/GameImage";
 import { CloseIcon, FilterIcon } from "@/components/icons";
 import { getGameImageUrl } from "@/lib/games";
 import { normalizeProductSort } from "@/lib/catalog-server";
+import {
+  REGION_OPTIONS,
+  SUPPORTED_CURRENCIES,
+  getRegionLabel,
+  normalizeCurrencyCode,
+  normalizeRegionCode,
+} from "@/lib/catalog-meta";
 import type { Game, Product } from "@/lib/types";
 
 type FilterOverrides = {
@@ -16,6 +23,9 @@ type FilterOverrides = {
   q?: string;
   sort?: string;
   status?: string;
+  region?: string;
+  currency?: string;
+  server?: string;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -34,6 +44,9 @@ function buildProductListHref(
     searchQuery: string;
     sort: string;
     statusFilter: string;
+    regionCode: string;
+    currencyCode: string;
+    serverFilter: string;
   },
   overrides: FilterOverrides = {}
 ) {
@@ -42,11 +55,28 @@ function buildProductListHref(
   const nextQ = overrides.q ?? current.searchQuery;
   const nextSort = normalizeProductSort(overrides.sort ?? current.sort);
   const nextStatus = overrides.status ?? current.statusFilter;
+  const nextRegion =
+    overrides.region !== undefined
+      ? normalizeRegionCode(overrides.region) || ""
+      : current.regionCode;
+  const nextCurrency =
+    overrides.currency !== undefined
+      ? overrides.currency
+        ? normalizeCurrencyCode(overrides.currency, "")
+        : ""
+      : current.currencyCode;
+  const nextServer =
+    overrides.server !== undefined
+      ? overrides.server.trim()
+      : current.serverFilter.trim();
 
   if (nextGame) params.set("game", nextGame);
   if (nextQ.trim()) params.set("q", nextQ.trim());
   if (nextSort !== "newest") params.set("sort", nextSort);
   if (nextStatus !== "available") params.set("status", nextStatus);
+  if (nextRegion) params.set("region", nextRegion);
+  if (nextCurrency) params.set("currency", nextCurrency);
+  if (nextServer) params.set("server", nextServer);
 
   const query = params.toString();
   return query ? `/products?${query}` : "/products";
@@ -58,6 +88,9 @@ type ProductFiltersProps = {
   searchQuery: string;
   sort: string;
   statusFilter: string;
+  regionCode: string;
+  currencyCode: string;
+  serverFilter: string;
   buildHref: (overrides: FilterOverrides) => string;
   onNavigate: (overrides: FilterOverrides) => void;
   onClear: () => void;
@@ -69,15 +102,19 @@ function ProductFilters({
   searchQuery,
   sort,
   statusFilter,
+  regionCode,
+  currencyCode,
+  serverFilter,
   buildHref,
   onNavigate,
   onClear,
 }: ProductFiltersProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
+  const [localServer, setLocalServer] = useState(serverFilter);
 
   function submitSearch(event: React.FormEvent) {
     event.preventDefault();
-    onNavigate({ q: localSearch });
+    onNavigate({ q: localSearch, server: localServer });
   }
 
   return (
@@ -96,6 +133,23 @@ function ProductFilters({
             value={localSearch}
             onChange={(event) => setLocalSearch(event.target.value)}
             placeholder="Search accounts..."
+            className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-blue-500"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="product-server"
+            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+          >
+            Server
+          </label>
+          <input
+            id="product-server"
+            type="text"
+            value={localServer}
+            onChange={(event) => setLocalServer(event.target.value)}
+            placeholder="e.g. Asia, SEA"
             className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none focus:border-blue-500"
           />
         </div>
@@ -140,6 +194,50 @@ function ProductFilters({
           <option value="available">Available</option>
           <option value="sold">Sold out</option>
           <option value="all">Available + Sold</option>
+        </select>
+      </div>
+
+      <div>
+        <label
+          htmlFor="product-region"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+        >
+          Region
+        </label>
+        <select
+          id="product-region"
+          value={regionCode}
+          onChange={(event) => onNavigate({ region: event.target.value })}
+          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm"
+        >
+          <option value="">All regions</option>
+          {REGION_OPTIONS.map((region) => (
+            <option key={region.code} value={region.code}>
+              {region.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label
+          htmlFor="product-currency"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+        >
+          Currency
+        </label>
+        <select
+          id="product-currency"
+          value={currencyCode}
+          onChange={(event) => onNavigate({ currency: event.target.value })}
+          className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm"
+        >
+          <option value="">All currencies</option>
+          {SUPPORTED_CURRENCIES.map((code) => (
+            <option key={code} value={code}>
+              {code}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -234,6 +332,9 @@ export type ProductsClientProps = {
   searchQuery: string;
   sort: string;
   statusFilter: string;
+  regionCode: string;
+  currencyCode: string;
+  serverFilter: string;
 };
 
 export default function ProductsClient({
@@ -243,6 +344,9 @@ export default function ProductsClient({
   searchQuery,
   sort,
   statusFilter,
+  regionCode,
+  currencyCode,
+  serverFilter,
 }: ProductsClientProps) {
   const router = useRouter();
   const [filterOpen, setFilterOpen] = useState(false);
@@ -253,12 +357,20 @@ export default function ProductsClient({
     [games]
   );
   const normalizedSort = normalizeProductSort(sort);
+  const normalizedRegion = normalizeRegionCode(regionCode) || "";
+  const normalizedCurrency = currencyCode
+    ? normalizeCurrencyCode(currencyCode, "")
+    : "";
+  const normalizedServer = serverFilter.trim();
 
   const filterState = {
     gameSlug,
     searchQuery,
     sort,
     statusFilter,
+    regionCode: normalizedRegion,
+    currencyCode: normalizedCurrency,
+    serverFilter: normalizedServer,
   };
 
   function buildHref(overrides: FilterOverrides) {
@@ -293,6 +405,30 @@ export default function ProductsClient({
     });
   }
 
+  if (normalizedRegion) {
+    activeFilterChips.push({
+      key: "region",
+      label: `Region: ${getRegionLabel(normalizedRegion) || normalizedRegion}`,
+      href: buildProductListHref(filterState, { region: "" }),
+    });
+  }
+
+  if (normalizedServer) {
+    activeFilterChips.push({
+      key: "server",
+      label: `Server: ${normalizedServer}`,
+      href: buildProductListHref(filterState, { server: "" }),
+    });
+  }
+
+  if (normalizedCurrency) {
+    activeFilterChips.push({
+      key: "currency",
+      label: `Currency: ${normalizedCurrency}`,
+      href: buildProductListHref(filterState, { currency: "" }),
+    });
+  }
+
   if (statusFilter !== "available") {
     activeFilterChips.push({
       key: "status",
@@ -311,12 +447,15 @@ export default function ProductsClient({
 
   const filterPanel = (
     <ProductFilters
-      key={`${gameSlug}-${searchQuery}-${normalizedSort}-${statusFilter}`}
+      key={`${gameSlug}-${searchQuery}-${normalizedSort}-${statusFilter}-${normalizedRegion}-${normalizedCurrency}-${normalizedServer}`}
       games={games}
       gameSlug={gameSlug}
       searchQuery={searchQuery}
       sort={normalizedSort}
       statusFilter={statusFilter}
+      regionCode={normalizedRegion}
+      currencyCode={normalizedCurrency}
+      serverFilter={normalizedServer}
       buildHref={buildHref}
       onNavigate={navigateFilters}
       onClear={clearFilters}
@@ -368,7 +507,8 @@ export default function ProductsClient({
             {activeGame ? `${activeGame.name} Accounts` : "Accounts"}
           </h1>
           <p className="mt-3 text-slate-400">
-            Premium listings with clear details. Purchase via Shopee or WhatsApp.
+            Premium listings with clear details. Pay by card through Stripe, or
+            purchase via Shopee or WhatsApp.
           </p>
         </div>
 

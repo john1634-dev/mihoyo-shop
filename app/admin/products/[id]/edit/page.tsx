@@ -16,6 +16,12 @@ import {
   MAX_COST_VND,
   parseVndInput,
 } from "@/lib/costing";
+import {
+  REGION_OPTIONS,
+  SUPPORTED_CURRENCIES,
+  normalizeCurrencyCode,
+  normalizeRegionCode,
+} from "@/lib/catalog-meta";
 
 type Game = {
   id: string;
@@ -70,6 +76,7 @@ export default function EditProductPage() {
   const [price, setPrice] = useState("");
   const [currency, setCurrency] = useState("MYR");
   const [server, setServer] = useState("");
+  const [regionCode, setRegionCode] = useState("");
   const [arLevel, setArLevel] = useState("");
   const [description, setDescription] = useState("");
   const [supplierName, setSupplierName] = useState("");
@@ -145,13 +152,26 @@ export default function EditProductPage() {
       setLoading(true);
       setError("");
 
-      const productResult = await supabase
+      let productResult = await supabase
         .from("products")
         .select(
-          "id,title,slug,game_id,price,currency,server,ar_level,description,supplier_name,shopee_url,status,cost_vnd,cost_myr,vnd_myr_rate,cost_rate_updated_at"
+          "id,title,slug,game_id,price,currency,server,region_code,ar_level,description,supplier_name,shopee_url,status,cost_vnd,cost_myr,vnd_myr_rate,cost_rate_updated_at"
         )
         .eq("id", productId)
         .single();
+
+      if (
+        productResult.error &&
+        /region_code/i.test(productResult.error.message)
+      ) {
+        productResult = await supabase
+          .from("products")
+          .select(
+            "id,title,slug,game_id,price,currency,server,ar_level,description,supplier_name,shopee_url,status,cost_vnd,cost_myr,vnd_myr_rate,cost_rate_updated_at"
+          )
+          .eq("id", productId)
+          .single();
+      }
 
       const gamesResult = await supabase
         .from("games")
@@ -183,8 +203,13 @@ export default function EditProductPage() {
       setSlug(product.slug || "");
       setGameId(product.game_id || "");
       setPrice(product.price !== null ? String(product.price) : "");
-      setCurrency(product.currency || "MYR");
+      setCurrency(normalizeCurrencyCode(product.currency));
       setServer(product.server || "");
+      setRegionCode(
+        normalizeRegionCode(
+          (product as { region_code?: string | null }).region_code
+        ) || ""
+      );
       setArLevel(product.ar_level !== null ? String(product.ar_level) : "");
       setDescription(product.description || "");
       setSupplierName(product.supplier_name || "");
@@ -246,8 +271,9 @@ export default function EditProductPage() {
       slug: slug.trim(),
       game_id: gameId || null,
       price: Number(price),
-      currency,
+      currency: normalizeCurrencyCode(currency),
       server: server || null,
+      region_code: normalizeRegionCode(regionCode),
       ar_level: arLevel ? Number(arLevel) : null,
       description: description || null,
       supplier_name: supplierName || null,
@@ -437,7 +463,7 @@ export default function EditProductPage() {
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-slate-300">Price (MYR)</label>
+                <label className="mb-2 block text-sm text-slate-300">Price</label>
                 <input
                   type="number"
                   step="0.01"
@@ -455,7 +481,11 @@ export default function EditProductPage() {
                   onChange={(event) => setCurrency(event.target.value)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                 >
-                  <option value="MYR">MYR</option>
+                  {SUPPORTED_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -466,6 +496,22 @@ export default function EditProductPage() {
                   onChange={(event) => setServer(event.target.value)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                 />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm text-slate-300">Region</label>
+                <select
+                  value={regionCode}
+                  onChange={(event) => setRegionCode(event.target.value)}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                >
+                  <option value="">Not set</option>
+                  {REGION_OPTIONS.map((region) => (
+                    <option key={region.code} value={region.code}>
+                      {region.label} ({region.code})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>

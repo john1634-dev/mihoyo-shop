@@ -1,11 +1,16 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import {
   buildProductWhatsAppMessage,
   buildWhatsAppUrl,
+  formatPrice,
   resolveShopeeUrl,
 } from "@/lib/config";
 import { ShopeeIcon, WhatsAppIcon } from "@/components/icons";
+import { getAccessToken } from "@/lib/auth";
+import { isValidEmail } from "@/lib/validation";
+import { supabase } from "@/lib/supabase";
 
 type PurchaseButtonsProps = {
   product: {
@@ -33,6 +38,29 @@ export default function PurchaseButtons({
   size = "md",
   className = "",
 }: PurchaseButtonsProps) {
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [email, setEmail] = useState("");
+  const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+      setLoggedInEmail(data.user?.email ?? null);
+      if (data.user?.email) setEmail(data.user.email);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const priceLabel = useMemo(
+    () => formatPrice(Number(product.price), product.currency || "MYR"),
+    [product.price, product.currency]
+  );
+
   if (!available) {
     return (
       <div
@@ -70,8 +98,106 @@ export default function PurchaseButtons({
       ? "grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2"
       : "flex w-full min-w-0 flex-col gap-2.5";
 
+  async function startCardCheckout(event: React.FormEvent) {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const token = await getAccessToken();
+      const payload: { product_id: string; email?: string } = {
+        product_id: product.id,
+      };
+
+      if (!token) {
+        if (!isValidEmail(email)) {
+          setError("Enter a valid email for checkout.");
+          setLoading(false);
+          return;
+        }
+        payload.email = email.trim();
+      }
+
+      const res = await fetch("/api/checkout/create-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || "Could not start checkout.");
+      }
+
+      window.location.href = data.url as string;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Checkout failed.");
+      setLoading(false);
+    }
+  }
+
   return (
     <div className={`${wrap} ${className}`}>
+      <button
+        type="button"
+        onClick={() => {
+          setShowCardForm((open) => !open);
+          setError("");
+        }}
+        className={`btn-primary ${pad} ${layout === "row" ? "sm:col-span-2" : ""}`}
+      >
+        Buy with Card — {priceLabel}
+      </button>
+
+      {showCardForm && (
+        <form
+          onSubmit={startCardCheckout}
+          className={`space-y-2 rounded-xl border border-white/[0.08] bg-slate-900/80 p-3 sm:p-4 ${
+            layout === "row" ? "sm:col-span-2" : ""
+          }`}
+        >
+          <p className="text-xs leading-relaxed text-slate-400">
+            Payment confirms your order. We source and verify the account after
+            payment — delivery is manual, not instant.
+          </p>
+          {loggedInEmail ? (
+            <p className="text-xs text-slate-300">
+              Receipt email: <span className="font-medium">{loggedInEmail}</span>
+            </p>
+          ) : (
+            <>
+              <label
+                className="block text-xs font-medium text-slate-300"
+                htmlFor={`card-email-${product.id}`}
+              >
+                Email for receipt
+              </label>
+              <input
+                id={`card-email-${product.id}`}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@email.com"
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                autoComplete="email"
+                required
+              />
+            </>
+          )}
+          {error ? <p className="text-xs text-red-400">{error}</p> : null}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full disabled:opacity-60"
+          >
+            {loading ? "Redirecting to Stripe…" : "Continue to secure checkout"}
+          </button>
+        </form>
+      )}
+
       <a
         href={shopeeHref}
         target="_blank"

@@ -1,7 +1,7 @@
 export const SITE_NAME = "Baitu Games";
 export const SITE_TAGLINE = "Premium Game Accounts";
 export const SITE_DESCRIPTION =
-  "Browse premium game accounts for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and Wuthering Waves. Find your account and purchase through Shopee or WhatsApp.";
+  "Browse premium game accounts for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and Wuthering Waves. Pay securely by card through Stripe, or purchase via Shopee or WhatsApp.";
 
 /** Canonical production origin — used when env is missing or invalid in production builds. */
 export const PRODUCTION_SITE_URL = "https://www.baitugames.com";
@@ -52,14 +52,57 @@ export const SHOPEE_STORE_URL = (
   process.env.NEXT_PUBLIC_SHOPEE_URL || "https://shopee.com.my/gameslot"
 ).trim();
 
+function resolveCurrencyCode(currency?: string | null): string {
+  const code = currency?.trim().toUpperCase();
+  return code || "MYR";
+}
+
+/** Display listing price in its own currency — no FX conversion. */
 export function formatPrice(amount: number, currency = "MYR"): string {
-  const prefix = currency === "MYR" ? "RM" : currency;
-  return `${prefix} ${Number(amount).toFixed(0)}`;
+  const code = resolveCurrencyCode(currency);
+  const value = Number(amount);
+
+  if (code === "MYR") {
+    return `RM ${new Intl.NumberFormat("en-MY", {
+      maximumFractionDigits: 0,
+    }).format(value)}`;
+  }
+
+  if (code === "USD") {
+    return `$${new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value)}`;
+  }
+
+  return `${code} ${new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)}`;
 }
 
 export function formatPriceDetailed(amount: number, currency = "MYR"): string {
-  const prefix = currency === "MYR" ? "RM" : currency;
-  return `${prefix} ${Number(amount).toFixed(2)}`;
+  const code = resolveCurrencyCode(currency);
+  const value = Number(amount);
+
+  if (code === "MYR") {
+    return `RM ${new Intl.NumberFormat("en-MY", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value)}`;
+  }
+
+  if (code === "USD") {
+    return `$${new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value)}`;
+  }
+
+  return `${code} ${new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)}`;
 }
 
 export function buildWhatsAppUrl(message?: string): string {

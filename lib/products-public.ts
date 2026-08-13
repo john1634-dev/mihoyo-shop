@@ -2,6 +2,10 @@ import type { Product } from "@/lib/types";
 
 /** Fields safe for public product queries — never include cost or admin fields. */
 export const PUBLIC_PRODUCT_SELECT =
+  "id,title,slug,description,price,currency,status,server,region_code,ar_level,cover_image_url,game_id,created_at";
+
+/** Fallback select when `region_code` column is not yet migrated. */
+export const PUBLIC_PRODUCT_SELECT_LEGACY =
   "id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at";
 
 const NEW_PRODUCT_DAYS = 7;

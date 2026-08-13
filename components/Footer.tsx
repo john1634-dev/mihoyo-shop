@@ -23,8 +23,8 @@ export default async function Footer() {
             <h3 className="text-lg font-bold tracking-tight">{SITE_NAME}</h3>
             <p className="mt-1 text-sm text-slate-400">{SITE_TAGLINE}</p>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
-              Premium game account listings for popular titles. Purchase via
-              WhatsApp or Shopee.
+              Premium game account listings for popular titles. Pay securely by
+              card through Stripe, or purchase via Shopee or WhatsApp.
             </p>
           </div>
 

@@ -20,15 +20,29 @@ export default function TermsPage() {
           <p>
             By browsing {SITE_NAME}, you agree to use the catalogue for lawful
             purposes. Listings show public account information for browsing and
-            enquiry.
+            purchase enquiry.
           </p>
           <p>
-            Purchases are completed off-site via WhatsApp ({WHATSAPP_DISPLAY}) or
-            our Shopee store. This website does not process card payments or
-            online checkout.
+            You may purchase via card checkout on this website (processed by
+            Stripe), WhatsApp ({WHATSAPP_DISPLAY}), or our Shopee store. Card
+            payment confirms an order — it does not guarantee instant delivery
+            of a game account.
           </p>
           <p>
-            Availability can change. Always confirm stock when you contact us.
+            Most listings are sourced on demand after payment is confirmed. We
+            then manually verify the account and deliver login details through
+            an agreed channel (usually WhatsApp or email). Delivery timing
+            depends on supplier availability and verification.
+          </p>
+          <p>
+            Availability can change. If an account cannot be sourced after
+            payment, we will contact you about cancellation or refund options
+            under our Refund Policy.
+          </p>
+          <p>
+            After delivery, you are responsible for securing the account and
+            complying with the game publisher&apos;s terms. We do not guarantee
+            uninterrupted access against publisher actions outside our control.
           </p>
           <p>
             <a

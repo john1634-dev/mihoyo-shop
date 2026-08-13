@@ -7,7 +7,15 @@ import PurchaseButtons from "@/components/PurchaseButtons";
 import ProductPurchaseBar from "@/components/ProductPurchaseBar";
 import { ChevronRightIcon } from "@/components/icons";
 import { formatPrice, SITE_NAME, SITE_URL } from "@/lib/config";
-import { PUBLIC_PRODUCT_SELECT } from "@/lib/products-public";
+import {
+  PUBLIC_PRODUCT_SELECT,
+  PUBLIC_PRODUCT_SELECT_LEGACY,
+} from "@/lib/products-public";
+import {
+  getRegionLabel,
+  normalizeCurrencyCode,
+  normalizeRegionCode,
+} from "@/lib/catalog-meta";
 import {
   OG_IMAGE_PATH,
   absoluteUrl,
@@ -23,6 +31,51 @@ type ProductPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+function isMissingRegionColumnError(message?: string): boolean {
+  if (!message) return false;
+  return /region_code/i.test(message) && /column|schema|exist/i.test(message);
+}
+
+async function fetchPublicProductBySlug(slug: string): Promise<{
+  data: Product | null;
+  error: { message: string } | null;
+  select: string;
+}> {
+  const primary = await supabase
+    .from("products")
+    .select(PUBLIC_PRODUCT_SELECT)
+    .eq("slug", slug)
+    .single();
+
+  if (!primary.error) {
+    return {
+      data: primary.data as Product,
+      error: null,
+      select: PUBLIC_PRODUCT_SELECT,
+    };
+  }
+
+  if (isMissingRegionColumnError(primary.error.message)) {
+    const legacy = await supabase
+      .from("products")
+      .select(PUBLIC_PRODUCT_SELECT_LEGACY)
+      .eq("slug", slug)
+      .single();
+
+    return {
+      data: (legacy.data as Product) || null,
+      error: legacy.error,
+      select: PUBLIC_PRODUCT_SELECT_LEGACY,
+    };
+  }
+
+  return {
+    data: null,
+    error: primary.error,
+    select: PUBLIC_PRODUCT_SELECT,
+  };
+}
+
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
@@ -30,7 +83,9 @@ export async function generateMetadata({
 
   const { data: product } = await supabase
     .from("products")
-    .select("title, description, cover_image_url, price, currency, status, game_id")
+    .select(
+      "title, description, cover_image_url, price, currency, status, game_id, server, region_code"
+    )
     .eq("slug", slug)
     .single();
 
@@ -48,22 +103,29 @@ export async function generateMetadata({
     gameName = game?.name ?? null;
   }
 
-  const pageTitle = gameName
-    ? `${product.title} | ${gameName}`
-    : product.title;
-  const description = buildProductMetaDescription(
-    product.title,
+  const seoFields = {
+    title: product.title,
     gameName,
-    product.description
-  );
+    server: product.server,
+    regionCode: product.region_code,
+    price: product.price,
+    currency: product.currency,
+    description: product.description,
+  };
+
+  const absoluteTitle = buildProductPageTitle(seoFields);
+  const description = buildProductMetaDescription(seoFields);
   const canonical = `${SITE_URL.replace(/\/$/, "")}/product/${slug}`;
   const ogImage = product.cover_image_url || absoluteUrl(OG_IMAGE_PATH);
-  const absoluteTitle = buildProductPageTitle(product.title, gameName);
+  const isSold = product.status === "sold";
 
   return {
-    title: pageTitle,
+    title: { absolute: absoluteTitle },
     description,
     alternates: { canonical },
+    robots: isSold
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
     openGraph: {
       title: absoluteTitle,
       description,
@@ -84,11 +146,11 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
 
-  const { data: product, error } = await supabase
-    .from("products")
-    .select(PUBLIC_PRODUCT_SELECT)
-    .eq("slug", slug)
-    .single();
+  const {
+    data: product,
+    error,
+    select: productSelect,
+  } = await fetchPublicProductBySlug(slug);
 
   if (error || !product || product.status === "hidden") {
     return (
@@ -110,7 +172,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     );
   }
 
-  const [{ data: images }, { data: game }, { data: related }, { data: navGames }] =
+  const [{ data: images }, { data: game }, relatedResult, { data: navGames }] =
     await Promise.all([
       supabase
         .from("product_images")
@@ -127,7 +189,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       product.game_id
         ? supabase
             .from("products")
-            .select(PUBLIC_PRODUCT_SELECT)
+            .select(productSelect)
             .eq("game_id", product.game_id)
             .eq("status", "available")
             .neq("id", product.id)
@@ -141,6 +203,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
         .order("sort_order", { ascending: true }),
     ]);
 
+  const related = (relatedResult.data || []) as Product[];
+
   const galleryImages =
     images && images.length > 0
       ? images.map((image) => ({
@@ -153,12 +217,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const isAvailable = product.status === "available";
   const typedProduct = product as Product;
-  const canonical = `${SITE_URL.replace(/\/$/, "")}/product/${slug}`;
-  const metaDescription = buildProductMetaDescription(
-    product.title,
-    game?.name,
-    product.description
+  const listingCurrency = normalizeCurrencyCode(product.currency);
+  const regionCode = normalizeRegionCode(
+    (product as Product).region_code
   );
+  const regionLabel = getRegionLabel(regionCode);
+  const canonical = `${SITE_URL.replace(/\/$/, "")}/product/${slug}`;
+  const metaDescription = buildProductMetaDescription({
+    title: product.title,
+    gameName: game?.name,
+    server: product.server,
+    regionCode: regionCode,
+    price: product.price,
+    currency: listingCurrency,
+    description: product.description,
+  });
 
   const breadcrumbItems = [
     { name: "Home", path: "/" },
@@ -175,7 +248,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     image: product.cover_image_url,
     url: canonical,
     price: Number(product.price),
-    currency: product.currency || "MYR",
+    currency: listingCurrency,
     available: isAvailable,
   });
 
@@ -249,7 +322,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 {product.title}
               </h1>
 
-              {(product.server || product.ar_level != null) && (
+              {(product.server ||
+                product.ar_level != null ||
+                regionCode) && (
                 <div className="mt-5 grid grid-cols-2 gap-2 sm:max-w-sm">
                   {product.ar_level != null && (
                     <div className="summary-chip">
@@ -263,11 +338,24 @@ export default async function ProductPage({ params }: ProductPageProps) {
                       <span className="summary-chip-value">{product.server}</span>
                     </div>
                   )}
+                  {regionCode && (
+                    <div className="summary-chip">
+                      <span className="summary-chip-label">Region</span>
+                      <span className="summary-chip-value">
+                        {regionLabel && regionLabel.toUpperCase() !== regionCode
+                          ? `${regionLabel} · ${regionCode}`
+                          : regionCode}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
               <p className="product-price mt-6">
-                {formatPrice(Number(product.price), product.currency || "MYR")}
+                {formatPrice(Number(product.price), listingCurrency)}
+              </p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+                {listingCurrency}
               </p>
 
               <div className="mt-6 hidden lg:block">
@@ -281,7 +369,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
 
               <p className="mt-4 text-xs leading-relaxed text-slate-500 sm:text-sm">
-                Purchase via Shopee or WhatsApp. No checkout on this website.
+                Card, Shopee, or WhatsApp. Card payment confirms an order — we
+                source and deliver the account manually after payment.
               </p>
             </div>
           </div>
@@ -296,7 +385,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </section>
         )}
 
-        {related && related.length > 0 && (
+        {related.length > 0 && (
           <section className="mt-14 border-t border-white/[0.06] pt-10">
             <h2 className="section-title">Related accounts</h2>
             <p className="section-subtitle">
@@ -306,7 +395,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {related.map((item) => (
                 <ProductCard
                   key={item.id}
-                  product={item as Product}
+                  product={item}
                   gameName={game?.name}
                 />
               ))}

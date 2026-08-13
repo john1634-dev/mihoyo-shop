@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatPrice } from "@/lib/config";
+import { getRegionLabel, normalizeRegionCode } from "@/lib/catalog-meta";
 import { getProductBadges, type ProductBadge } from "@/lib/products-public";
 import { ArrowRightIcon } from "@/components/icons";
 import type { Product } from "@/lib/types";
@@ -12,10 +13,30 @@ const BADGE_STYLES: Record<ProductBadge, string> = {
   SOLD_OUT: "bg-slate-950/90 text-slate-300",
 };
 
-function accountSummaryLine(product: Product): string | null {
+function locationSummaryLine(product: Product): string | null {
   const parts: string[] = [];
   if (product.ar_level != null) parts.push(`AR ${product.ar_level}`);
-  if (product.server?.trim()) parts.push(product.server.trim());
+
+  const server = product.server?.trim() || "";
+  const regionCode = normalizeRegionCode(product.region_code);
+  const regionLabel = getRegionLabel(regionCode);
+
+  if (server && regionCode) {
+    if (server.toUpperCase() === regionCode) {
+      parts.push(server);
+    } else {
+      parts.push(`${server} · ${regionCode}`);
+    }
+  } else if (server) {
+    parts.push(server);
+  } else if (regionLabel && regionCode) {
+    if (regionLabel.toUpperCase() !== regionCode) {
+      parts.push(`${regionLabel} · ${regionCode}`);
+    } else {
+      parts.push(regionCode);
+    }
+  }
+
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
@@ -56,7 +77,7 @@ export default function ProductCard({
   const isAvailable = product.status === "available";
   const resolvedGame = resolveGameName(product, gameName, gameNameById);
   const badges = getProductBadges(product);
-  const summary = accountSummaryLine(product);
+  const summary = locationSummaryLine(product);
   const preview = descriptionPreview(product.description);
   const productHref = `/product/${product.slug}`;
 

@@ -1,20 +1,68 @@
+import type { Metadata } from "next";
 import ProductsClient from "@/components/ProductsClient";
 import {
   fetchActiveGames,
   fetchFilteredProducts,
   normalizeProductSort,
 } from "@/lib/catalog-server";
+import {
+  normalizeCurrencyCode,
+  normalizeRegionCode,
+} from "@/lib/catalog-meta";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/config";
+import { OG_IMAGE_PATH, absoluteUrl, productsHasActiveFilters } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-type ProductsPageProps = {
-  searchParams: Promise<{
-    game?: string;
-    q?: string;
-    sort?: string;
-    status?: string;
-  }>;
+type ProductsSearchParams = {
+  game?: string;
+  q?: string;
+  sort?: string;
+  status?: string;
+  region?: string;
+  currency?: string;
+  server?: string;
 };
+
+type ProductsPageProps = {
+  searchParams: Promise<ProductsSearchParams>;
+};
+
+const PRODUCTS_CANONICAL = `${SITE_URL.replace(/\/$/, "")}/products`;
+
+export async function generateMetadata({
+  searchParams,
+}: ProductsPageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const filtered = productsHasActiveFilters(params);
+
+  return {
+    title: "Game Accounts",
+    description: SITE_DESCRIPTION,
+    alternates: {
+      canonical: PRODUCTS_CANONICAL,
+    },
+    robots: filtered
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
+    openGraph: {
+      title: `Game Accounts | ${SITE_NAME}`,
+      description: SITE_DESCRIPTION,
+      url: PRODUCTS_CANONICAL,
+      type: "website",
+      siteName: SITE_NAME,
+      images: [
+        { url: absoluteUrl(OG_IMAGE_PATH), alt: `${SITE_NAME} — Game Accounts` },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Game Accounts | ${SITE_NAME}`,
+      description: SITE_DESCRIPTION,
+      images: [absoluteUrl(OG_IMAGE_PATH)],
+    },
+  };
+}
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
@@ -23,6 +71,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const searchQuery = params.q?.trim() || "";
   const sort = normalizeProductSort(params.sort?.trim());
   const statusFilter = params.status?.trim() || "available";
+  const regionCode = normalizeRegionCode(params.region) || "";
+  const currencyCode = params.currency?.trim()
+    ? normalizeCurrencyCode(params.currency, "")
+    : "";
+  const serverFilter = params.server?.trim() || "";
 
   const games = await fetchActiveGames();
   const products = await fetchFilteredProducts(
@@ -31,6 +84,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       q: searchQuery,
       sort,
       status: statusFilter,
+      region: regionCode || undefined,
+      currency: currencyCode || undefined,
+      server: serverFilter || undefined,
     },
     games
   );
@@ -43,6 +99,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       searchQuery={searchQuery}
       sort={sort}
       statusFilter={statusFilter}
+      regionCode={regionCode}
+      currencyCode={currencyCode}
+      serverFilter={serverFilter}
     />
   );
 }
