@@ -132,16 +132,20 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto min-w-0 max-w-7xl overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
           <p className="mt-1 text-sm text-slate-400">
             Manual sourcing workflow: paid → sourcing → fulfilled. Do not store
             account passwords in notes.
           </p>
         </div>
-        <button type="button" onClick={() => void load()} className="btn-secondary">
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="btn-secondary min-h-11 shrink-0"
+        >
           Refresh
         </button>
       </div>
@@ -173,14 +177,25 @@ export default function AdminOrdersPage() {
             return (
               <article
                 key={order.id}
-                className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"
+                className="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 sm:p-5"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold">
-                      {order.order_number || order.id.slice(0, 8)}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-300">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold break-words">
+                        {order.order_number || order.id.slice(0, 8)}
+                      </p>
+                      {order.payment_status === "paid" &&
+                        !order.inventory &&
+                        order.email_delivery?.status !== "sent" &&
+                        order.status !== "cancelled" &&
+                        order.status !== "refunded" && (
+                          <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300">
+                            Needs Manual Account
+                          </span>
+                        )}
+                    </div>
+                    <p className="mt-1 break-all text-sm text-slate-300">
                       {order.customer_email || "No email"}
                       {order.customer_name ? ` · ${order.customer_name}` : ""}
                     </p>
@@ -189,7 +204,7 @@ export default function AdminOrdersPage() {
                       {order.channel ? ` · ${order.channel}` : ""}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 sm:text-right">
                     <p className="text-sm font-medium">
                       {customerFacingStatusLabel(order.status)}
                     </p>
@@ -202,7 +217,7 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
 
-                <p className="mt-4 text-sm text-slate-200">
+                <p className="mt-4 break-words text-sm text-slate-200">
                   {order.items.map((i) => i.title).join(", ") || "—"}
                 </p>
 
@@ -218,7 +233,7 @@ export default function AdminOrdersPage() {
                         }))
                       }
                       placeholder="WhatsApp / Email"
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                      className="mt-1 w-full min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
                     />
                   </label>
                   <label className="block text-xs text-slate-400 md:col-span-2">
@@ -232,7 +247,7 @@ export default function AdminOrdersPage() {
                         }))
                       }
                       placeholder="Sent via WhatsApp…"
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                      className="mt-1 w-full min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
                     />
                   </label>
                   <label className="block text-xs text-slate-400 md:col-span-3">
@@ -246,7 +261,7 @@ export default function AdminOrdersPage() {
                         }))
                       }
                       rows={2}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                      className="mt-1 w-full min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
                     />
                   </label>
                 </div>
@@ -259,7 +274,7 @@ export default function AdminOrdersPage() {
                         type="button"
                         disabled={busyId === order.id}
                         onClick={() => void updateStatus(order.id, status)}
-                        className="rounded-lg border border-slate-600 px-3 py-2 text-xs font-medium hover:border-blue-500 disabled:opacity-50"
+                        className="min-h-11 w-full rounded-lg border border-slate-600 px-4 py-2.5 text-sm font-medium hover:border-blue-500 disabled:opacity-50 sm:w-auto"
                       >
                         Mark {status}
                       </button>
@@ -282,7 +297,7 @@ export default function AdminOrdersPage() {
                           type="button"
                           disabled={busyId === order.id}
                           onClick={() => void sendAccountEmail(order.id)}
-                          className="rounded-lg border border-blue-500/40 px-3 py-2 text-xs font-medium text-blue-200 hover:border-blue-400 disabled:opacity-50"
+                          className="min-h-11 w-full rounded-lg border border-blue-500/40 px-4 py-2.5 text-sm font-medium text-blue-200 hover:border-blue-400 disabled:opacity-50 sm:w-auto"
                         >
                           {order.email_delivery?.status === "failed"
                             ? "Retry Email"
@@ -297,6 +312,15 @@ export default function AdminOrdersPage() {
                         )}
                     </div>
                   )}
+
+                <div className="mt-4">
+                  <a
+                    href={`/admin/orders/${order.id}`}
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-200 hover:border-blue-500 hover:text-blue-200 sm:w-auto"
+                  >
+                    View / Fulfill
+                  </a>
+                </div>
               </article>
             );
           })}

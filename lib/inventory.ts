@@ -243,6 +243,77 @@ export function parseVoidInventoryBody(
   return { ok: true, id };
 }
 
+export type ManualFulfillInput = {
+  order_id: string;
+  login: string;
+  password: string;
+  email: string;
+  extra: string;
+  label: string | null;
+  game_uid_hint: string | null;
+  notes_internal: string | null;
+};
+
+export function parseManualFulfillBody(
+  body: unknown
+): { ok: true; value: ManualFulfillInput } | { ok: false; error: string } {
+  if (!body || typeof body !== "object") {
+    return { ok: false, error: "Invalid request body." };
+  }
+
+  const raw = body as Record<string, unknown>;
+  const orderId =
+    typeof raw.order_id === "string" ? raw.order_id.trim() : "";
+
+  if (!isValidUuid(orderId)) {
+    return { ok: false, error: "A valid order id is required." };
+  }
+
+  const login =
+    typeof raw.login === "string" ? sanitizeText(raw.login, 200) : "";
+  const password =
+    typeof raw.password === "string" ? raw.password.slice(0, 500).trim() : "";
+
+  if (!login) {
+    return { ok: false, error: "Login is required." };
+  }
+  if (!password) {
+    return { ok: false, error: "Password is required." };
+  }
+
+  const emailRaw =
+    typeof raw.email === "string" ? sanitizeText(raw.email, 320) : "";
+  if (emailRaw && !isValidEmail(emailRaw)) {
+    return { ok: false, error: "Enter a valid email or leave it blank." };
+  }
+
+  return {
+    ok: true,
+    value: {
+      order_id: orderId,
+      label:
+        typeof raw.label === "string"
+          ? sanitizeText(raw.label, 200) || null
+          : null,
+      game_uid_hint:
+        typeof raw.game_uid_hint === "string"
+          ? sanitizeText(raw.game_uid_hint, 120) || null
+          : null,
+      notes_internal:
+        typeof raw.notes_internal === "string"
+          ? sanitizeText(raw.notes_internal, 2000) || null
+          : null,
+      login,
+      password,
+      email: emailRaw,
+      extra:
+        typeof raw.extra === "string"
+          ? sanitizeText(raw.extra, 2000)
+          : "",
+    },
+  };
+}
+
 const TERMINAL_BLOCKED_STATUSES = new Set([
   "failed",
   "cancelled",

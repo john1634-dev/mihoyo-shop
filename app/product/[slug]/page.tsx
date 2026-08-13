@@ -24,6 +24,9 @@ import {
   buildProductMetaDescription,
   buildProductPageTitle,
 } from "@/lib/seo";
+import { fetchProductStockCountMap } from "@/lib/catalog-stock-server";
+import { customerStockLabel } from "@/lib/inventory-stock";
+import { fetchSellableStockCount } from "@/lib/inventory-stock-server";
 import type { Metadata } from "next";
 import type { Product } from "@/lib/types";
 
@@ -204,6 +207,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ]);
 
   const related = (relatedResult.data || []) as Product[];
+  const relatedStockByProductId = await fetchProductStockCountMap(
+    related.map((item) => item.id)
+  );
+
+  const availableStock = await fetchSellableStockCount(product.id);
+  const isListed = product.status === "available";
+  const isAvailable = isListed;
+  const stockLabel = customerStockLabel({
+    productStatus: product.status,
+    availableCount: availableStock,
+  });
+  const showInStockSeo = isListed && availableStock > 0;
 
   const galleryImages =
     images && images.length > 0
@@ -215,7 +230,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
         ? [{ id: "cover", image_url: product.cover_image_url }]
         : [];
 
-  const isAvailable = product.status === "available";
   const typedProduct = product as Product;
   const listingCurrency = normalizeCurrencyCode(product.currency);
   const regionCode = normalizeRegionCode(
@@ -249,7 +263,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     url: canonical,
     price: Number(product.price),
     currency: listingCurrency,
-    available: isAvailable,
+    available: showInStockSeo,
   });
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(breadcrumbItems);
@@ -306,15 +320,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </Link>
               )}
 
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span
                   className={
-                    isAvailable
+                    isListed && availableStock > 0
                       ? "inline-flex rounded-md bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-400 ring-1 ring-emerald-500/25"
                       : "inline-flex rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400"
                   }
                 >
-                  {isAvailable ? "Available" : "Sold Out"}
+                  {isListed && availableStock > 0 ? "In Stock" : stockLabel}
                 </span>
               </div>
 
@@ -354,6 +368,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <p className="product-price mt-6">
                 {formatPrice(Number(product.price), listingCurrency)}
               </p>
+              <p className="mt-2 text-sm font-medium text-slate-300">{stockLabel}</p>
               <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
                 {listingCurrency}
               </p>
@@ -397,6 +412,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   key={item.id}
                   product={item}
                   gameName={game?.name}
+                  availableStock={relatedStockByProductId[item.id]}
                 />
               ))}
             </div>

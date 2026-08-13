@@ -328,6 +328,7 @@ function ActiveFilters({
 export type ProductsClientProps = {
   games: Game[];
   products: Product[];
+  stockByProductId?: Record<string, number>;
   gameSlug: string;
   searchQuery: string;
   sort: string;
@@ -340,6 +341,7 @@ export type ProductsClientProps = {
 export default function ProductsClient({
   games,
   products,
+  stockByProductId,
   gameSlug,
   searchQuery,
   sort,
@@ -567,6 +569,7 @@ export default function ProductsClient({
                     key={product.id}
                     product={product}
                     gameNameById={gameNameById}
+                    availableStock={stockByProductId?.[product.id]}
                   />
                 ))}
               </div>

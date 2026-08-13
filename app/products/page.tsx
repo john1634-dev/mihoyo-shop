@@ -5,6 +5,7 @@ import {
   fetchFilteredProducts,
   normalizeProductSort,
 } from "@/lib/catalog-server";
+import { fetchProductStockCountMap } from "@/lib/catalog-stock-server";
 import {
   normalizeCurrencyCode,
   normalizeRegionCode,
@@ -90,11 +91,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     },
     games
   );
+  const stockByProductId = await fetchProductStockCountMap(
+    products.map((product) => product.id)
+  );
 
   return (
     <ProductsClient
       games={games}
       products={products}
+      stockByProductId={stockByProductId}
       gameSlug={gameSlug}
       searchQuery={searchQuery}
       sort={sort}

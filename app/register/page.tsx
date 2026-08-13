@@ -4,7 +4,7 @@ import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import { SITE_NAME } from "@/lib/config";
+import { SITE_NAME, SITE_URL } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
 import { toUserError } from "@/lib/errors";
 import { isValidEmail, sanitizeText } from "@/lib/validation";
@@ -60,6 +60,7 @@ function RegisterForm() {
       password,
       options: {
         data: { full_name: name },
+        emailRedirectTo: `${SITE_URL.replace(/\/$/, "")}/auth/callback`,
       },
     });
 

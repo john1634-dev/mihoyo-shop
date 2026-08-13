@@ -199,12 +199,22 @@ export async function fetchFilteredProducts(
   return [];
 }
 
-export function buildAccountCounts(products: Product[]): Record<string, number> {
+export function buildAccountCounts(
+  products: Product[],
+  stockByProductId?: Record<string, number>
+): Record<string, number> {
   const counts: Record<string, number> = {};
 
   for (const product of products) {
-    if (product.game_id) {
-      counts[product.game_id] = (counts[product.game_id] || 0) + 1;
+    if (!product.game_id) continue;
+    const stock =
+      stockByProductId && product.id in stockByProductId
+        ? stockByProductId[product.id] ?? 0
+        : product.status === "available"
+          ? 1
+          : 0;
+    if (stock > 0) {
+      counts[product.game_id] = (counts[product.game_id] || 0) + stock;
     }
   }
 

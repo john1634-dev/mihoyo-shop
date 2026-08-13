@@ -275,21 +275,25 @@ export default function NewProductPage() {
 
   if (loadingGames) {
     return (
-      <main className="min-h-screen bg-slate-950 p-8 text-white">Loading...</main>
+      <div className="mx-auto min-w-0 max-w-5xl px-4 py-8 sm:px-6">
+        <div className="animate-pulse space-y-3">
+          <div className="h-8 w-48 rounded bg-slate-900" />
+          <div className="h-64 rounded-2xl bg-slate-900" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 p-8 text-white">
-      <div className="mx-auto max-w-5xl">
+    <div className="mx-auto min-w-0 max-w-5xl overflow-x-hidden px-4 py-6 text-white sm:px-6 sm:py-8">
         <Link href="/admin/products" className="text-sm text-slate-400 hover:text-white">
           ← Back to Products
         </Link>
 
-        <h1 className="mt-5 text-3xl font-bold">Add Product</h1>
+        <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Add Product</h1>
         <p className="mt-2 text-slate-400">Create a new game account listing.</p>
 
-        <form onSubmit={createProduct} className="mt-8 space-y-8">
+        <form onSubmit={createProduct} className="mt-8 space-y-6 pb-28 lg:space-y-8 lg:pb-0">
           <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-xl font-semibold">Basic Information</h2>
             <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -561,23 +565,24 @@ export default function NewProductPage() {
             </div>
           )}
 
-          <div className="flex justify-end gap-4">
-            <Link
-              href="/admin/products"
-              className="rounded-xl border border-slate-700 px-6 py-3 hover:bg-slate-900"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-xl bg-blue-600 px-8 py-3 font-semibold hover:bg-blue-500 disabled:opacity-50"
-            >
-              {saving ? "Creating..." : "Create Product"}
-            </button>
+          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 px-4 py-3 backdrop-blur-md lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="mx-auto flex max-w-5xl gap-3 lg:justify-end">
+              <Link
+                href="/admin/products"
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-slate-700 px-4 py-3 lg:flex-none lg:px-6"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-500 disabled:opacity-50 lg:flex-none lg:px-8"
+              >
+                {saving ? "Creating..." : "Create Product"}
+              </button>
+            </div>
           </div>
         </form>
-      </div>
-    </main>
+    </div>
   );
 }

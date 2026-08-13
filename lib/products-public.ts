@@ -73,10 +73,17 @@ export function getJustAddedProducts(
     .slice(0, JUST_ADDED_LIMIT);
 }
 
-export function getProductBadges(product: Product): ProductBadge[] {
+export function getProductBadges(
+  product: Product,
+  availableStock?: number
+): ProductBadge[] {
   const badges: ProductBadge[] = [];
 
-  if (product.status !== "available") {
+  const outOfStock =
+    product.status !== "available" ||
+    (availableStock !== undefined && availableStock <= 0);
+
+  if (outOfStock) {
     badges.push("SOLD_OUT");
     return badges;
   }

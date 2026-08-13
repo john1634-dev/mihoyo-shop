@@ -3,6 +3,7 @@ import Image from "next/image";
 import { formatPrice } from "@/lib/config";
 import { getRegionLabel, normalizeRegionCode } from "@/lib/catalog-meta";
 import { getProductBadges, type ProductBadge } from "@/lib/products-public";
+import { customerStockLabel } from "@/lib/inventory-stock";
 import { ArrowRightIcon } from "@/components/icons";
 import type { Product } from "@/lib/types";
 
@@ -50,6 +51,7 @@ type ProductCardProps = {
   product: Product & { games?: { name?: string; slug?: string } | null };
   gameName?: string;
   gameNameById?: Map<string, string>;
+  availableStock?: number;
 };
 
 function resolveGameName(
@@ -73,10 +75,16 @@ export default function ProductCard({
   product,
   gameName,
   gameNameById,
+  availableStock,
 }: ProductCardProps) {
-  const isAvailable = product.status === "available";
+  const isListed = product.status === "available";
+  const stockCount = availableStock ?? (isListed ? 1 : 0);
   const resolvedGame = resolveGameName(product, gameName, gameNameById);
-  const badges = getProductBadges(product);
+  const badges = getProductBadges(product, stockCount);
+  const stockLabel = customerStockLabel({
+    productStatus: product.status,
+    availableCount: stockCount,
+  });
   const summary = locationSummaryLine(product);
   const preview = descriptionPreview(product.description);
   const productHref = `/product/${product.slug}`;
@@ -120,9 +128,9 @@ export default function ProductCard({
             ))}
           </div>
 
-          {!isAvailable && (
+          {!isListed || stockCount <= 0 ? (
             <div className="absolute inset-0 bg-slate-950/50" aria-hidden />
-          )}
+          ) : null}
         </div>
       </Link>
 
@@ -155,12 +163,15 @@ export default function ProductCard({
           <p className="text-xl font-bold tracking-tight text-white sm:text-2xl">
             {formatPrice(Number(product.price), product.currency)}
           </p>
+          <p className="mt-1 text-[11px] font-medium text-slate-400 sm:text-xs">
+            {stockLabel}
+          </p>
 
           <Link
             href={productHref}
-            className="mt-3 inline-flex min-h-[2.25rem] w-full items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/5 px-3 py-2 text-xs font-semibold text-blue-300 transition duration-200 hover:border-blue-400/50 hover:bg-blue-500/10 hover:text-blue-200 sm:min-h-[2.5rem] sm:text-sm"
+            className="mt-3 inline-flex min-h-[2.75rem] w-full items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/5 px-3 py-2 text-xs font-semibold text-blue-300 transition duration-200 hover:border-blue-400/50 hover:bg-blue-500/10 hover:text-blue-200 sm:min-h-[2.5rem] sm:text-sm"
           >
-            View details &amp; buy
+            {isListed ? "View details & buy" : "View listing"}
             <ArrowRightIcon className="h-3.5 w-3.5 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none sm:h-4 sm:w-4" />
           </Link>
         </div>

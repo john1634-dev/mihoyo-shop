@@ -16,6 +16,7 @@ import {
   fetchActiveGames,
   fetchAvailableProducts,
 } from "@/lib/catalog-server";
+import { fetchProductStockCountMap } from "@/lib/catalog-stock-server";
 import {
   getJustAddedProducts,
   getRecommendedProductIds,
@@ -101,6 +102,7 @@ function ProductSection({
   viewAllHref,
   viewAllLabel,
   gameNameById,
+  stockByProductId,
 }: {
   title: string;
   subtitle: string;
@@ -108,6 +110,7 @@ function ProductSection({
   viewAllHref: string;
   viewAllLabel: string;
   gameNameById: Map<string, string>;
+  stockByProductId?: Record<string, number>;
 }) {
   if (products.length === 0) return null;
 
@@ -131,6 +134,7 @@ function ProductSection({
             key={product.id}
             product={product}
             gameNameById={gameNameById}
+            availableStock={stockByProductId?.[product.id]}
           />
         ))}
       </div>
@@ -144,7 +148,10 @@ export default async function Home() {
     fetchAvailableProducts(),
   ]);
 
-  const accountCounts = buildAccountCounts(products);
+  const stockByProductId = await fetchProductStockCountMap(
+    products.map((product) => product.id)
+  );
+  const accountCounts = buildAccountCounts(products, stockByProductId);
   const gameNameById = buildGameNameMap(games);
   const stockedGames = games.filter((game) => (accountCounts[game.id] || 0) > 0);
   const popularGames = stockedGames.length > 0 ? stockedGames : games;
@@ -228,6 +235,7 @@ export default async function Home() {
         viewAllHref="/products"
         viewAllLabel="View all"
         gameNameById={gameNameById}
+        stockByProductId={stockByProductId}
       />
 
       <section className="border-y border-white/[0.06] bg-slate-900/25">
@@ -238,6 +246,7 @@ export default async function Home() {
           viewAllHref="/products?sort=newest"
           viewAllLabel="See newest"
           gameNameById={gameNameById}
+          stockByProductId={stockByProductId}
         />
       </section>
 

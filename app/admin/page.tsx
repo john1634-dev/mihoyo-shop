@@ -88,7 +88,7 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+    <div className="mx-auto min-w-0 max-w-6xl overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold sm:text-3xl">Dashboard</h1>
         <p className="mt-2 text-sm text-slate-400">
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
           <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Link
               href="/admin/products/new"
-              className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 transition hover:bg-blue-500/15"
+              className="flex min-h-[5.5rem] flex-col justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 transition hover:bg-blue-500/15"
             >
               <p className="font-semibold text-blue-300">Add product →</p>
               <p className="mt-1 text-sm text-slate-400">
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
             </Link>
             <Link
               href="/admin/inventory"
-              className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 transition hover:bg-emerald-500/15"
+              className="flex min-h-[5.5rem] flex-col justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 transition hover:bg-emerald-500/15"
             >
               <p className="font-semibold text-emerald-300">Inventory →</p>
               <p className="mt-1 text-sm text-slate-400">
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
             </Link>
             <Link
               href="/admin/games"
-              className="rounded-2xl border border-slate-700 bg-slate-900 p-5 transition hover:border-slate-600"
+              className="flex min-h-[5.5rem] flex-col justify-center rounded-2xl border border-slate-700 bg-slate-900 p-5 transition hover:border-slate-600"
             >
               <p className="font-semibold">Manage games →</p>
               <p className="mt-1 text-sm text-slate-400">
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
             </Link>
             <Link
               href="/products"
-              className="rounded-2xl border border-slate-700 bg-slate-900 p-5 transition hover:border-slate-600"
+              className="flex min-h-[5.5rem] flex-col justify-center rounded-2xl border border-slate-700 bg-slate-900 p-5 transition hover:border-slate-600"
             >
               <p className="font-semibold">View storefront →</p>
               <p className="mt-1 text-sm text-slate-400">

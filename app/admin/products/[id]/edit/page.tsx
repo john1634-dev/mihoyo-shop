@@ -1,9 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { ProductStockSummaryPanel } from "@/components/admin/ProductStockSummary";
+import { adminFetch } from "@/lib/admin-api";
+import { inventoryManageHref, type ProductStockSummary } from "@/lib/inventory-stock";
 import { supabase } from "@/lib/supabase";
 import ImageUploader from "@/components/ImageUploader";
 import {
@@ -102,6 +105,26 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [stockSummary, setStockSummary] = useState<ProductStockSummary | null>(null);
+  const [stockLoading, setStockLoading] = useState(true);
+
+  const loadStockSummary = useCallback(async () => {
+    setStockLoading(true);
+    try {
+      const res = await adminFetch(
+        `/api/admin/inventory/stock?product_id=${encodeURIComponent(productId)}`,
+        { cache: "no-store" }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.summary) {
+        setStockSummary(data.summary as ProductStockSummary);
+      }
+    } catch {
+      setStockSummary(null);
+    } finally {
+      setStockLoading(false);
+    }
+  }, [productId]);
 
   const costVnd = useMemo(() => parseVndInput(costVndInput), [costVndInput]);
   const originalCostVnd = storedCost.costVnd;
@@ -235,6 +258,7 @@ export default function EditProductPage() {
       });
 
       setLoading(false);
+      void loadStockSummary();
     }
 
     void loadData();
@@ -242,7 +266,7 @@ export default function EditProductPage() {
       void fetchRate(false);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [productId]);
+  }, [productId, loadStockSummary]);
 
   function handleCostInput(value: string) {
     setCostVndInput(formatVndInput(value));
@@ -407,31 +431,33 @@ export default function EditProductPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-950 p-8 text-white">
-        <div className="mx-auto max-w-5xl">Loading product...</div>
-      </main>
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <div className="animate-pulse space-y-3">
+          <div className="h-8 w-48 rounded bg-slate-900" />
+          <div className="h-64 rounded-2xl bg-slate-900" />
+        </div>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 p-6 text-white md:p-10">
-      <div className="mx-auto max-w-5xl">
+    <div className="mx-auto min-w-0 max-w-5xl overflow-x-hidden px-4 py-6 text-white sm:px-6 sm:py-8">
         <Link href="/admin/products" className="text-sm text-slate-400 hover:text-white">
           ← Back to Products
         </Link>
 
-        <h1 className="mt-5 text-3xl font-bold">Edit Product</h1>
+        <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Edit Product</h1>
 
-        <form onSubmit={saveChanges} className="mt-8 space-y-8">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">Basic Information</h2>
+        <form onSubmit={saveChanges} className="mt-8 space-y-6 pb-28 lg:space-y-8 lg:pb-0">
+          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
+            <h2 className="text-lg font-semibold sm:text-xl">Basic Information</h2>
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <div className="md:col-span-2">
                 <label className="mb-2 block text-sm text-slate-300">Game</label>
                 <select
                   value={gameId}
                   onChange={(event) => setGameId(event.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                 >
                   <option value="">Select a game</option>
                   {games.map((game) => (
@@ -448,7 +474,7 @@ export default function EditProductPage() {
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   required
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                 />
               </div>
 
@@ -458,35 +484,8 @@ export default function EditProductPage() {
                   value={slug}
                   onChange={(event) => setSlug(event.target.value)}
                   required
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                 />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm text-slate-300">Price</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                  required
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm text-slate-300">Currency</label>
-                <select
-                  value={currency}
-                  onChange={(event) => setCurrency(event.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
-                >
-                  {SUPPORTED_CURRENCIES.map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div>
@@ -494,7 +493,7 @@ export default function EditProductPage() {
                 <input
                   value={server}
                   onChange={(event) => setServer(event.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                 />
               </div>
 
@@ -503,7 +502,7 @@ export default function EditProductPage() {
                 <select
                   value={regionCode}
                   onChange={(event) => setRegionCode(event.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                 >
                   <option value="">Not set</option>
                   {REGION_OPTIONS.map((region) => (
@@ -514,25 +513,79 @@ export default function EditProductPage() {
                 </select>
               </div>
 
-              <div>
+              <div className="md:col-span-2">
                 <label className="mb-2 block text-sm text-slate-300">AR / Level</label>
                 <input
                   type="number"
                   value={arLevel}
                   onChange={(event) => setArLevel(event.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 md:max-w-xs"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
+            <h2 className="text-lg font-semibold sm:text-xl">Pricing</h2>
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm text-slate-300">Price</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                  required
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm text-slate-300">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  rows={8}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
-                />
+              <div>
+                <label className="mb-2 block text-sm text-slate-300">Currency</label>
+                <select
+                  value={currency}
+                  onChange={(event) => setCurrency(event.target.value)}
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                >
+                  {SUPPORTED_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
               </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
+            <h2 className="text-lg font-semibold sm:text-xl">Product Status</h2>
+            <div className="mt-5">
+              <label className="mb-2 block text-sm text-slate-300">Listing Status</label>
+              <select
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+              >
+                <option value="available">Available (published)</option>
+                <option value="sold">Sold</option>
+                <option value="hidden">Hidden</option>
+              </select>
+              <p className="mt-2 text-xs text-slate-500">
+                Listing status is separate from inventory stock counts.
+              </p>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
+            <h2 className="text-lg font-semibold sm:text-xl">Description</h2>
+            <div className="mt-5">
+              <label className="mb-2 block text-sm text-slate-300">Product Description</label>
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={8}
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+              />
             </div>
           </section>
 
@@ -548,7 +601,7 @@ export default function EditProductPage() {
                 type="button"
                 onClick={() => void fetchRate(true)}
                 disabled={rateLoading}
-                className="rounded-lg border border-slate-700 px-3 py-2 text-xs hover:border-blue-500 disabled:opacity-50"
+                className="min-h-11 rounded-lg border border-slate-700 px-4 py-2 text-sm hover:border-blue-500 disabled:opacity-50"
               >
                 {rateLoading ? "Fetching latest rate..." : "Refresh Rate"}
               </button>
@@ -629,19 +682,6 @@ export default function EditProductPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">Product Status</h2>
-            <select
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-              className="mt-5 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
-            >
-              <option value="available">Available</option>
-              <option value="sold">Sold</option>
-              <option value="hidden">Hidden</option>
-            </select>
-          </section>
-
           <section className="rounded-2xl border border-amber-900/40 bg-slate-900 p-6">
             <h2 className="text-xl font-semibold">Internal Supplier Information</h2>
             <p className="mt-1 text-sm text-amber-400">
@@ -671,19 +711,19 @@ export default function EditProductPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">Product Images</h2>
+          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
+            <h2 className="text-lg font-semibold sm:text-xl">Product Images</h2>
             <p className="mt-1 text-sm text-slate-400">The first image is the cover image.</p>
             {images.length > 0 && (
-              <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {images.map((image, index) => (
-                  <div key={image.id} className="relative overflow-hidden rounded-xl border border-slate-800">
+                  <div key={image.id} className="relative min-w-0 overflow-hidden rounded-xl border border-slate-800">
                     <div className="relative aspect-square w-full">
                       <Image
                         src={image.image_url}
                         alt={`Product image ${index + 1}`}
                         fill
-                        sizes="(max-width: 768px) 50vw, 25vw"
+                        sizes="(max-width: 640px) 50vw, 25vw"
                         className="object-cover"
                       />
                     </div>
@@ -694,25 +734,28 @@ export default function EditProductPage() {
                     )}
                     <button
                       type="button"
+                      aria-label={`Delete image ${index + 1}`}
                       onClick={() => void deleteImage(image)}
-                      className="absolute right-2 top-2 rounded-lg bg-black/70 px-3 py-1 text-xs hover:bg-red-600"
+                      className="absolute right-2 top-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-black/70 px-3 text-xs hover:bg-red-600"
                     >
                       Delete
                     </button>
                     <div className="absolute left-2 top-2 flex gap-1">
                       <button
                         type="button"
+                        aria-label="Move image left"
                         onClick={() => void moveImage(image.id, "left")}
                         disabled={index === 0}
-                        className="rounded-lg bg-black/70 px-2 py-1 text-xs disabled:opacity-30"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-black/70 text-xs disabled:opacity-30"
                       >
                         ←
                       </button>
                       <button
                         type="button"
+                        aria-label="Move image right"
                         onClick={() => void moveImage(image.id, "right")}
                         disabled={index === images.length - 1}
-                        className="rounded-lg bg-black/70 px-2 py-1 text-xs disabled:opacity-30"
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-black/70 text-xs disabled:opacity-30"
                       >
                         →
                       </button>
@@ -725,7 +768,7 @@ export default function EditProductPage() {
             {newImages.length > 0 && (
               <div className="mt-8">
                 <h3 className="mb-3 font-medium">New Images</h3>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {newImages.map((image, index) => (
                     <div
                       key={image.path}
@@ -760,6 +803,12 @@ export default function EditProductPage() {
             </div>
           </section>
 
+          <ProductStockSummaryPanel
+            summary={stockSummary}
+            loading={stockLoading}
+            manageHref={inventoryManageHref(productId)}
+          />
+
           {error && (
             <div className="rounded-xl border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">
               {error}
@@ -771,20 +820,24 @@ export default function EditProductPage() {
             </div>
           )}
 
-          <div className="flex justify-end gap-4">
-            <Link href="/admin/products" className="rounded-xl border border-slate-700 px-6 py-3">
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-xl bg-blue-600 px-8 py-3 font-semibold hover:bg-blue-500 disabled:opacity-50"
-            >
-              {saving ? "Saving..." : "Save Changes"}
-            </button>
+          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-800 bg-slate-950/95 px-4 py-3 backdrop-blur-md lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="mx-auto flex max-w-5xl gap-3 lg:justify-end">
+              <Link
+                href="/admin/products"
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-slate-700 px-4 py-3 lg:flex-none lg:px-6"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-500 disabled:opacity-50 lg:flex-none lg:px-8"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
           </div>
         </form>
-      </div>
-    </main>
+    </div>
   );
 }
