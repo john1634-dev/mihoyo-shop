@@ -139,7 +139,7 @@ export default function AdminDashboard() {
             />
           </div>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Link
               href="/admin/products/new"
               className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5 transition hover:bg-blue-500/15"
@@ -147,6 +147,15 @@ export default function AdminDashboard() {
               <p className="font-semibold text-blue-300">Add product →</p>
               <p className="mt-1 text-sm text-slate-400">
                 Create a new account listing
+              </p>
+            </Link>
+            <Link
+              href="/admin/inventory"
+              className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 transition hover:bg-emerald-500/15"
+            >
+              <p className="font-semibold text-emerald-300">Inventory →</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Encrypted game-account stock units
               </p>
             </Link>
             <Link

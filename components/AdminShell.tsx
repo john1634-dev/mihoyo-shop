@@ -7,6 +7,7 @@ import { SITE_NAME } from "@/lib/config";
 const NAV = [
   { href: "/admin", label: "Dashboard", exact: true },
   { href: "/admin/orders", label: "Orders", exact: false },
+  { href: "/admin/inventory", label: "Inventory", exact: false },
   { href: "/admin/games", label: "Games", exact: false },
   { href: "/admin/products", label: "Products", exact: false },
 ];

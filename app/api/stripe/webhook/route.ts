@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { assignInventoryAfterPayment } from "@/lib/inventory-assign";
 import { orderAmount, orderCurrency } from "@/lib/orders";
 import {
   fromStripeUnitAmount,
@@ -146,67 +147,72 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
-  if (orderIsPaid(order)) {
-    return;
-  }
-
   const paymentIntentId =
     typeof session.payment_intent === "string"
       ? session.payment_intent
       : session.payment_intent?.id || null;
 
-  const { data: rpcResult, error: rpcError } = await service.rpc(
-    "mark_stripe_payment_paid",
-    {
-      p_order_id: orderId,
-      p_checkout_session_id: session.id,
-      p_payment_intent_id: paymentIntentId,
-      p_amount_total: expectedAmount,
-      p_currency: orderCurrency(order),
-    }
-  );
-
-  if (rpcError) {
-    const { error: updateError } = await service
-      .from("orders")
-      .update({
-        stripe_checkout_session_id: session.id,
-        stripe_payment_intent_id: paymentIntentId,
-        payment_status: "paid",
-        status: "paid",
-        order_status: "paid",
-        payment_method: "stripe",
-        paid_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", orderId)
-      .neq("payment_status", "paid");
-
-    if (updateError) {
-      if (/paid_at|column/i.test(updateError.message)) {
-        const { error: retryError } = await service
-          .from("orders")
-          .update({
-            stripe_checkout_session_id: session.id,
-            stripe_payment_intent_id: paymentIntentId,
-            payment_status: "paid",
-            status: "paid",
-            order_status: "paid",
-            payment_method: "stripe",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", orderId)
-          .neq("payment_status", "paid");
-
-        if (retryError) {
-          console.error("[stripe.webhook] paid update failed:", retryError.message);
-        }
-      } else {
-        console.error("[stripe.webhook] paid update failed:", updateError.message);
+  // Mark paid unless already paid (duplicate / replay still continues to claim).
+  if (!orderIsPaid(order)) {
+    const { data: rpcResult, error: rpcError } = await service.rpc(
+      "mark_stripe_payment_paid",
+      {
+        p_order_id: orderId,
+        p_checkout_session_id: session.id,
+        p_payment_intent_id: paymentIntentId,
+        p_amount_total: expectedAmount,
+        p_currency: orderCurrency(order),
       }
+    );
+
+    if (rpcError) {
+      const { error: updateError } = await service
+        .from("orders")
+        .update({
+          stripe_checkout_session_id: session.id,
+          stripe_payment_intent_id: paymentIntentId,
+          payment_status: "paid",
+          status: "paid",
+          order_status: "paid",
+          payment_method: "stripe",
+          paid_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId)
+        .neq("payment_status", "paid");
+
+      if (updateError) {
+        if (/paid_at|column/i.test(updateError.message)) {
+          const { error: retryError } = await service
+            .from("orders")
+            .update({
+              stripe_checkout_session_id: session.id,
+              stripe_payment_intent_id: paymentIntentId,
+              payment_status: "paid",
+              status: "paid",
+              order_status: "paid",
+              payment_method: "stripe",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", orderId)
+            .neq("payment_status", "paid");
+
+          if (retryError) {
+            console.error(
+              "[stripe.webhook] paid update failed:",
+              retryError.message
+            );
+          }
+        } else {
+          console.error(
+            "[stripe.webhook] paid update failed:",
+            updateError.message
+          );
+        }
+      }
+    } else {
+      console.info("[stripe.webhook] mark paid", rpcResult);
     }
-  } else {
-    console.info("[stripe.webhook] mark paid", rpcResult);
   }
 
   const verified = await loadOrderById(orderId);
@@ -216,7 +222,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     );
   }
 
-  // Do NOT mark product sold automatically — sourced after payment.
+  // Phase 6.4 — assign inventory after payment only.
+  // Idempotent claim; no-stock leaves order paid for manual sourcing.
+  // Does NOT mark product sold, fulfill, decrypt credentials, or send delivery.
+  await assignInventoryAfterPayment({
+    orderId,
+    productId,
+  });
 }
 
 async function handleCheckoutExpired(session: Stripe.Checkout.Session) {

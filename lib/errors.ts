@@ -9,7 +9,13 @@ function redactSecrets(value: string): string {
   return value
     .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[REDACTED_JWT]")
     .replace(/sk_(live|test)_[A-Za-z0-9]+/g, "[REDACTED_SECRET]")
-    .replace(/whsec_[A-Za-z0-9]+/g, "[REDACTED_SECRET]");
+    .replace(/whsec_[A-Za-z0-9]+/g, "[REDACTED_SECRET]")
+    .replace(/[A-Za-z0-9_-]{32,}/g, (match) => {
+      // Redact long base64url blobs (ciphertext/nonce) without logging credential material.
+      if (match.length >= 48) return "[REDACTED_BLOB]";
+      return match;
+    })
+    .replace(/INVENTORY_ENCRYPTION_KEY[=:\s][^\s]+/gi, "INVENTORY_ENCRYPTION_KEY=[REDACTED]");
 }
 
 export function logServerError(context: string, error: unknown): void {
