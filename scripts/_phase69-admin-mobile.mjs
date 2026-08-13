@@ -71,8 +71,7 @@ if (
 
 // 4. Products page has stock UI
 if (
-  productsPage.includes("ProductStockBadge") &&
-  productsPage.includes("formatAdminStockLine") &&
+  productsPage.includes("formatAdminProductStockDisplay") &&
   productsPage.includes("stockFilter")
 ) {
   pass("products_stock_ui");
@@ -84,7 +83,7 @@ if (
 if (
   productEdit.includes("Basic Information") &&
   productEdit.includes("Pricing") &&
-  productEdit.includes("Product Status") &&
+  productEdit.includes("Listing Status") &&
   productEdit.includes("Description") &&
   productEdit.includes("ProductStockSummaryPanel") &&
   productEdit.includes("fixed inset-x-0 bottom-0")

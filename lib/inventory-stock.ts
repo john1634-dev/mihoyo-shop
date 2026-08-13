@@ -245,6 +245,19 @@ export function formatAdminStockLine(availableCount: number): string {
   return `${availableCount} available`;
 }
 
+/** Admin product list stock column — uses Phase 6.11 inventory-managed semantics. */
+export function formatAdminProductStockDisplay(
+  summary?: Pick<ProductStockSummary, "available_count" | "total_count"> | null
+): string {
+  if (!isInventoryManagedProduct(summary)) {
+    return "Available";
+  }
+
+  const availableCount = summary?.available_count ?? 0;
+  const level = stockLevelFromAvailable(availableCount);
+  return `${stockLevelLabel(level)} · ${availableCount}`;
+}
+
 export function inventoryManageHref(productId: string): string {
   const params = new URLSearchParams({
     product_id: productId,

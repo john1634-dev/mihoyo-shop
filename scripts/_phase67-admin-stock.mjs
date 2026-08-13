@@ -178,8 +178,8 @@ if (
 }
 
 if (
-  productsPage.includes("Inventory") &&
-  productsPage.includes("inventoryManageHref") &&
+  productsPage.includes("formatAdminProductStockDisplay") &&
+  productsPage.includes("ProductListingStatusControl") &&
   productsPage.includes("lg:hidden")
 ) {
   pass("admin_products_stock_ui");

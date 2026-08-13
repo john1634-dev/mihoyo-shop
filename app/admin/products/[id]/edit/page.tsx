@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductStockSummaryPanel } from "@/components/admin/ProductStockSummary";
+import ProductListingStatusControl from "@/components/admin/ProductListingStatusControl";
 import { adminFetch } from "@/lib/admin-api";
 import { inventoryManageHref, type ProductStockSummary } from "@/lib/inventory-stock";
 import { supabase } from "@/lib/supabase";
@@ -64,6 +65,16 @@ type StoredCostState = {
   updatedAt: string | null;
 };
 
+function productStatusBadgeClass(value: string): string {
+  if (value === "available") {
+    return "inline-flex rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium capitalize text-emerald-300 ring-1 ring-emerald-500/25";
+  }
+  if (value === "sold") {
+    return "inline-flex rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-medium capitalize text-red-300 ring-1 ring-red-500/25";
+  }
+  return "inline-flex rounded-full bg-slate-800 px-2.5 py-1 text-xs font-medium capitalize text-slate-400";
+}
+
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
@@ -105,6 +116,10 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [statusFeedback, setStatusFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [stockSummary, setStockSummary] = useState<ProductStockSummary | null>(null);
   const [stockLoading, setStockLoading] = useState(true);
 
@@ -446,12 +461,73 @@ export default function EditProductPage() {
           ← Back to Products
         </Link>
 
-        <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Edit Product</h1>
+        <header className="mt-5 rounded-xl border border-slate-800 bg-slate-900/80 p-4 sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="line-clamp-2 text-xl font-bold sm:text-2xl">
+                {title || "Edit Product"}
+              </h1>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <span className={productStatusBadgeClass(status)}>{status}</span>
+              </div>
+              {stockSummary && !stockLoading && (
+                <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+                  <div>
+                    <span className="text-slate-500">Stock: </span>
+                    <span className="font-medium text-slate-200">
+                      {stockSummary.available_count} available
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Assigned: </span>
+                    <span className="font-medium text-slate-200">
+                      {stockSummary.assigned_count}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Total: </span>
+                    <span className="font-medium text-slate-200">
+                      {stockSummary.total_count}
+                    </span>
+                  </div>
+                </dl>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={inventoryManageHref(productId)}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium hover:border-cyan-500 hover:text-cyan-300"
+              >
+                Manage Inventory
+              </Link>
+              <ProductListingStatusControl
+                productId={productId}
+                productTitle={title || "Product"}
+                status={status}
+                onStatusChange={setStatus}
+                onFeedback={(message, type) => {
+                  setStatusFeedback({ message, type });
+                  window.setTimeout(() => setStatusFeedback(null), 4000);
+                }}
+              />
+            </div>
+          </div>
+          {statusFeedback && (
+            <p
+              className={`mt-3 text-sm ${
+                statusFeedback.type === "success" ? "text-emerald-300" : "text-red-300"
+              }`}
+              role="status"
+            >
+              {statusFeedback.message}
+            </p>
+          )}
+        </header>
 
-        <form onSubmit={saveChanges} className="mt-8 space-y-6 pb-28 lg:space-y-8 lg:pb-0">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
-            <h2 className="text-lg font-semibold sm:text-xl">Basic Information</h2>
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
+        <form onSubmit={saveChanges} className="mt-6 space-y-5 pb-28 lg:space-y-6 lg:pb-0">
+          <section className="rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
+            <h2 className="text-base font-semibold sm:text-lg">Basic Information</h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
                 <label className="mb-2 block text-sm text-slate-300">Game</label>
                 <select
@@ -525,9 +601,9 @@ export default function EditProductPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
-            <h2 className="text-lg font-semibold sm:text-xl">Pricing</h2>
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
+          <section className="rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
+            <h2 className="text-base font-semibold sm:text-lg">Pricing</h2>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm text-slate-300">Price</label>
                 <input
@@ -557,9 +633,9 @@ export default function EditProductPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
-            <h2 className="text-lg font-semibold sm:text-xl">Product Status</h2>
-            <div className="mt-5">
+          <section className="rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
+            <h2 className="text-base font-semibold sm:text-lg">Listing Status</h2>
+            <div className="mt-4">
               <label className="mb-2 block text-sm text-slate-300">Listing Status</label>
               <select
                 value={status}
@@ -576,9 +652,9 @@ export default function EditProductPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
-            <h2 className="text-lg font-semibold sm:text-xl">Description</h2>
-            <div className="mt-5">
+          <section className="rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
+            <h2 className="text-base font-semibold sm:text-lg">Description</h2>
+            <div className="mt-4">
               <label className="mb-2 block text-sm text-slate-300">Product Description</label>
               <textarea
                 value={description}
