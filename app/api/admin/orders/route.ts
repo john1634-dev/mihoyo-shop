@@ -69,9 +69,65 @@ export async function GET(request: Request) {
     itemsByOrder.set(item.order_id, list);
   }
 
+  // Safe inventory + email delivery metadata only (never credentials).
+  const inventoryByOrder = new Map<
+    string,
+    { id: string; status: string }
+  >();
+  const emailDeliveryByOrder = new Map<
+    string,
+    { status: string; provider_message_id: string | null }
+  >();
+
+  if (ids.length) {
+    const { data: inventoryRows, error: inventoryError } = await service
+      .from("inventory_items")
+      .select("id,order_id,status")
+      .in("order_id", ids);
+
+    if (
+      inventoryError &&
+      !/relation|schema cache|does not exist|PGRST/i.test(inventoryError.message)
+    ) {
+      // Non-fatal for orders list
+    } else {
+      for (const row of inventoryRows || []) {
+        if (row.order_id) {
+          inventoryByOrder.set(row.order_id, {
+            id: row.id,
+            status: row.status,
+          });
+        }
+      }
+    }
+
+    const { data: deliveryRows, error: deliveryError } = await service
+      .from("delivery_attempts")
+      .select("order_id,status,provider_message_id,channel,updated_at")
+      .in("order_id", ids)
+      .eq("channel", "email")
+      .order("updated_at", { ascending: false });
+
+    if (
+      !deliveryError ||
+      /relation|schema cache|does not exist|PGRST/i.test(deliveryError.message)
+    ) {
+      for (const row of deliveryRows || []) {
+        if (row.order_id && !emailDeliveryByOrder.has(row.order_id)) {
+          emailDeliveryByOrder.set(row.order_id, {
+            status: row.status,
+            provider_message_id: row.provider_message_id ?? null,
+          });
+        }
+      }
+    }
+  }
+
   return NextResponse.json({
     orders: ((orders || []) as OrderRow[]).map((order) => {
       const orderItems = itemsByOrder.get(order.id) || [];
+      const inventory = inventoryByOrder.get(order.id) || null;
+      const emailDelivery = emailDeliveryByOrder.get(order.id) || null;
       return {
         id: order.id,
         order_number: order.order_number,
@@ -89,6 +145,8 @@ export async function GET(request: Request) {
         delivery_note: order.delivery_note ?? null,
         delivery_method: order.delivery_method ?? null,
         admin_note: order.admin_note ?? null,
+        inventory,
+        email_delivery: emailDelivery,
         items: orderItems.map((item) => ({
           title: itemTitle(item),
           price: itemPrice(item),

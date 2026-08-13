@@ -22,6 +22,8 @@ type AdminOrder = {
   delivery_note: string | null;
   delivery_method: string | null;
   admin_note: string | null;
+  inventory: { id: string; status: string } | null;
+  email_delivery: { status: string; provider_message_id: string | null } | null;
   items: Array<{ title: string; price: number; product_id: string | null }>;
 };
 
@@ -99,6 +101,31 @@ export default function AdminOrdersPage() {
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed.");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function sendAccountEmail(orderId: string) {
+    setBusyId(orderId);
+    setError("");
+    try {
+      const res = await adminFetch("/api/admin/inventory/deliver-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: orderId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) {
+        throw new Error(
+          data.error_code
+            ? `Email delivery failed (${data.error_code})`
+            : data.error || "Email delivery failed."
+        );
+      }
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Email delivery failed.");
     } finally {
       setBusyId("");
     }
@@ -239,6 +266,37 @@ export default function AdminOrdersPage() {
                     ))}
                   </div>
                 )}
+
+                {order.payment_status === "paid" &&
+                  order.inventory &&
+                  (order.inventory.status === "assigned" ||
+                    order.inventory.status === "delivered") && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {order.email_delivery?.status === "sent" ||
+                      order.status === "fulfilled" ? (
+                        <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                          Email Sent
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={busyId === order.id}
+                          onClick={() => void sendAccountEmail(order.id)}
+                          className="rounded-lg border border-blue-500/40 px-3 py-2 text-xs font-medium text-blue-200 hover:border-blue-400 disabled:opacity-50"
+                        >
+                          {order.email_delivery?.status === "failed"
+                            ? "Retry Email"
+                            : "Send Account Email"}
+                        </button>
+                      )}
+                      {order.inventory.status === "assigned" &&
+                        order.email_delivery?.status === "failed" && (
+                          <span className="text-xs text-amber-300">
+                            Last email attempt failed — inventory still assigned
+                          </span>
+                        )}
+                    </div>
+                  )}
               </article>
             );
           })}

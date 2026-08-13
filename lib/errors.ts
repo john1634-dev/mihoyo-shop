@@ -15,7 +15,9 @@ function redactSecrets(value: string): string {
       if (match.length >= 48) return "[REDACTED_BLOB]";
       return match;
     })
-    .replace(/INVENTORY_ENCRYPTION_KEY[=:\s][^\s]+/gi, "INVENTORY_ENCRYPTION_KEY=[REDACTED]");
+    .replace(/INVENTORY_ENCRYPTION_KEY[=:\s][^\s]+/gi, "INVENTORY_ENCRYPTION_KEY=[REDACTED]")
+    .replace(/RESEND_API_KEY[=:\s][^\s]+/gi, "RESEND_API_KEY=[REDACTED]")
+    .replace(/re_[A-Za-z0-9]{20,}/g, "[REDACTED_RESEND_KEY]");
 }
 
 export function logServerError(context: string, error: unknown): void {

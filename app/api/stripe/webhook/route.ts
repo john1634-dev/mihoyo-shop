@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { assignInventoryAfterPayment } from "@/lib/inventory-assign";
+import { deliverInventoryByEmail } from "@/lib/inventory-delivery";
 import { orderAmount, orderCurrency } from "@/lib/orders";
 import {
   fromStripeUnitAmount,
@@ -224,11 +225,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Phase 6.4 — assign inventory after payment only.
   // Idempotent claim; no-stock leaves order paid for manual sourcing.
-  // Does NOT mark product sold, fulfill, decrypt credentials, or send delivery.
-  await assignInventoryAfterPayment({
+  // Does NOT mark product sold, fulfill, decrypt credentials, or send delivery yet.
+  const claim = await assignInventoryAfterPayment({
     orderId,
     productId,
   });
+
+  // Phase 6.5 — email delivery only after successful assignment.
+  // Idempotent via delivery_attempts. Failures leave inventory assigned for retry.
+  if (claim.assigned) {
+    await deliverInventoryByEmail(orderId);
+  }
 }
 
 async function handleCheckoutExpired(session: Stripe.Checkout.Session) {
