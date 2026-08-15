@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/zinkgame-sync",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }
