@@ -124,7 +124,7 @@ function ProductFilters({
         <div>
           <label
             htmlFor="product-search"
-            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
           >
             Search
           </label>
@@ -134,14 +134,14 @@ function ProductFilters({
             value={localSearch}
             onChange={(event) => setLocalSearch(event.target.value)}
             placeholder="Search accounts..."
-            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm outline-none focus:border-blue-500"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
           />
         </div>
 
         <div>
           <label
             htmlFor="product-server"
-            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+            className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
           >
             Server
           </label>
@@ -151,7 +151,7 @@ function ProductFilters({
             value={localServer}
             onChange={(event) => setLocalServer(event.target.value)}
             placeholder="e.g. Asia, SEA"
-            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm outline-none focus:border-blue-500"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
           />
         </div>
 
@@ -163,7 +163,7 @@ function ProductFilters({
       <div>
         <label
           htmlFor="product-sort"
-          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
         >
           Sort
         </label>
@@ -171,7 +171,7 @@ function ProductFilters({
           id="product-sort"
           value={sort}
           onChange={(event) => onNavigate({ sort: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="newest">Newest</option>
           <option value="price-asc">Price: Low to High</option>
@@ -182,7 +182,7 @@ function ProductFilters({
       <div>
         <label
           htmlFor="product-status"
-          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
         >
           Status
         </label>
@@ -190,7 +190,7 @@ function ProductFilters({
           id="product-status"
           value={statusFilter}
           onChange={(event) => onNavigate({ status: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="available">Available</option>
           <option value="sold">Sold out</option>
@@ -201,7 +201,7 @@ function ProductFilters({
       <div>
         <label
           htmlFor="product-region"
-          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
         >
           Region
         </label>
@@ -209,7 +209,7 @@ function ProductFilters({
           id="product-region"
           value={regionCode}
           onChange={(event) => onNavigate({ region: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="">All regions</option>
           {REGION_OPTIONS.map((region) => (
@@ -223,7 +223,7 @@ function ProductFilters({
       <div>
         <label
           htmlFor="product-currency"
-          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
         >
           Currency
         </label>
@@ -231,7 +231,7 @@ function ProductFilters({
           id="product-currency"
           value={currencyCode}
           onChange={(event) => onNavigate({ currency: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="">All currencies</option>
           {SUPPORTED_CURRENCIES.map((code) => (
@@ -243,7 +243,7 @@ function ProductFilters({
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
           Game
         </p>
         <div className="flex flex-wrap gap-2">
@@ -251,8 +251,8 @@ function ProductFilters({
             href={buildHref({ game: "" })}
             className={`rounded-full px-3 py-1.5 text-xs ${
               !gameSlug
-                ? "bg-blue-600 text-white"
-                : "border border-slate-700 text-slate-300 hover:border-blue-500"
+                ? "bg-[var(--accent-strong)] text-white"
+                : "border border-[var(--border)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
             }`}
           >
             All
@@ -263,8 +263,8 @@ function ProductFilters({
               href={buildHref({ game: game.slug })}
               className={`rounded-full px-3 py-1.5 text-xs ${
                 gameSlug === game.slug
-                  ? "bg-blue-600 text-white"
-                  : "border border-slate-700 text-slate-300 hover:border-blue-500"
+                  ? "bg-[var(--accent-strong)] text-white"
+                  : "border border-[var(--border)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
               }`}
             >
               {game.name}
@@ -299,17 +299,17 @@ function ActiveFilters({
 
   return (
     <div className="mt-6 flex flex-wrap items-center gap-2">
-      <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
         Active:
       </span>
       {chips.map((chip) => (
         <Link
           key={chip.key}
           href={chip.href}
-          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/[0.1] bg-slate-900/80 px-2.5 py-1 text-xs text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--border)] bg-white px-2.5 py-1 text-xs text-[var(--foreground)] shadow-[var(--shadow-card)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
         >
           <span className="truncate">{chip.label}</span>
-          <span className="shrink-0 text-slate-500" aria-hidden>
+          <span className="shrink-0 text-[var(--muted)]" aria-hidden>
             ×
           </span>
           <span className="sr-only">Remove {chip.label} filter</span>
@@ -466,25 +466,25 @@ export default function ProductsClient({
   );
 
   return (
-    <main className="storefront-main flex min-h-screen flex-col overflow-x-hidden text-white">
+    <main className="storefront-main flex min-h-screen flex-col overflow-x-hidden">
       <Navbar games={games} />
 
       <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 md:px-6 md:py-10">
-        <nav aria-label="Breadcrumb" className="text-sm text-slate-500">
+        <nav aria-label="Breadcrumb" className="text-sm text-[var(--muted)]">
           <ol className="flex flex-wrap items-center gap-2">
             <li>
-              <Link href="/" className="hover:text-white">
+              <Link href="/" className="hover:text-[var(--foreground)]">
                 Home
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li>
               {activeGame ? (
-                <Link href="/products" className="hover:text-white">
+                <Link href="/products" className="hover:text-[var(--foreground)]">
                   Accounts
                 </Link>
               ) : (
-                <span className="text-slate-300" aria-current="page">
+                <span className="text-[var(--foreground)]" aria-current="page">
                   Accounts
                 </span>
               )}
@@ -492,7 +492,7 @@ export default function ProductsClient({
             {activeGame && (
               <>
                 <li aria-hidden>/</li>
-                <li className="text-slate-300" aria-current="page">
+                <li className="text-[var(--foreground)]" aria-current="page">
                   {activeGame.name}
                 </li>
               </>
@@ -502,14 +502,14 @@ export default function ProductsClient({
 
         <div className="mt-6 max-w-2xl">
           {activeGame && getGameImageUrl(activeGame) ? (
-            <div className="relative mb-5 aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-white/[0.06] bg-slate-900">
+            <div className="relative mb-5 aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)]">
               <GameImage game={activeGame} variant="header" />
             </div>
           ) : null}
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
             {activeGame ? `${activeGame.name} Accounts` : "Game Accounts"}
           </h1>
-          <p className="mt-3 text-slate-400">
+          <p className="mt-3 text-[var(--muted)]">
             Browse our available game accounts.
           </p>
         </div>
@@ -517,7 +517,7 @@ export default function ProductsClient({
         <ActiveFilters chips={activeFilterChips} onClear={clearFilters} />
 
         <div className="mt-8 flex items-center justify-between gap-3 lg:hidden">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[var(--muted)]">
             {products.length} account{products.length === 1 ? "" : "s"} found
           </p>
           <button
@@ -535,20 +535,20 @@ export default function ProductsClient({
         <div className="mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
             <div className="sticky top-24 rounded-2xl border border-[var(--border)] bg-[var(--surface-card)]/80 p-5">
-              <h2 className="mb-5 text-sm font-semibold text-slate-200">Filters</h2>
+              <h2 className="mb-5 text-sm font-semibold text-[var(--foreground)]">Filters</h2>
               {filterPanel}
             </div>
           </aside>
 
           <div className="min-w-0">
-            <p className="mb-6 hidden text-sm text-slate-500 lg:block">
+            <p className="mb-6 hidden text-sm text-[var(--muted)] lg:block">
               {products.length} account{products.length === 1 ? "" : "s"} found
             </p>
 
             {products.length === 0 && (
               <div className="surface-card p-10 text-center sm:p-12">
                 <h2 className="text-xl font-semibold">No accounts found</h2>
-                <p className="mt-2 text-slate-400">
+                <p className="mt-2 text-[var(--muted)]">
                   Try changing your search or filters.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -582,13 +582,13 @@ export default function ProductsClient({
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--surface-muted)]/40 backdrop-blur-sm"
             aria-label="Close filters"
             onClick={() => setFilterOpen(false)}
           />
           <div
             id="mobile-filters"
-            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-[var(--border)] bg-[#111827] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-[var(--border)] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-card-hover)]"
             role="dialog"
             aria-modal="true"
             aria-label="Filter accounts"

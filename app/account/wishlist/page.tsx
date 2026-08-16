@@ -90,22 +90,22 @@ export default function WishlistPage() {
 
   return (
     <AccountGuard>
-      <main className="flex min-h-screen flex-col bg-slate-950 text-white">
+      <main className="storefront-main flex min-h-screen flex-col">
         <Navbar />
 
         <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 md:px-6">
           <h1 className="text-3xl font-bold">My Wishlist</h1>
-          <p className="mt-2 text-slate-400">Products you saved for later</p>
+          <p className="mt-2 text-[var(--muted)]">Products you saved for later</p>
 
           {loading ? (
-            <p className="mt-10 text-slate-400">Loading...</p>
+            <p className="mt-10 text-[var(--muted)]">Loading...</p>
           ) : items.length === 0 ? (
-            <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-12 text-center">
-              <p className="text-slate-400">Your wishlist is empty.</p>
+            <div className="mt-10 rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)] p-12 text-center">
+              <p className="text-[var(--muted)]">Your wishlist is empty.</p>
 
               <Link
                 href="/products"
-                className="mt-4 inline-block text-blue-400 hover:text-blue-300"
+                className="mt-4 inline-block text-[var(--accent-strong)] hover:text-[var(--accent)]"
               >
                 Browse products →
               </Link>
@@ -124,9 +124,9 @@ export default function WishlistPage() {
                 return (
                   <div
                     key={item.product_id}
-                    className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900"
+                    className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]"
                   >
-                    <div className="relative aspect-square bg-slate-800">
+                    <div className="relative aspect-square bg-[var(--surface-muted)]">
                       {product.cover_image_url ? (
                         <Image
                           src={product.cover_image_url}
@@ -151,11 +151,11 @@ export default function WishlistPage() {
                     </div>
 
                     <div className="p-4">
-                      <p className="line-clamp-2 font-semibold text-white">
+                      <p className="line-clamp-2 font-semibold text-[var(--foreground)]">
                         {product.title}
                       </p>
 
-                      <p className="mt-1 font-semibold text-blue-400">
+                      <p className="mt-1 font-semibold text-[var(--accent-strong)]">
                         {formatPrice(product.price, product.currency)}
                       </p>
 
@@ -163,7 +163,7 @@ export default function WishlistPage() {
                         {!isSold && (
                           <Link
                             href={`/product/${product.slug}`}
-                            className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-center text-sm font-semibold hover:bg-blue-500"
+                            className="btn-primary flex-1 px-3 py-2 text-center text-sm"
                           >
                             View
                           </Link>
@@ -172,7 +172,7 @@ export default function WishlistPage() {
                         <button
                           type="button"
                           onClick={() => remove(item.product_id)}
-                          className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-400 hover:border-red-700 hover:text-red-400"
+                          className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--muted)] hover:border-red-700 hover:text-red-400"
                         >
                           Remove
                         </button>

@@ -41,30 +41,30 @@ function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-slate-800 bg-slate-900 p-8"
+      className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)] p-8"
     >
       <div className="space-y-5">
         <div>
-          <label className="mb-2 block text-sm text-slate-300">Email</label>
+          <label className="mb-2 block text-sm text-[var(--muted-strong)]">Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-[var(--border)] bg-white text-[var(--foreground)] px-4 py-3 outline-none focus:border-blue-500"
             placeholder="you@example.com"
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-sm text-slate-300">Password</label>
+          <label className="mb-2 block text-sm text-[var(--muted-strong)]">Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-xl border border-[var(--border)] bg-white text-[var(--foreground)] px-4 py-3 outline-none focus:border-blue-500"
             placeholder="••••••••"
           />
         </div>
@@ -78,21 +78,21 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold hover:bg-blue-500 disabled:opacity-50"
+          className="btn-primary w-full disabled:opacity-50"
         >
           {loading ? "Signing in..." : "Sign In"}
         </button>
       </div>
 
-      <div className="mt-6 space-y-2 text-center text-sm text-slate-400">
+      <div className="mt-6 space-y-2 text-center text-sm text-[var(--muted)]">
         <p>
-          <Link href="/forgot-password" className="text-blue-400 hover:text-blue-300">
+          <Link href="/forgot-password" className="text-[var(--accent-strong)] hover:text-[var(--accent)]">
             Forgot password?
           </Link>
         </p>
         <p>
           No account?{" "}
-          <Link href="/register" className="text-blue-400 hover:text-blue-300">
+          <Link href="/register" className="text-[var(--accent-strong)] hover:text-[var(--accent)]">
             Register
           </Link>
         </p>
@@ -103,14 +103,14 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen flex-col bg-slate-950 text-white">
+    <main className="storefront-main flex min-h-screen flex-col">
       <Navbar />
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold">Login</h1>
-          <p className="mt-2 text-slate-400">Sign in to {SITE_NAME}</p>
+          <p className="mt-2 text-[var(--muted)]">Sign in to {SITE_NAME}</p>
         </div>
-        <Suspense fallback={<div className="text-slate-400">Loading...</div>}>
+        <Suspense fallback={<div className="text-[var(--muted)]">Loading...</div>}>
           <LoginForm />
         </Suspense>
       </div>

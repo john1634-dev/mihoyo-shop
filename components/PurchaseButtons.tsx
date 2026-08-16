@@ -64,7 +64,7 @@ export default function PurchaseButtons({
   if (!available) {
     return (
       <div
-        className={`rounded-xl border border-slate-700/80 bg-slate-900/80 px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider text-slate-500 ${className}`}
+        className={`rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider text-[var(--muted)] ${className}`}
       >
         Sold out
       </div>
@@ -155,22 +155,22 @@ export default function PurchaseButtons({
       {showCardForm && (
         <form
           onSubmit={startCardCheckout}
-          className={`space-y-2 rounded-xl border border-white/[0.08] bg-slate-900/80 p-3 sm:p-4 ${
+          className={`space-y-2 rounded-xl border border-[var(--border)] bg-white p-3 shadow-[var(--shadow-card)] sm:p-4 ${
             layout === "row" ? "sm:col-span-2" : ""
           }`}
         >
-          <p className="text-xs leading-relaxed text-slate-400">
+          <p className="text-xs leading-relaxed text-[var(--muted)]">
             Payment confirms your order. We source and verify the account after
             payment — delivery is manual, not instant.
           </p>
           {loggedInEmail ? (
-            <p className="text-xs text-slate-300">
+            <p className="text-xs text-[var(--muted-strong)]">
               Receipt email: <span className="font-medium">{loggedInEmail}</span>
             </p>
           ) : (
             <>
               <label
-                className="block text-xs font-medium text-slate-300"
+                className="block text-xs font-medium text-[var(--muted-strong)]"
                 htmlFor={`card-email-${product.id}`}
               >
                 Email for receipt
@@ -181,7 +181,7 @@ export default function PurchaseButtons({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@email.com"
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
                 autoComplete="email"
                 required
               />

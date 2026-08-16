@@ -159,16 +159,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (error || !product || product.status === "hidden") {
     return (
-      <main className="flex min-h-screen flex-col bg-slate-950 text-white">
+      <main className="storefront-main flex min-h-screen flex-col">
         <Navbar />
         <div className="mx-auto max-w-6xl flex-1 px-6 py-12">
           <h1 className="text-3xl font-bold">Listing not found</h1>
-          <p className="mt-3 text-slate-400">
+          <p className="mt-3 text-[var(--muted)]">
             This account may no longer be available.
           </p>
           <Link
             href="/products"
-            className="mt-6 inline-block text-blue-400 hover:text-blue-300"
+            className="mt-6 inline-block text-[var(--accent-strong)] hover:text-[var(--accent)]"
           >
             Browse accounts
           </Link>
@@ -275,7 +275,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const breadcrumbJsonLd = buildBreadcrumbJsonLd(breadcrumbItems);
 
   return (
-    <main className="has-purchase-bar storefront-main flex min-h-screen flex-col overflow-x-hidden text-white">
+    <main className="has-purchase-bar storefront-main flex min-h-screen flex-col overflow-x-hidden">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
@@ -288,21 +288,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <Navbar games={navGames || []} />
 
       <section className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-purchase-bar md:px-6 md:py-10">
-        <nav aria-label="Breadcrumb" className="text-xs text-slate-500 sm:text-sm">
+        <nav aria-label="Breadcrumb" className="text-xs text-[var(--muted)] sm:text-sm">
           <ol className="flex flex-wrap items-center gap-1.5">
             {breadcrumbItems.map((item, index) => (
               <li key={item.path} className="flex items-center gap-1.5">
                 {index > 0 && (
-                  <ChevronRightIcon className="h-3 w-3 shrink-0 text-slate-600" aria-hidden />
+                  <ChevronRightIcon className="h-3 w-3 shrink-0 text-[var(--muted)]" aria-hidden />
                 )}
                 {index === breadcrumbItems.length - 1 ? (
-                  <span className="line-clamp-1 text-slate-400" aria-current="page">
+                  <span className="line-clamp-1 text-[var(--foreground)]" aria-current="page">
                     {item.name}
                   </span>
                 ) : (
                   <Link
                     href={item.path}
-                    className="transition duration-200 hover:text-slate-200"
+                    className="transition duration-200 hover:text-[var(--foreground)]"
                   >
                     {item.name}
                   </Link>
@@ -320,7 +320,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {game && (
                 <Link
                   href={`/products?game=${game.slug}`}
-                  className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 transition duration-200 hover:text-blue-400"
+                  className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)] transition duration-200 hover:text-[var(--accent-strong)]"
                 >
                   {game.name}
                 </Link>
@@ -331,17 +331,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   className={
                     stockDisplay.level === "in_stock" ||
                     stockDisplay.level === "manual_available"
-                      ? "inline-flex rounded-md bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-400 ring-1 ring-emerald-500/25"
+                      ? "inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200"
                       : stockDisplay.level === "low_stock"
-                        ? "inline-flex rounded-md bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-300 ring-1 ring-amber-500/25"
-                        : "inline-flex rounded-md bg-slate-800 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400"
+                        ? "inline-flex rounded-md bg-amber-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800 ring-1 ring-amber-200"
+                        : "inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-600 ring-1 ring-slate-200"
                   }
                 >
                   {stockDisplay.label}
                 </span>
               </div>
 
-              <h1 className="mt-4 line-clamp-3 text-2xl font-bold leading-tight tracking-tight text-white sm:text-3xl lg:line-clamp-none lg:text-4xl">
+              <h1 className="mt-4 line-clamp-3 text-2xl font-bold leading-tight tracking-tight text-[var(--foreground)] sm:text-3xl lg:line-clamp-none lg:text-4xl">
                 {product.title}
               </h1>
 
@@ -377,10 +377,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <p className="product-price mt-6">
                 {formatPrice(Number(product.price), listingCurrency)}
               </p>
-              <p className="mt-2 text-sm font-medium text-slate-300">
+              <p className="mt-2 text-sm font-medium text-[var(--muted-strong)]">
                 {stockDisplay.label}
               </p>
-              <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+              <p className="mt-1 text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
                 {listingCurrency}
               </p>
 
@@ -394,7 +394,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 />
               </div>
 
-              <p className="mt-4 text-xs leading-relaxed text-slate-500 sm:text-sm">
+              <p className="mt-4 text-xs leading-relaxed text-[var(--muted)] sm:text-sm">
                 Card, Shopee, or WhatsApp. Card payment confirms an order — we
                 source and deliver the account manually after payment.
               </p>
@@ -403,16 +403,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </div>
 
         {product.description && (
-          <section className="mt-8 border-t border-white/[0.06] pt-8 lg:mt-10">
-            <h2 className="text-lg font-semibold text-slate-100">Account details</h2>
-            <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-[var(--border)] bg-[var(--surface-card)]/80 p-5 text-sm leading-7 text-slate-300">
+          <section className="mt-8 border-t border-[var(--border)] pt-8 lg:mt-10">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Account details</h2>
+            <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-[var(--border)] bg-white p-5 text-sm leading-7 text-[var(--muted-strong)] shadow-[var(--shadow-card)]">
               {product.description}
             </div>
           </section>
         )}
 
         {related.length > 0 && (
-          <section className="mt-14 border-t border-white/[0.06] pt-10">
+          <section className="mt-14 border-t border-[var(--border)] pt-10">
             <h2 className="section-title">Related accounts</h2>
             <p className="section-subtitle">
               More available listings from {game?.name || "this game"}

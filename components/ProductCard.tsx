@@ -14,16 +14,16 @@ import type { Product } from "@/lib/types";
 const PRODUCT_IMAGE_QUALITY = 88;
 
 const BADGE_STYLES: Record<ProductBadge, string> = {
-  NEW: "bg-blue-600/90 text-white",
-  SOLD_OUT: "bg-slate-800/90 text-slate-300",
+  NEW: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
+  SOLD_OUT: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
 };
 
 const STOCK_BADGE_STYLES: Record<CustomerStockDisplayLevel, string> = {
-  in_stock: "bg-emerald-500/10 text-emerald-300 ring-emerald-500/25",
-  low_stock: "bg-amber-500/10 text-amber-300 ring-amber-500/25",
-  out_of_stock: "bg-slate-700/80 text-slate-400 ring-slate-600/40",
-  manual_available: "bg-blue-500/10 text-blue-300 ring-blue-500/25",
-  unavailable: "bg-slate-700/80 text-slate-400 ring-slate-600/40",
+  in_stock: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  low_stock: "bg-amber-50 text-amber-800 ring-amber-200",
+  out_of_stock: "bg-slate-100 text-slate-600 ring-slate-200",
+  manual_available: "bg-blue-50 text-blue-700 ring-blue-200",
+  unavailable: "bg-slate-100 text-slate-600 ring-slate-200",
 };
 
 function locationSummaryLine(product: Product): string | null {
@@ -130,15 +130,10 @@ export default function ProductCard({
               loading="lazy"
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-700/40 to-slate-800 text-[10px] text-slate-500 sm:text-xs">
+            <div className="flex h-full items-center justify-center bg-[var(--surface-muted)] text-[10px] text-[var(--muted)] sm:text-xs">
               No preview
             </div>
           )}
-
-          <div
-            className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/60 via-transparent to-transparent"
-            aria-hidden
-          />
 
           {badges.length > 0 && (
             <div className="absolute left-1.5 top-1.5 flex flex-wrap gap-1 sm:left-2 sm:top-2">
@@ -154,32 +149,32 @@ export default function ProductCard({
           )}
 
           {stockDisplay.showOutOfStockOverlay ? (
-            <div className="absolute inset-0 bg-slate-950/35" aria-hidden />
+            <div className="absolute inset-0 bg-slate-900/25" aria-hidden />
           ) : null}
         </div>
       </Link>
 
       <div className="flex flex-1 flex-col p-2 sm:p-4">
         {resolvedGame && (
-          <span className="inline-flex max-w-full truncate rounded-full bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-blue-300 ring-1 ring-blue-500/20 sm:px-2 sm:text-[10px]">
+          <span className="inline-flex max-w-full truncate rounded-full bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--accent-strong)] ring-1 ring-blue-200 sm:px-2 sm:text-[10px]">
             {resolvedGame}
           </span>
         )}
 
         <Link href={productHref} className="mt-1 block sm:mt-2">
-          <h3 className="line-clamp-2 text-[11px] font-semibold leading-snug text-slate-100 transition duration-200 group-hover:text-white sm:text-sm md:text-base">
+          <h3 className="line-clamp-2 text-[11px] font-semibold leading-snug text-[var(--foreground)] transition duration-200 group-hover:text-[var(--accent-strong)] sm:text-sm md:text-base">
             {product.title}
           </h3>
         </Link>
 
         {summary && (
-          <p className="mt-1 hidden text-xs font-medium text-slate-400 sm:block">
+          <p className="mt-1 hidden text-xs font-medium text-[var(--muted)] sm:block">
             {summary}
           </p>
         )}
 
         <div className="mt-auto pt-2 sm:pt-4">
-          <p className="text-sm font-bold tracking-tight text-white sm:text-xl md:text-2xl">
+          <p className="text-sm font-bold tracking-tight text-[var(--accent-strong)] sm:text-xl md:text-2xl">
             {formatPrice(Number(product.price), product.currency)}
           </p>
 
@@ -191,7 +186,7 @@ export default function ProductCard({
 
           <Link
             href={productHref}
-            className="mt-2 hidden min-h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-blue-500 sm:mt-4 sm:inline-flex"
+            className="btn-primary mt-2 hidden min-h-11 w-full gap-1.5 px-3 py-2 sm:mt-4 sm:inline-flex"
           >
             View Account
             <ArrowRightIcon className="h-4 w-4 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none" />

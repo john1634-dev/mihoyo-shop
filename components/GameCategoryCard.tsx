@@ -26,7 +26,7 @@ export default function GameCategoryCard({
           className="object-cover transition duration-200 ease-out group-hover:scale-[1.03] motion-reduce:transform-none"
         />
         <div
-          className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/55 to-[#0f172a]/10"
+          className="absolute inset-0 bg-gradient-to-t from-slate-900/75 via-slate-900/25 to-transparent"
           aria-hidden
         />
 
@@ -36,18 +36,18 @@ export default function GameCategoryCard({
               <h3 className="truncate text-base font-semibold tracking-tight text-white sm:text-lg">
                 {game.name}
               </h3>
-              <p className="mt-1 text-xs text-slate-300 sm:text-sm">
+              <p className="mt-1 text-xs text-slate-200 sm:text-sm">
                 {accountCount} account{accountCount === 1 ? "" : "s"}
               </p>
             </div>
             {hasStock && (
-              <span className="shrink-0 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-300 ring-1 ring-emerald-500/25">
+              <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200">
                 Live
               </span>
             )}
           </div>
 
-          <span className="mt-3 inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-blue-400 transition duration-200 group-hover:text-blue-300">
+          <span className="mt-3 inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-blue-100 transition duration-200 group-hover:text-white">
             Browse accounts
             <ArrowRightIcon className="h-4 w-4 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none" />
           </span>

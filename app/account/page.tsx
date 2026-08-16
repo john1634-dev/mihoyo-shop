@@ -64,31 +64,31 @@ function AccountContent() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-950 text-white">
+    <main className="storefront-main flex min-h-screen flex-col">
       <Navbar />
 
       <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 md:px-6">
         <h1 className="text-3xl font-bold tracking-tight">My Account</h1>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-[var(--muted)]">
           Manage your profile and saved listings.
         </p>
 
         {loading ? (
           <div className="mt-10 animate-pulse space-y-4">
-            <div className="h-40 rounded-2xl bg-slate-900" />
-            <div className="h-24 rounded-2xl bg-slate-900" />
+            <div className="h-40 rounded-2xl bg-[var(--surface-muted)]" />
+            <div className="h-24 rounded-2xl bg-[var(--surface-muted)]" />
           </div>
         ) : (
           <div className="mt-10 space-y-5">
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+            <section className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-6">
               <h2 className="text-lg font-semibold">Profile</h2>
               <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                 <div>
-                  <dt className="text-xs text-slate-500">Email</dt>
+                  <dt className="text-xs text-[var(--muted)]">Email</dt>
                   <dd className="mt-1">{user?.email}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-slate-500">Name</dt>
+                  <dt className="text-xs text-[var(--muted)]">Name</dt>
                   <dd className="mt-1">
                     {profile?.full_name ||
                       user?.user_metadata?.full_name ||
@@ -96,7 +96,7 @@ function AccountContent() {
                   </dd>
                 </div>
                 <div className="sm:col-span-2">
-                  <dt className="text-xs text-slate-500">Member since</dt>
+                  <dt className="text-xs text-[var(--muted)]">Member since</dt>
                   <dd className="mt-1">
                     {user?.created_at
                       ? new Date(user.created_at).toLocaleDateString("en-MY", {
@@ -108,11 +108,11 @@ function AccountContent() {
               </dl>
             </section>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+            <section className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold">Orders</h2>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-[var(--muted)]">
                     Card checkout orders linked to this account.
                   </p>
                 </div>
@@ -125,11 +125,11 @@ function AccountContent() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+            <section className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold">Wishlist</h2>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-[var(--muted)]">
                     Accounts you have saved for later.
                   </p>
                 </div>
@@ -142,9 +142,9 @@ function AccountContent() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+            <section className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-6">
               <h2 className="text-lg font-semibold">Need help?</h2>
-              <p className="mt-2 text-sm text-slate-400">
+              <p className="mt-2 text-sm text-[var(--muted)]">
                 Contact us on WhatsApp for availability and purchase support.
               </p>
               <a
@@ -161,7 +161,7 @@ function AccountContent() {
               type="button"
               onClick={logout}
               disabled={loggingOut}
-              className="rounded-xl border border-slate-700 px-5 py-3 text-sm transition hover:border-red-500/60 hover:text-red-300 disabled:opacity-50"
+              className="rounded-xl border border-[var(--border)] px-5 py-3 text-sm transition hover:border-red-500/60 hover:text-red-300 disabled:opacity-50"
             >
               {loggingOut ? "Logging out..." : "Log out"}
             </button>

@@ -18,7 +18,7 @@ type ProductGalleryProps = {
 
 function ImageFallback({ label }: { label: string }) {
   return (
-    <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-950 px-4 text-center text-sm text-slate-500">
+    <div className="flex h-full items-center justify-center bg-[var(--surface-muted)] px-4 text-center text-sm text-[var(--muted)]">
       {label}
     </div>
   );
@@ -59,7 +59,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
 
   if (images.length === 0) {
     return (
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)]">
         <ImageFallback label="No product images" />
       </div>
     );
@@ -71,7 +71,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
   return (
     <>
       <div className="space-y-3 sm:space-y-4">
-        <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-900 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.6)]">
+        <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] shadow-[var(--shadow-card)]">
           <button
             type="button"
             onClick={() => setLightboxOpen(true)}
@@ -101,7 +101,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
               <button
                 type="button"
                 onClick={() => goTo(safeIndex - 1)}
-                className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-white opacity-0 transition duration-200 hover:bg-slate-900 group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
+                className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-white/90 text-[var(--foreground)] opacity-0 shadow-[var(--shadow-card)] transition duration-200 hover:bg-white group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
                 aria-label="Previous image"
               >
                 <ChevronLeftIcon />
@@ -109,7 +109,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
               <button
                 type="button"
                 onClick={() => goTo(safeIndex + 1)}
-                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-slate-950/80 text-white opacity-0 transition duration-200 hover:bg-slate-900 group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
+                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-white/90 text-[var(--foreground)] opacity-0 shadow-[var(--shadow-card)] transition duration-200 hover:bg-white group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
                 aria-label="Next image"
               >
                 <ChevronRightIcon />
@@ -131,10 +131,10 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
                   onClick={() => setActiveIndex(index)}
                   aria-label={`View image ${index + 1}`}
                   aria-pressed={isActive}
-                  className={`relative aspect-[4/3] overflow-hidden rounded-lg border bg-slate-900 transition duration-200 ${
+                  className={`relative aspect-[4/3] overflow-hidden rounded-lg border bg-[var(--surface-muted)] transition duration-200 ${
                     isActive
-                      ? "border-blue-500 ring-2 ring-blue-500/30"
-                      : "border-white/[0.08] hover:border-slate-600"
+                      ? "border-[var(--accent-strong)] ring-2 ring-blue-200"
+                      : "border-[var(--border)] hover:border-[var(--accent)]"
                   }`}
                 >
                   {thumbFailed ? (

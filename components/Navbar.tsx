@@ -116,29 +116,29 @@ export default function Navbar({ games = [] }: NavbarProps) {
     <header
       className={`sticky top-0 z-50 border-b transition duration-200 ease-out ${
         scrolled
-          ? "border-[var(--border)] bg-[#111827]/95 backdrop-blur-xl"
-          : "border-transparent bg-[#111827]/80 backdrop-blur-md"
+          ? "border-[var(--border)] bg-[var(--navbar-bg)] backdrop-blur-xl"
+          : "border-[var(--border)] bg-[var(--navbar-bg)] backdrop-blur-md"
       }`}
     >
       <div className="mx-auto flex max-w-7xl min-w-0 items-center gap-3 px-4 py-3 md:px-6">
         <Link
           href="/"
-          className="shrink-0 text-lg font-bold tracking-tight text-white"
+          className="shrink-0 text-lg font-bold tracking-tight text-[var(--foreground)]"
         >
           {SITE_NAME}
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm text-slate-300 lg:flex" aria-label="Main">
-          <Link href="/" className="transition hover:text-white">
+        <nav className="hidden items-center gap-6 text-sm text-[var(--muted)] lg:flex" aria-label="Main">
+          <Link href="/" className="transition hover:text-[var(--foreground)]">
             Home
           </Link>
-          <Link href="/#popular-games" className="transition hover:text-white">
+          <Link href="/#popular-games" className="transition hover:text-[var(--foreground)]">
             Games
           </Link>
-          <Link href="/products" className="transition hover:text-white">
+          <Link href="/products" className="transition hover:text-[var(--foreground)]">
             Accounts
           </Link>
-          <Link href="/#faq" className="transition hover:text-white">
+          <Link href="/#faq" className="transition hover:text-[var(--foreground)]">
             FAQ
           </Link>
         </nav>
@@ -157,7 +157,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search accounts..."
-            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2 text-sm outline-none transition focus:border-blue-500/50"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--accent-strong)]"
           />
         </form>
 
@@ -167,7 +167,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat with us on WhatsApp"
-            className="hidden min-h-11 items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-sm text-emerald-400/90 transition hover:border-emerald-600/35 hover:text-emerald-300 lg:inline-flex"
+            className="hidden min-h-11 items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-sm text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50 lg:inline-flex"
           >
             <WhatsAppIcon className="h-4 w-4" />
             <span className="hidden xl:inline">WhatsApp</span>
@@ -179,7 +179,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
               setMobileSearchOpen((open) => !open);
               setMenuOpen(false);
             }}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-[var(--border)] text-slate-300 transition hover:border-slate-500 hover:text-white md:hidden"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--foreground)] md:hidden"
             aria-label="Search"
             aria-expanded={mobileSearchOpen}
             aria-controls="mobile-nav-search-panel"
@@ -190,7 +190,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
           {user && (
             <Link
               href="/account/wishlist"
-              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm transition hover:border-slate-500 lg:inline-flex"
+              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--accent)] lg:inline-flex"
             >
               Wishlist
             </Link>
@@ -199,14 +199,14 @@ export default function Navbar({ games = [] }: NavbarProps) {
           {user ? (
             <Link
               href="/account"
-              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm transition hover:border-slate-500 sm:inline-flex"
+              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--accent)] sm:inline-flex"
             >
               Account
             </Link>
           ) : (
             <Link
               href="/login"
-              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm transition hover:border-slate-500 sm:inline-flex"
+              className="hidden min-h-11 items-center rounded-xl border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--accent)] sm:inline-flex"
             >
               Login
             </Link>
@@ -224,7 +224,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-[var(--border)] text-slate-200 lg:hidden"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-[var(--border)] text-[var(--foreground)] lg:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-nav-menu"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -250,7 +250,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search accounts..."
               autoFocus
-              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2 text-sm outline-none transition focus:border-blue-500/50"
+              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--accent-strong)]"
             />
           </form>
         </div>
@@ -261,12 +261,12 @@ export default function Navbar({ games = [] }: NavbarProps) {
           <button
             type="button"
             aria-label="Close menu overlay"
-            className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+            className="fixed inset-0 z-40 bg-slate-900/40 lg:hidden"
             onClick={closeMenu}
           />
           <nav
             id="mobile-nav-menu"
-            className="relative z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-[var(--border)] bg-[#111827] px-4 py-4 lg:hidden"
+            className="relative z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-[var(--border)] bg-white px-4 py-4 lg:hidden"
             aria-label="Mobile"
           >
             <form onSubmit={handleSearch} className="mb-4">
@@ -279,11 +279,11 @@ export default function Navbar({ games = [] }: NavbarProps) {
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search accounts..."
-                className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2.5 text-sm outline-none focus:border-blue-500/50"
+                className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
               />
             </form>
 
-            <div className="flex flex-col gap-1 text-base text-slate-200">
+            <div className="flex flex-col gap-1 text-base text-[var(--foreground)]">
               {[
                 { href: "/", label: "Home" },
                 { href: "/#popular-games", label: "Games" },
@@ -294,7 +294,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
                   key={item.href}
                   href={item.href}
                   onClick={closeMenu}
-                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-muted)]"
                 >
                   {item.label}
                 </Link>
@@ -304,7 +304,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
                   key={game.id}
                   href={`/products?game=${game.slug}`}
                   onClick={closeMenu}
-                  className="flex min-h-11 items-center rounded-lg px-3 pl-5 text-slate-400 hover:bg-[var(--surface-card)]"
+                  className="flex min-h-11 items-center rounded-lg px-3 pl-5 text-[var(--muted)] hover:bg-[var(--surface-muted)]"
                 >
                   {game.name}
                 </Link>
@@ -313,7 +313,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
                 <Link
                   href="/account/wishlist"
                   onClick={closeMenu}
-                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-muted)]"
                 >
                   Wishlist
                 </Link>
@@ -322,7 +322,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
                 <Link
                   href="/account"
                   onClick={closeMenu}
-                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                  className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-muted)]"
                 >
                   Account
                 </Link>
@@ -331,14 +331,14 @@ export default function Navbar({ games = [] }: NavbarProps) {
                   <Link
                     href="/login"
                     onClick={closeMenu}
-                    className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                    className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-muted)]"
                   >
                     Login
                   </Link>
                   <Link
                     href="/register"
                     onClick={closeMenu}
-                    className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-card)]"
+                    className="flex min-h-11 items-center rounded-lg px-3 hover:bg-[var(--surface-muted)]"
                   >
                     Register
                   </Link>
@@ -349,7 +349,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={closeMenu}
-                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-emerald-300 hover:bg-[var(--surface-card)]"
+                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-emerald-700 hover:bg-[var(--surface-muted)]"
               >
                 <WhatsAppIcon className="h-4 w-4" />
                 Chat on WhatsApp

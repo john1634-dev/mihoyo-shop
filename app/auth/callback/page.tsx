@@ -56,20 +56,20 @@ function AuthCallbackForm() {
       </div>
 
       {status === "loading" ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
+        <div className="rounded-2xl border border-[var(--border)] bg-white p-8 text-center text-[var(--muted)] shadow-[var(--shadow-card)]">
           Confirming your account...
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8">
-          <div className="rounded-xl border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">
+        <div className="rounded-2xl border border-[var(--border)] bg-white p-8 shadow-[var(--shadow-card)]">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
           </div>
-          <p className="mt-6 text-center text-sm text-slate-400">
-            <Link href="/register" className="text-blue-400 hover:text-blue-300">
+          <p className="mt-6 text-center text-sm text-[var(--muted)]">
+            <Link href="/register" className="text-[var(--accent-strong)] hover:text-[var(--accent)]">
               Register again
             </Link>
             {" · "}
-            <Link href="/login" className="text-blue-400 hover:text-blue-300">
+            <Link href="/login" className="text-[var(--accent-strong)] hover:text-[var(--accent)]">
               Login
             </Link>
           </p>
@@ -81,11 +81,11 @@ function AuthCallbackForm() {
 
 export default function AuthCallbackPage() {
   return (
-    <main className="flex min-h-screen flex-col bg-slate-950 text-white">
+    <main className="storefront-main flex min-h-screen flex-col">
       <Navbar />
       <Suspense
         fallback={
-          <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12 text-center text-slate-400">
+          <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-12 text-center text-[var(--muted)]">
             Confirming your account...
           </div>
         }

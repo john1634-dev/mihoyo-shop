@@ -16,25 +16,30 @@ export default async function Footer() {
     .order("sort_order", { ascending: true });
 
   return (
-    <footer className="mt-auto border-t border-[var(--border)] bg-gradient-to-b from-[#111827] to-[#0f172a]">
+    <footer className="mt-auto border-t border-[var(--border)] bg-[var(--footer-bg)]">
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
-            <h3 className="text-lg font-bold tracking-tight text-white">{SITE_NAME}</h3>
-            <p className="mt-1 text-sm text-slate-300">{SITE_TAGLINE}</p>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-400">
+            <h3 className="text-lg font-bold tracking-tight text-[var(--foreground)]">
+              {SITE_NAME}
+            </h3>
+            <p className="mt-1 text-sm text-[var(--muted-strong)]">{SITE_TAGLINE}</p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--muted)]">
               Premium game account listings for popular titles. Pay securely by
               card through Stripe, or purchase via Shopee or WhatsApp.
             </p>
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
               Games
             </h4>
-            <ul className="mt-4 space-y-2.5 text-sm text-slate-400">
+            <ul className="mt-4 space-y-2.5 text-sm text-[var(--muted)]">
               <li>
-                <Link href="/#popular-games" className="transition duration-200 hover:text-white">
+                <Link
+                  href="/#popular-games"
+                  className="transition duration-200 hover:text-[var(--foreground)]"
+                >
                   All games
                 </Link>
               </li>
@@ -42,7 +47,7 @@ export default async function Footer() {
                 <li key={game.slug}>
                   <Link
                     href={`/products?game=${game.slug}`}
-                    className="transition duration-200 hover:text-white"
+                    className="transition duration-200 hover:text-[var(--foreground)]"
                   >
                     {game.name}
                   </Link>
@@ -52,32 +57,32 @@ export default async function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
               Quick links
             </h4>
-            <ul className="mt-4 space-y-2.5 text-sm text-slate-400">
+            <ul className="mt-4 space-y-2.5 text-sm text-[var(--muted)]">
               <li>
-                <Link href="/" className="transition hover:text-white">
+                <Link href="/" className="transition hover:text-[var(--foreground)]">
                   Home
                 </Link>
               </li>
               <li>
-                <Link href="/products" className="transition hover:text-white">
+                <Link href="/products" className="transition hover:text-[var(--foreground)]">
                   Accounts
                 </Link>
               </li>
               <li>
-                <Link href="/#faq" className="transition hover:text-white">
+                <Link href="/#faq" className="transition hover:text-[var(--foreground)]">
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link href="/legal/terms" className="transition hover:text-white">
+                <Link href="/legal/terms" className="transition hover:text-[var(--foreground)]">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link href="/legal/privacy" className="transition hover:text-white">
+                <Link href="/legal/privacy" className="transition hover:text-[var(--foreground)]">
                   Privacy
                 </Link>
               </li>
@@ -85,7 +90,7 @@ export default async function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground)]">
               Support
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm">
@@ -94,7 +99,7 @@ export default async function Footer() {
                   href={buildWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-400 transition hover:text-emerald-300"
+                  className="text-emerald-700 transition hover:text-emerald-800"
                 >
                   WhatsApp {WHATSAPP_DISPLAY}
                 </a>
@@ -104,13 +109,16 @@ export default async function Footer() {
                   href={SHOPEE_STORE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-orange-300 transition hover:text-orange-200"
+                  className="text-orange-700 transition hover:text-orange-800"
                 >
                   Shopee store
                 </a>
               </li>
               <li>
-                <Link href="/legal/refund" className="text-slate-400 transition hover:text-white">
+                <Link
+                  href="/legal/refund"
+                  className="text-[var(--muted)] transition hover:text-[var(--foreground)]"
+                >
                   Refund policy
                 </Link>
               </li>
@@ -118,7 +126,7 @@ export default async function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-[var(--border)] pt-6 text-center text-sm text-slate-500">
+        <div className="mt-12 border-t border-[var(--border)] pt-6 text-center text-sm text-[var(--muted)]">
           © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
         </div>
       </div>

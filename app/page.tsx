@@ -122,7 +122,7 @@ function ProductSection({
         </div>
         <Link
           href={viewAllHref}
-          className="shrink-0 text-sm font-medium text-blue-400 transition hover:text-blue-300"
+          className="shrink-0 text-sm font-medium text-[var(--accent-strong)] transition hover:text-[var(--accent)]"
         >
           {viewAllLabel}
         </Link>
@@ -163,7 +163,7 @@ export default async function Home() {
       : getJustAddedProducts(products);
 
   return (
-    <main className="storefront-main flex min-h-screen flex-col text-white">
+    <main className="storefront-main flex min-h-screen flex-col">
       <Navbar games={games} />
 
       <section className="hero-premium hero-compact relative">
@@ -173,10 +173,10 @@ export default async function Home() {
 
           <h1 className="hero-title mt-5 max-w-3xl">
             Premium Game Accounts
-            <span className="mt-1 block text-slate-300">Ready to Play</span>
+            <span className="mt-1 block text-[var(--muted-strong)]">Ready to Play</span>
           </h1>
 
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-slate-300 md:text-base">
+          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[var(--muted)] md:text-base">
             Browse verified game accounts for Genshin Impact, Honkai: Star Rail,
             Zenless Zone Zero, Wuthering Waves and more.
           </p>
@@ -211,7 +211,7 @@ export default async function Home() {
         </div>
 
         {games.length === 0 && (
-          <p className="mt-8 text-slate-400">No games available.</p>
+          <p className="mt-8 text-[var(--muted)]">No games available.</p>
         )}
 
         {popularGames.length > 0 && (
@@ -257,8 +257,8 @@ export default async function Home() {
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {WHY_US.map((item) => (
             <div key={item.title} className="surface-card p-5">
-              <h3 className="font-semibold text-slate-100">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              <h3 className="font-semibold text-[var(--foreground)]">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
                 {item.body}
               </p>
             </div>
@@ -275,15 +275,15 @@ export default async function Home() {
               <div key={item.step} className="relative surface-card p-5">
                 {index < HOW_IT_WORKS.length - 1 && (
                   <div
-                    className="absolute right-0 top-8 hidden h-px w-5 translate-x-full bg-gradient-to-r from-slate-600 to-transparent lg:block"
+                    className="absolute right-0 top-8 hidden h-px w-5 translate-x-full bg-gradient-to-r from-blue-200 to-transparent lg:block"
                     aria-hidden
                   />
                 )}
-                <p className="text-xs font-semibold tracking-[0.2em] text-blue-400">
+                <p className="text-xs font-semibold tracking-[0.2em] text-[var(--accent-strong)]">
                   {item.step}
                 </p>
                 <h3 className="mt-3 font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
                   {item.body}
                 </p>
               </div>
@@ -297,15 +297,15 @@ export default async function Home() {
         <div className="mt-6 space-y-3">
           {FAQ.map((item) => (
             <details key={item.q} className="faq-item px-5 py-4">
-              <summary className="cursor-pointer list-none font-medium text-slate-100">
+              <summary className="cursor-pointer list-none font-medium text-[var(--foreground)]">
                 <span className="flex items-center justify-between gap-4">
                   {item.q}
-                  <span className="text-slate-500 transition group-open:rotate-45">
+                  <span className="text-[var(--muted)] transition group-open:rotate-45">
                     +
                   </span>
                 </span>
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
                 {item.a}
               </p>
             </details>
@@ -318,7 +318,7 @@ export default async function Home() {
           <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
             Ready to find your next account?
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-slate-400">
+          <p className="mx-auto mt-3 max-w-xl text-sm text-[var(--muted)]">
             Browse available listings or message us directly on WhatsApp.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
