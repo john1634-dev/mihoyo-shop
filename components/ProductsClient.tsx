@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import GameImage from "@/components/GameImage";
+import FindAccountCTA from "@/components/FindAccountCTA";
 import { CloseIcon, FilterIcon } from "@/components/icons";
 import { getGameImageUrl } from "@/lib/games";
 import { normalizeProductSort } from "@/lib/catalog-server";
@@ -512,6 +513,14 @@ export default function ProductsClient({
           <p className="mt-3 text-[var(--muted)]">
             Browse our available game accounts.
           </p>
+          <div className="mt-5">
+            <FindAccountCTA
+              games={games}
+              defaultGame={activeGame?.name || ""}
+              variant="secondary"
+              className="min-h-11 px-4 text-sm"
+            />
+          </div>
         </div>
 
         <ActiveFilters chips={activeFilterChips} onClear={clearFilters} />

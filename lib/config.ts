@@ -147,6 +147,37 @@ export function buildProductWhatsAppMessage(product: WhatsAppProductInfo): strin
   return lines.join("\n");
 }
 
+export type FindAccountRequest = {
+  game?: string;
+  budget?: string;
+  characterRequirement?: string;
+  message?: string;
+};
+
+/** Prefill for "Find Me an Account" WhatsApp enquiry — no order/DB write. */
+export function buildFindAccountWhatsAppMessage(
+  request: FindAccountRequest
+): string {
+  const game = request.game?.trim() || "Not specified";
+  const budget = request.budget?.trim() || "Not specified";
+  const character =
+    request.characterRequirement?.trim() || "Not specified";
+  const additional = request.message?.trim();
+
+  const lines = [
+    "Hi BaituGames, I'm looking for:",
+    `Game: ${game}`,
+    `Budget: ${budget}`,
+    `Character/Requirement: ${character}`,
+  ];
+
+  if (additional) {
+    lines.push(`Additional requirements: ${additional}`);
+  }
+
+  return lines.join("\n");
+}
+
 export function resolveShopeeUrl(productShopeeUrl?: string | null): string {
   const specific = (productShopeeUrl || "").trim();
   if (specific) {

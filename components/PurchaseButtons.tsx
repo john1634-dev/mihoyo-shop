@@ -27,6 +27,8 @@ type PurchaseButtonsProps = {
   available: boolean;
   layout?: "stack" | "row";
   size?: "sm" | "md" | "lg";
+  /** full = Card + Shopee + WhatsApp; marketplace = Shopee + WhatsApp only (mobile sticky). */
+  mode?: "full" | "marketplace";
   className?: string;
 };
 
@@ -36,6 +38,7 @@ export default function PurchaseButtons({
   available,
   layout = "stack",
   size = "md",
+  mode = "full",
   className = "",
 }: PurchaseButtonsProps) {
   const [showCardForm, setShowCardForm] = useState(false);
@@ -95,7 +98,7 @@ export default function PurchaseButtons({
 
   const wrap =
     layout === "row"
-      ? "grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2"
+      ? "grid w-full min-w-0 grid-cols-2 gap-2"
       : "flex w-full min-w-0 flex-col gap-2.5";
 
   async function startCardCheckout(event: React.FormEvent) {
@@ -141,68 +144,73 @@ export default function PurchaseButtons({
 
   return (
     <div className={`${wrap} ${className}`}>
-      <button
-        type="button"
-        onClick={() => {
-          setShowCardForm((open) => !open);
-          setError("");
-        }}
-        className={`btn-primary ${pad} ${layout === "row" ? "sm:col-span-2" : ""}`}
-      >
-        Buy with Card — {priceLabel}
-      </button>
-
-      {showCardForm && (
-        <form
-          onSubmit={startCardCheckout}
-          className={`space-y-2 rounded-xl border border-[var(--border)] bg-white p-3 shadow-[var(--shadow-card)] sm:p-4 ${
-            layout === "row" ? "sm:col-span-2" : ""
-          }`}
-        >
-          <p className="text-xs leading-relaxed text-[var(--muted)]">
-            Payment confirms your order. We source and verify the account after
-            payment — delivery is manual, not instant.
-          </p>
-          {loggedInEmail ? (
-            <p className="text-xs text-[var(--muted-strong)]">
-              Receipt email: <span className="font-medium">{loggedInEmail}</span>
-            </p>
-          ) : (
-            <>
-              <label
-                className="block text-xs font-medium text-[var(--muted-strong)]"
-                htmlFor={`card-email-${product.id}`}
-              >
-                Email for receipt
-              </label>
-              <input
-                id={`card-email-${product.id}`}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@email.com"
-                className="w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
-                autoComplete="email"
-                required
-              />
-            </>
-          )}
-          {error ? <p className="text-xs text-red-400">{error}</p> : null}
+      {mode === "full" ? (
+        <>
           <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full disabled:opacity-60"
+            type="button"
+            onClick={() => {
+              setShowCardForm((open) => !open);
+              setError("");
+            }}
+            className={`btn-primary ${pad} ${layout === "row" ? "sm:col-span-2" : ""}`}
           >
-            {loading ? "Redirecting to Stripe…" : "Continue to secure checkout"}
+            Buy with Card — {priceLabel}
           </button>
-        </form>
-      )}
+
+          {showCardForm && (
+            <form
+              onSubmit={startCardCheckout}
+              className={`space-y-2 rounded-xl border border-[var(--border)] bg-white p-3 shadow-[var(--shadow-card)] sm:p-4 ${
+                layout === "row" ? "sm:col-span-2" : ""
+              }`}
+            >
+              <p className="text-xs leading-relaxed text-[var(--muted)]">
+                Payment confirms your order. We source and verify the account after
+                payment — delivery is manual, not instant.
+              </p>
+              {loggedInEmail ? (
+                <p className="text-xs text-[var(--muted-strong)]">
+                  Receipt email: <span className="font-medium">{loggedInEmail}</span>
+                </p>
+              ) : (
+                <>
+                  <label
+                    className="block text-xs font-medium text-[var(--muted-strong)]"
+                    htmlFor={`card-email-${product.id}`}
+                  >
+                    Email for receipt
+                  </label>
+                  <input
+                    id={`card-email-${product.id}`}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@email.com"
+                    className="w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
+                    autoComplete="email"
+                    required
+                  />
+                </>
+              )}
+              {error ? <p className="text-xs text-red-400">{error}</p> : null}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full disabled:opacity-60"
+              >
+                {loading ? "Redirecting to Stripe…" : "Continue to secure checkout"}
+              </button>
+            </form>
+          )}
+        </>
+      ) : null}
 
       <a
         href={shopeeHref}
         target="_blank"
         rel="noopener noreferrer"
         className={`btn-shopee ${pad}`}
+        aria-label="Buy on Shopee"
       >
         <ShopeeIcon />
         Buy on Shopee
@@ -212,9 +220,10 @@ export default function PurchaseButtons({
         target="_blank"
         rel="noopener noreferrer"
         className={`btn-whatsapp ${pad}`}
+        aria-label="Chat on WhatsApp about this account"
       >
         <WhatsAppIcon />
-        Chat on WhatsApp
+        WhatsApp
       </a>
     </div>
   );

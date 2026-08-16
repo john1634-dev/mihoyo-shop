@@ -5,6 +5,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductGallery from "@/components/ProductGallery";
 import PurchaseButtons from "@/components/PurchaseButtons";
 import ProductPurchaseBar from "@/components/ProductPurchaseBar";
+import FindAccountCTA from "@/components/FindAccountCTA";
 import { ChevronRightIcon } from "@/components/icons";
 import { formatPrice, SITE_NAME, SITE_URL } from "@/lib/config";
 import {
@@ -27,6 +28,7 @@ import {
 } from "@/lib/seo";
 import { fetchProductStockSummaryMap } from "@/lib/catalog-stock-server";
 import {
+  isStorefrontPurchasable,
   resolveCustomerStockDisplayFromSummary,
 } from "@/lib/inventory-stock";
 import type { Metadata } from "next";
@@ -39,6 +41,15 @@ type ProductPageProps = {
 function isMissingRegionColumnError(message?: string): boolean {
   if (!message) return false;
   return /region_code/i.test(message) && /column|schema|exist/i.test(message);
+}
+
+function isMissingOptionalColumnError(message?: string): boolean {
+  if (!message) return false;
+  return (
+    (/shopee_url|updated_at|region_code/i.test(message) &&
+      /column|schema|exist/i.test(message)) ||
+    isMissingRegionColumnError(message)
+  );
 }
 
 async function fetchPublicProductBySlug(slug: string): Promise<{
@@ -60,17 +71,33 @@ async function fetchPublicProductBySlug(slug: string): Promise<{
     };
   }
 
-  if (isMissingRegionColumnError(primary.error.message)) {
+  if (isMissingOptionalColumnError(primary.error.message)) {
     const legacy = await supabase
       .from("products")
       .select(PUBLIC_PRODUCT_SELECT_LEGACY)
       .eq("slug", slug)
       .single();
 
+    if (!legacy.error) {
+      return {
+        data: (legacy.data as Product) || null,
+        error: null,
+        select: PUBLIC_PRODUCT_SELECT_LEGACY,
+      };
+    }
+
+    const minimalSelect =
+      "id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at";
+    const minimal = await supabase
+      .from("products")
+      .select(minimalSelect)
+      .eq("slug", slug)
+      .single();
+
     return {
-      data: (legacy.data as Product) || null,
-      error: legacy.error,
-      select: PUBLIC_PRODUCT_SELECT_LEGACY,
+      data: (minimal.data as Product) || null,
+      error: minimal.error,
+      select: minimalSelect,
     };
   }
 
@@ -217,7 +244,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const stockSummary = productStockSummary[product.id];
   const availableStock = stockSummary?.available_count ?? 0;
   const isListed = product.status === "available";
-  const isAvailable = isListed;
+  const isAvailable = isStorefrontPurchasable({
+    productStatus: product.status,
+    summary: stockSummary,
+  });
   const stockDisplay = resolveCustomerStockDisplayFromSummary({
     productStatus: product.status,
     summary: stockSummary,
@@ -391,13 +421,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   available={isAvailable}
                   layout="stack"
                   size="lg"
+                  mode="full"
                 />
               </div>
 
-              <p className="mt-4 text-xs leading-relaxed text-[var(--muted)] sm:text-sm">
-                Card, Shopee, or WhatsApp. Card payment confirms an order — we
-                source and deliver the account manually after payment.
-              </p>
+              <ul className="mt-5 space-y-2 text-xs leading-relaxed text-[var(--muted)] sm:text-sm">
+                <li>Delivery is manual after confirmed purchase — not instant.</li>
+                <li>Pay by card (Stripe), Shopee, or continue on WhatsApp.</li>
+                <li>After-sales help is available via WhatsApp after your purchase.</li>
+              </ul>
+
+              <div className="mt-5">
+                <FindAccountCTA
+                  games={navGames || []}
+                  defaultGame={game?.name || ""}
+                  variant="secondary"
+                  className="w-full min-h-11 px-4 text-sm"
+                  label="Looking for something else?"
+                />
+              </div>
             </div>
           </div>
         </div>

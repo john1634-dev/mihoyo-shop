@@ -3,10 +3,9 @@ import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import GameCategoryCard from "@/components/GameCategoryCard";
 import TrustBar from "@/components/TrustBar";
-import { WhatsAppIcon } from "@/components/icons";
+import FindAccountCTA from "@/components/FindAccountCTA";
 import {
   SITE_NAME,
-  buildWhatsAppUrl,
   SHOPEE_STORE_URL,
 } from "@/lib/config";
 import {
@@ -14,6 +13,7 @@ import {
   buildGameNameMap,
   fetchActiveGames,
   fetchAvailableProducts,
+  fetchRecentlySoldProducts,
 } from "@/lib/catalog-server";
 import { fetchProductStockSummaryMap } from "@/lib/catalog-stock-server";
 import {
@@ -142,9 +142,10 @@ function ProductSection({
 }
 
 export default async function Home() {
-  const [games, products] = await Promise.all([
+  const [games, products, recentlySold] = await Promise.all([
     fetchActiveGames(),
     fetchAvailableProducts(),
+    fetchRecentlySoldProducts(),
   ]);
 
   const stockSummaryByProductId = await fetchProductStockSummaryMap(
@@ -169,30 +170,27 @@ export default async function Home() {
       <section className="hero-premium hero-compact relative">
         <div className="hero-grid-decoration" aria-hidden />
         <div className="relative mx-auto flex w-full max-w-7xl flex-col justify-center px-4 py-12 md:px-6 md:py-16 lg:py-20">
-          <p className="eyebrow">Trusted Game Account Store</p>
+          <p className="eyebrow">Premium Game Account Marketplace</p>
 
           <h1 className="hero-title mt-5 max-w-3xl">
             Premium Game Accounts
-            <span className="mt-1 block text-[var(--muted-strong)]">Ready to Play</span>
+            <span className="mt-1 block text-[var(--muted-strong)]">
+              Find your next game account — ready to play.
+            </span>
           </h1>
 
           <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[var(--muted)] md:text-base">
-            Browse verified game accounts for Genshin Impact, Honkai: Star Rail,
-            Zenless Zone Zero, Wuthering Waves and more.
+            Genshin Impact, Honkai: Star Rail, Wuthering Waves and more.
+          </p>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            New accounts added regularly
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/products" className="btn-primary min-h-12 px-6">
               Browse Accounts
             </Link>
-            <a
-              href={buildWhatsAppUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary min-h-12 px-6"
-            >
-              Contact Us
-            </a>
+            <FindAccountCTA games={games} variant="secondary" />
           </div>
         </div>
       </section>
@@ -248,6 +246,17 @@ export default async function Home() {
           stockSummaryByProductId={stockSummaryByProductId}
         />
       </section>
+
+      {recentlySold.length > 0 ? (
+        <ProductSection
+          title="Recently Sold"
+          subtitle="Accounts that have already found a new owner"
+          products={recentlySold}
+          viewAllHref="/products?status=sold"
+          viewAllLabel="View sold"
+          gameNameById={gameNameById}
+        />
+      ) : null}
 
       <section className="mx-auto w-full max-w-7xl px-4 py-12 md:px-6 md:py-14">
         <h2 className="section-title">Why buy from {SITE_NAME}</h2>
@@ -325,15 +334,7 @@ export default async function Home() {
             <Link href="/products" className="btn-primary min-h-12">
               Browse accounts
             </Link>
-            <a
-              href={buildWhatsAppUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-whatsapp min-h-12"
-            >
-              <WhatsAppIcon />
-              WhatsApp us
-            </a>
+            <FindAccountCTA games={games} variant="whatsapp" label="Find Me an Account" />
             <a
               href={SHOPEE_STORE_URL}
               target="_blank"

@@ -29,6 +29,7 @@ export type Product = {
   cover_image_url: string | null;
   game_id: string | null;
   created_at?: string;
+  updated_at?: string;
   shopee_url?: string | null;
   supplier_cost?: number | null;
   supplier_name?: string | null;

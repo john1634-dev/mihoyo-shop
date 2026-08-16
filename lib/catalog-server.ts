@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabase";
 import {
   PUBLIC_PRODUCT_SELECT,
   PUBLIC_PRODUCT_SELECT_LEGACY,
+  PUBLIC_RECENTLY_SOLD_SELECT,
+  PUBLIC_RECENTLY_SOLD_SELECT_LEGACY,
 } from "@/lib/products-public";
 import {
   normalizeCurrencyCode,
@@ -15,6 +17,10 @@ import type { Game, Product } from "@/lib/types";
 
 export const GAME_PUBLIC_SELECT =
   "id,name,slug,description,image_url,logo_url,banner_url,mobile_banner_url,is_active,sort_order";
+
+/** Minimum genuine sold listings before showing Recently Sold on the storefront. */
+export const RECENTLY_SOLD_MIN_COUNT = 2;
+export const RECENTLY_SOLD_LIMIT = 8;
 
 export type ProductListFilters = {
   game?: string;
@@ -39,6 +45,14 @@ export function buildGameNameMap(games: Game[]): Map<string, string> {
 function isMissingRegionColumnError(message?: string): boolean {
   if (!message) return false;
   return /region_code/i.test(message) && /column|schema|exist/i.test(message);
+}
+
+function isMissingOptionalColumnError(message?: string): boolean {
+  if (!message) return false;
+  return (
+    (/shopee_url|updated_at/i.test(message) && /column|schema|exist/i.test(message)) ||
+    isMissingRegionColumnError(message)
+  );
 }
 
 type ProductQueryBuilder = ReturnType<
@@ -138,9 +152,9 @@ export async function fetchAvailableProducts(): Promise<Product[]> {
     return (primary.data || []) as Product[];
   }
 
-  if (isMissingRegionColumnError(primary.error.message)) {
+  if (isMissingOptionalColumnError(primary.error.message)) {
     console.warn(
-      "[catalog] region_code missing — using legacy select until migration is applied"
+      "[catalog] optional product columns missing — using legacy select"
     );
     const fallback = await supabase
       .from("products")
@@ -148,16 +162,87 @@ export async function fetchAvailableProducts(): Promise<Product[]> {
       .eq("status", "available")
       .order("created_at", { ascending: false });
 
-    if (fallback.error) {
-      console.error("[catalog] fetchAvailableProducts:", fallback.error.message);
+    if (!fallback.error) {
+      return (fallback.data || []) as Product[];
+    }
+
+    const minimal = await supabase
+      .from("products")
+      .select(
+        "id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at"
+      )
+      .eq("status", "available")
+      .order("created_at", { ascending: false });
+
+    if (minimal.error) {
+      console.error("[catalog] fetchAvailableProducts:", minimal.error.message);
       return [];
     }
 
-    return (fallback.data || []) as Product[];
+    return (minimal.data || []) as Product[];
   }
 
   console.error("[catalog] fetchAvailableProducts:", primary.error.message);
   return [];
+}
+
+/**
+ * Genuinely sold listings for social proof.
+ * Source of truth: products.status = 'sold' (admin Mark Sold / legacy checkout).
+ * Sorted by updated_at (proxy for when status last changed — no sold_at column).
+ * Returns [] when fewer than RECENTLY_SOLD_MIN_COUNT results so UI can hide the section.
+ * Never joins orders — no customer PII.
+ */
+export async function fetchRecentlySoldProducts(
+  limit = RECENTLY_SOLD_LIMIT
+): Promise<Product[]> {
+  const primary = await supabase
+    .from("products")
+    .select(PUBLIC_RECENTLY_SOLD_SELECT)
+    .eq("status", "sold")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+
+  let rows: Product[] = [];
+
+  if (!primary.error) {
+    rows = (primary.data || []) as Product[];
+  } else if (isMissingOptionalColumnError(primary.error.message)) {
+    const fallback = await supabase
+      .from("products")
+      .select(PUBLIC_RECENTLY_SOLD_SELECT_LEGACY)
+      .eq("status", "sold")
+      .order("updated_at", { ascending: false })
+      .limit(limit);
+
+    if (!fallback.error) {
+      rows = (fallback.data || []) as Product[];
+    } else {
+      const byCreated = await supabase
+        .from("products")
+        .select(
+          "id,title,slug,price,currency,status,server,ar_level,cover_image_url,game_id,created_at"
+        )
+        .eq("status", "sold")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (byCreated.error) {
+        console.error("[catalog] fetchRecentlySoldProducts:", byCreated.error.message);
+        return [];
+      }
+      rows = (byCreated.data || []) as Product[];
+    }
+  } else {
+    console.error("[catalog] fetchRecentlySoldProducts:", primary.error.message);
+    return [];
+  }
+
+  if (rows.length < RECENTLY_SOLD_MIN_COUNT) {
+    return [];
+  }
+
+  return rows;
 }
 
 export async function fetchFilteredProducts(
@@ -179,9 +264,9 @@ export async function fetchFilteredProducts(
     return (primary.data || []) as Product[];
   }
 
-  if (isMissingRegionColumnError(primary.error.message)) {
+  if (isMissingOptionalColumnError(primary.error.message)) {
     console.warn(
-      "[catalog] region_code missing — region filter ignored until migration is applied"
+      "[catalog] optional product columns missing — using legacy select"
     );
     const fallbackQuery = applyProductFilters(
       supabase.from("products").select(PUBLIC_PRODUCT_SELECT_LEGACY),
@@ -191,12 +276,28 @@ export async function fetchFilteredProducts(
     );
     const fallback = await fallbackQuery;
 
-    if (fallback.error) {
-      console.error("[catalog] fetchFilteredProducts:", fallback.error.message);
+    if (!fallback.error) {
+      return (fallback.data || []) as Product[];
+    }
+
+    const minimalQuery = applyProductFilters(
+      supabase
+        .from("products")
+        .select(
+          "id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at"
+        ),
+      filters,
+      gameList,
+      { includeRegionFilter: false }
+    );
+    const minimal = await minimalQuery;
+
+    if (minimal.error) {
+      console.error("[catalog] fetchFilteredProducts:", minimal.error.message);
       return [];
     }
 
-    return (fallback.data || []) as Product[];
+    return (minimal.data || []) as Product[];
   }
 
   console.error("[catalog] fetchFilteredProducts:", primary.error.message);

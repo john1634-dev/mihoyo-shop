@@ -10,6 +10,10 @@ type ProductPurchaseBarProps = {
   available: boolean;
 };
 
+/**
+ * Mobile-only sticky purchase bar (PDP).
+ * Shows price + Shopee + WhatsApp. Card checkout stays in the desktop panel only.
+ */
 export default function ProductPurchaseBar({
   product,
   gameName,
@@ -32,7 +36,8 @@ export default function ProductPurchaseBar({
           product={product}
           gameName={gameName}
           available
-          layout="stack"
+          mode="marketplace"
+          layout="row"
           size="sm"
           className="w-full min-w-0"
         />

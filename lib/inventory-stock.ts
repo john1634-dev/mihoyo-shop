@@ -174,14 +174,46 @@ export function resolveCustomerStockDisplay(input: {
     };
   }
 
-  const level = stockLevelFromAvailable(availableCount);
+  if (availableCount <= 0) {
+    return {
+      label: "Sold Out",
+      level: "out_of_stock",
+      inventoryManaged: true,
+      availableCount,
+      showSoldOutBadge: true,
+      showOutOfStockOverlay: true,
+    };
+  }
+
+  if (availableCount === 1) {
+    return {
+      label: "Only 1 Left",
+      level: "low_stock",
+      inventoryManaged: true,
+      availableCount,
+      showSoldOutBadge: false,
+      showOutOfStockOverlay: false,
+    };
+  }
+
+  if (availableCount <= LOW_STOCK_THRESHOLD) {
+    return {
+      label: `Only ${availableCount} Left`,
+      level: "low_stock",
+      inventoryManaged: true,
+      availableCount,
+      showSoldOutBadge: false,
+      showOutOfStockOverlay: false,
+    };
+  }
+
   return {
-    label: stockLevelLabel(level),
-    level,
+    label: `${availableCount} Accounts Available`,
+    level: "in_stock",
     inventoryManaged: true,
     availableCount,
-    showSoldOutBadge: level === "out_of_stock",
-    showOutOfStockOverlay: level === "out_of_stock",
+    showSoldOutBadge: false,
+    showOutOfStockOverlay: false,
   };
 }
 
@@ -205,6 +237,20 @@ export function matchesAdminStockFilter(
 ): boolean {
   if (filter === "all") return true;
   return stockLevelFromAvailable(availableCount) === filter;
+}
+
+/**
+ * Storefront purchasability: published listing and not inventory OOS.
+ * Manual listings (no inventory rows) remain purchasable when status=available.
+ */
+export function isStorefrontPurchasable(input: {
+  productStatus: string | null | undefined;
+  summary?: Pick<ProductStockSummary, "available_count" | "total_count"> | null;
+}): boolean {
+  const display = resolveCustomerStockDisplayFromSummary(input);
+  return (
+    input.productStatus === "available" && !display.showOutOfStockOverlay
+  );
 }
 
 /**

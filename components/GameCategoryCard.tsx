@@ -37,7 +37,11 @@ export default function GameCategoryCard({
                 {game.name}
               </h3>
               <p className="mt-1 text-xs text-slate-200 sm:text-sm">
-                {accountCount} account{accountCount === 1 ? "" : "s"}
+                {accountCount === 0
+                  ? "Sold Out"
+                  : accountCount === 1
+                    ? "1 Account Available"
+                    : `${accountCount} Accounts Available`}
               </p>
             </div>
             {hasStock && (

@@ -2,11 +2,18 @@ import type { Product } from "@/lib/types";
 
 /** Fields safe for public product queries — never include cost, supplier, or sync fields. */
 export const PUBLIC_PRODUCT_SELECT =
-  "id,title,slug,description,price,currency,status,server,region_code,ar_level,cover_image_url,game_id,created_at";
+  "id,title,slug,description,price,currency,status,server,region_code,ar_level,cover_image_url,game_id,created_at,updated_at,shopee_url";
 
 /** Fallback select when `region_code` column is not yet migrated. */
 export const PUBLIC_PRODUCT_SELECT_LEGACY =
-  "id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at";
+  "id,title,slug,description,price,currency,status,server,ar_level,cover_image_url,game_id,created_at,updated_at,shopee_url";
+
+/** Public fields for Recently Sold — status=sold only; no PII. */
+export const PUBLIC_RECENTLY_SOLD_SELECT =
+  "id,title,slug,price,currency,status,server,region_code,ar_level,cover_image_url,game_id,created_at,updated_at";
+
+export const PUBLIC_RECENTLY_SOLD_SELECT_LEGACY =
+  "id,title,slug,price,currency,status,server,ar_level,cover_image_url,game_id,created_at,updated_at";
 
 /**
  * Storefront-safe product_images columns only.
