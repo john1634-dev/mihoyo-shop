@@ -1,3 +1,4 @@
+import type { ProductType } from "@/lib/product-type";
 
 export type Game = {
   id: string;
@@ -31,6 +32,8 @@ export type Product = {
   created_at?: string;
   updated_at?: string;
   shopee_url?: string | null;
+  /** ENDGAME_ACCOUNT | REROLL_ACCOUNT | TOP_UP (future). Defaults to ENDGAME_ACCOUNT. */
+  product_type?: ProductType | null;
   supplier_cost?: number | null;
   supplier_name?: string | null;
   cost_vnd?: number | null;

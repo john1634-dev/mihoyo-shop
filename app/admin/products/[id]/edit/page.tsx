@@ -21,6 +21,13 @@ import {
   parseVndInput,
 } from "@/lib/costing";
 import {
+  ADMIN_CREATABLE_PRODUCT_TYPES,
+  getProductTypeLabel,
+  isAdminCreatableProductType,
+  normalizeProductType,
+  type AdminCreatableProductType,
+} from "@/lib/product-type";
+import {
   REGION_OPTIONS,
   SUPPORTED_CURRENCIES,
   normalizeCurrencyCode,
@@ -96,6 +103,8 @@ export default function EditProductPage() {
   const [supplierName, setSupplierName] = useState("");
   const [shopeeUrl, setShopeeUrl] = useState("");
   const [status, setStatus] = useState("available");
+  const [productType, setProductType] =
+    useState<AdminCreatableProductType>("ENDGAME_ACCOUNT");
 
   const [costVndInput, setCostVndInput] = useState("");
   const [storedCost, setStoredCost] = useState<StoredCostState>({
@@ -193,10 +202,23 @@ export default function EditProductPage() {
       let productResult = await supabase
         .from("products")
         .select(
-          "id,title,slug,game_id,price,currency,server,region_code,ar_level,description,supplier_name,shopee_url,status,cost_vnd,cost_myr,vnd_myr_rate,cost_rate_updated_at"
+          "id,title,slug,game_id,price,currency,server,region_code,ar_level,description,supplier_name,shopee_url,status,product_type,cost_vnd,cost_myr,vnd_myr_rate,cost_rate_updated_at"
         )
         .eq("id", productId)
         .single();
+
+      if (
+        productResult.error &&
+        /product_type/i.test(productResult.error.message)
+      ) {
+        productResult = await supabase
+          .from("products")
+          .select(
+            "id,title,slug,game_id,price,currency,server,region_code,ar_level,description,supplier_name,shopee_url,status,cost_vnd,cost_myr,vnd_myr_rate,cost_rate_updated_at"
+          )
+          .eq("id", productId)
+          .single();
+      }
 
       if (
         productResult.error &&
@@ -253,6 +275,13 @@ export default function EditProductPage() {
       setSupplierName(product.supplier_name || "");
       setShopeeUrl(product.shopee_url || "");
       setStatus(product.status || "available");
+      setProductType(
+        normalizeProductType(
+          (product as { product_type?: string }).product_type
+        ) === "REROLL_ACCOUNT"
+          ? "REROLL_ACCOUNT"
+          : "ENDGAME_ACCOUNT"
+      );
 
       const loadedCostVnd =
         product.cost_vnd === null || product.cost_vnd === undefined
@@ -318,6 +347,7 @@ export default function EditProductPage() {
       supplier_name: supplierName || null,
       shopee_url: shopeeUrl.trim() || null,
       status,
+      product_type: productType,
       updated_at: new Date().toISOString(),
     };
 
@@ -335,10 +365,22 @@ export default function EditProductPage() {
       updatePayload.cost_rate_updated_at = new Date().toISOString();
     }
 
-    const productUpdate = await supabase
+    let productUpdate = await supabase
       .from("products")
       .update(updatePayload)
       .eq("id", productId);
+
+    if (
+      productUpdate.error &&
+      /product_type|column|schema/i.test(productUpdate.error.message)
+    ) {
+      const { product_type: _removed, ...fallbackPayload } = updatePayload;
+      void _removed;
+      productUpdate = await supabase
+        .from("products")
+        .update(fallbackPayload)
+        .eq("id", productId);
+    }
 
     if (productUpdate.error) {
       setError(productUpdate.error.message);
@@ -539,6 +581,26 @@ export default function EditProductPage() {
                   {games.map((game) => (
                     <option key={game.id} value={game.id}>
                       {game.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm text-slate-300">Product Type</label>
+                <select
+                  value={productType}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    if (isAdminCreatableProductType(next)) {
+                      setProductType(next);
+                    }
+                  }}
+                  className="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                >
+                  {ADMIN_CREATABLE_PRODUCT_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {getProductTypeLabel(type)}
                     </option>
                   ))}
                 </select>

@@ -11,6 +11,7 @@ import {
   type AdminStockFilter,
   type ProductStockSummary,
 } from "@/lib/inventory-stock";
+import { getProductTypeLabel, normalizeProductType } from "@/lib/product-type";
 import ProductListingStatusControl from "@/components/admin/ProductListingStatusControl";
 import { supabase } from "@/lib/supabase";
 
@@ -26,6 +27,7 @@ type Product = {
   cost_myr: number | null;
   game_id: string | null;
   updated_at: string | null;
+  product_type?: string | null;
 };
 
 type Game = {
@@ -108,27 +110,47 @@ export default function ProductsPage() {
       setLoading(true);
       setError("");
 
-      const [productsResult, gamesResult] = await Promise.all([
+      const [productsResultPrimary, gamesResult] = await Promise.all([
         supabase
           .from("products")
           .select(
-            "id,title,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at"
+            "id,title,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at,product_type"
           )
           .order("updated_at", { ascending: false }),
         supabase.from("games").select("id,name").order("name", { ascending: true }),
       ]);
 
+      let productList: Product[] | null = (productsResultPrimary.data ||
+        null) as Product[] | null;
+      let productError = productsResultPrimary.error;
+
+      if (
+        productError &&
+        /product_type|column|schema/i.test(productError.message)
+      ) {
+        const fallback = await supabase
+          .from("products")
+          .select(
+            "id,title,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at"
+          )
+          .order("updated_at", { ascending: false });
+        productList = (fallback.data || null) as Product[] | null;
+        productError = fallback.error;
+      }
+
       if (!active) return;
 
-      if (productsResult.error) {
-        setError(productsResult.error.message);
+      if (productError) {
+        setError(productError.message);
         setLoading(false);
         return;
       }
 
-      const list = (productsResult.data || []) as Product[];
+      const gamesResultResolved = gamesResult;
+
+      const list = (productList || []) as Product[];
       setProducts(list);
-      setGames((gamesResult.data || []) as Game[]);
+      setGames((gamesResultResolved.data || []) as Game[]);
 
       try {
         const ids = list.map((p) => p.id).join(",");
@@ -365,6 +387,12 @@ export default function ProductsPage() {
                               <p className="line-clamp-2 text-sm font-medium leading-snug">
                                 {product.title}
                               </p>
+                              {normalizeProductType(product.product_type) ===
+                                "REROLL_ACCOUNT" && (
+                                <span className="mt-0.5 inline-flex rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-300 ring-1 ring-violet-500/25">
+                                  {getProductTypeLabel("REROLL_ACCOUNT")}
+                                </span>
+                              )}
                               {(product.server || product.ar_level != null) && (
                                 <p className="mt-0.5 truncate text-[11px] text-slate-500">
                                   {product.server || "—"}

@@ -7,6 +7,8 @@ import {
   hashReceiptToken,
   signOrderAccessToken,
 } from "@/lib/order-receipt";
+import { isStorefrontPurchasable } from "@/lib/inventory-stock";
+import { fetchProductStockSummary } from "@/lib/inventory-stock-server";
 import { generateOrderNumber } from "@/lib/orders";
 import { checkRateLimit, clientIpFromRequest } from "@/lib/rate-limit";
 import { getStripe, toStripeUnitAmount } from "@/lib/stripe";
@@ -83,6 +85,16 @@ export async function POST(request: Request) {
         { error: "This listing is not available for purchase." },
         { status: 409 }
       );
+    }
+
+    const stockSummary = await fetchProductStockSummary(productId);
+    if (
+      !isStorefrontPurchasable({
+        productStatus: product.status,
+        summary: stockSummary,
+      })
+    ) {
+      return NextResponse.json({ error: "Out of stock" }, { status: 409 });
     }
 
     const price = Number(product.price);

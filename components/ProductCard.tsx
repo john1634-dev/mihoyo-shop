@@ -16,7 +16,14 @@ const PRODUCT_IMAGE_QUALITY = 88;
 const BADGE_STYLES: Record<ProductBadge, string> = {
   NEW: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
   SOLD_OUT: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
+  REROLL: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",
 };
+
+function productBadgeLabel(badge: ProductBadge): string {
+  if (badge === "SOLD_OUT") return "Sold";
+  if (badge === "REROLL") return "Reroll Account";
+  return badge;
+}
 
 const STOCK_BADGE_STYLES: Record<CustomerStockDisplayLevel, string> = {
   in_stock: "bg-emerald-50 text-emerald-700 ring-emerald-200",
@@ -142,7 +149,7 @@ export default function ProductCard({
                   key={badge}
                   className={`rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:rounded-md sm:px-2 sm:text-[10px] ${BADGE_STYLES[badge]}`}
                 >
-                  {badge === "SOLD_OUT" ? "Sold" : badge}
+                  {productBadgeLabel(badge)}
                 </span>
               ))}
             </div>

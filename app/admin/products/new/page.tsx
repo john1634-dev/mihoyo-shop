@@ -16,6 +16,12 @@ import {
   parseVndInput,
 } from "@/lib/costing";
 import {
+  ADMIN_CREATABLE_PRODUCT_TYPES,
+  getProductTypeLabel,
+  isAdminCreatableProductType,
+  type AdminCreatableProductType,
+} from "@/lib/product-type";
+import {
   REGION_OPTIONS,
   SUPPORTED_CURRENCIES,
   normalizeCurrencyCode,
@@ -66,6 +72,8 @@ export default function NewProductPage() {
   const [supplierName, setSupplierName] = useState("");
   const [shopeeUrl, setShopeeUrl] = useState("");
   const [status, setStatus] = useState("available");
+  const [productType, setProductType] =
+    useState<AdminCreatableProductType>("ENDGAME_ACCOUNT");
 
   const [costVndInput, setCostVndInput] = useState("");
   const [manualRateRefresh, setManualRateRefresh] = useState(false);
@@ -215,7 +223,7 @@ export default function NewProductPage() {
         ? computeCostMyr(costVnd, rateState.rate)
         : null;
 
-    const productResult = await supabase
+    let productResult = await supabase
       .from("products")
       .insert({
         title: title.trim(),
@@ -230,6 +238,7 @@ export default function NewProductPage() {
         supplier_name: supplierName || null,
         shopee_url: shopeeUrl.trim() || null,
         status,
+        product_type: productType,
         cover_image_url: coverImage,
         cost_vnd: costVnd,
         cost_myr: computedCostMyr,
@@ -239,6 +248,36 @@ export default function NewProductPage() {
       })
       .select("id")
       .single();
+
+    if (
+      productResult.error &&
+      /product_type|column|schema/i.test(productResult.error.message)
+    ) {
+      productResult = await supabase
+        .from("products")
+        .insert({
+          title: title.trim(),
+          slug: finalSlug,
+          game_id: gameId || null,
+          price: Number(price),
+          currency: normalizeCurrencyCode(currency),
+          server: server || null,
+          region_code: normalizeRegionCode(regionCode),
+          ar_level: arLevel ? Number(arLevel) : null,
+          description: description || null,
+          supplier_name: supplierName || null,
+          shopee_url: shopeeUrl.trim() || null,
+          status,
+          cover_image_url: coverImage,
+          cost_vnd: costVnd,
+          cost_myr: computedCostMyr,
+          vnd_myr_rate: costVnd !== null ? rateState.rate : null,
+          cost_currency: costVnd !== null ? "VND" : null,
+          cost_rate_updated_at: costVnd !== null ? nowIso : null,
+        })
+        .select("id")
+        .single();
+    }
 
     if (productResult.error) {
       setError(productResult.error.message);
@@ -308,6 +347,26 @@ export default function NewProductPage() {
                   {games.map((game) => (
                     <option key={game.id} value={game.id}>
                       {game.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm text-slate-300">Product Type</label>
+                <select
+                  value={productType}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    if (isAdminCreatableProductType(next)) {
+                      setProductType(next);
+                    }
+                  }}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3"
+                >
+                  {ADMIN_CREATABLE_PRODUCT_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {getProductTypeLabel(type)}
                     </option>
                   ))}
                 </select>

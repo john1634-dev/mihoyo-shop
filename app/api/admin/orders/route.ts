@@ -10,6 +10,7 @@ import {
   type OrderRow,
   type OrderStatus,
 } from "@/lib/orders";
+import { getProductTypeLabel, normalizeProductType } from "@/lib/product-type";
 import { isNextResponse, requireAdmin } from "@/lib/require-admin";
 import { getSupabaseService } from "@/lib/supabase-service";
 import { sanitizeText } from "@/lib/validation";
@@ -67,6 +68,75 @@ export async function GET(request: Request) {
     const list = itemsByOrder.get(item.order_id) || [];
     list.push(item);
     itemsByOrder.set(item.order_id, list);
+  }
+
+  const productIds = [
+    ...new Set(
+      ((items || []) as OrderItemRow[])
+        .map((item) => item.product_id)
+        .filter(Boolean) as string[]
+    ),
+  ];
+
+  const productMeta = new Map<
+    string,
+    { product_type: string; game_id: string | null; title: string | null }
+  >();
+  const gameNames = new Map<string, string>();
+
+  if (productIds.length) {
+    const { data: productsWithType, error: productsWithTypeError } = await service
+      .from("products")
+      .select("id,product_type,game_id,title")
+      .in("id", productIds);
+
+    let productRows:
+      | Array<{ id: string; game_id: string | null; title: string | null; product_type?: string }>
+      | null = productsWithType;
+    let productsError = productsWithTypeError;
+
+    if (
+      productsError &&
+      /product_type|column|schema/i.test(productsError.message)
+    ) {
+      const fallback = await service
+        .from("products")
+        .select("id,game_id,title")
+        .in("id", productIds);
+      productRows = fallback.data;
+      productsError = fallback.error;
+    }
+
+    if (!productsError) {
+      for (const row of productRows || []) {
+        productMeta.set(row.id, {
+          product_type: normalizeProductType(
+            (row as { product_type?: string }).product_type
+          ),
+          game_id: row.game_id ?? null,
+          title: row.title ?? null,
+        });
+      }
+    }
+
+    const gameIds = [
+      ...new Set(
+        [...productMeta.values()]
+          .map((p) => p.game_id)
+          .filter(Boolean) as string[]
+      ),
+    ];
+
+    if (gameIds.length) {
+      const { data: games } = await service
+        .from("games")
+        .select("id,name")
+        .in("id", gameIds);
+
+      for (const game of games || []) {
+        gameNames.set(game.id, game.name);
+      }
+    }
   }
 
   // Safe inventory + email delivery metadata only (never credentials).
@@ -147,11 +217,23 @@ export async function GET(request: Request) {
         admin_note: order.admin_note ?? null,
         inventory,
         email_delivery: emailDelivery,
-        items: orderItems.map((item) => ({
-          title: itemTitle(item),
-          price: itemPrice(item),
-          product_id: item.product_id,
-        })),
+        items: orderItems.map((item) => {
+          const meta = item.product_id
+            ? productMeta.get(item.product_id)
+            : undefined;
+          const productType = normalizeProductType(meta?.product_type);
+          const gameName = meta?.game_id
+            ? gameNames.get(meta.game_id) ?? null
+            : null;
+          return {
+            title: itemTitle(item),
+            price: itemPrice(item),
+            product_id: item.product_id,
+            product_type: productType,
+            product_type_label: getProductTypeLabel(productType),
+            game_name: gameName,
+          };
+        }),
       };
     }),
   });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { assignInventoryAfterPayment } from "@/lib/inventory-assign";
+import { notifyAdminNewOrder } from "@/lib/admin-order-notification";
 import { deliverInventoryByEmail } from "@/lib/inventory-delivery";
 import { orderAmount, orderCurrency } from "@/lib/orders";
 import {
@@ -154,7 +155,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       : session.payment_intent?.id || null;
 
   // Mark paid unless already paid (duplicate / replay still continues to claim).
-  if (!orderIsPaid(order)) {
+  const wasAlreadyPaid = orderIsPaid(order);
+  if (!wasAlreadyPaid) {
     const { data: rpcResult, error: rpcError } = await service.rpc(
       "mark_stripe_payment_paid",
       {
@@ -221,6 +223,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     throw new Error(
       `[stripe.webhook] order ${orderId} not marked paid after checkout.session.completed`
     );
+  }
+
+  if (!wasAlreadyPaid) {
+    void notifyAdminNewOrder(orderId);
   }
 
   // Phase 6.4 — assign inventory after payment only.

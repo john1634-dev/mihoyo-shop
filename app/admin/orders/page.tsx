@@ -24,7 +24,14 @@ type AdminOrder = {
   admin_note: string | null;
   inventory: { id: string; status: string } | null;
   email_delivery: { status: string; provider_message_id: string | null } | null;
-  items: Array<{ title: string; price: number; product_id: string | null }>;
+  items: Array<{
+    title: string;
+    price: number;
+    product_id: string | null;
+    product_type?: string;
+    product_type_label?: string;
+    game_name?: string | null;
+  }>;
 };
 
 const ACTIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
@@ -218,7 +225,26 @@ export default function AdminOrdersPage() {
                 </div>
 
                 <p className="mt-4 break-words text-sm text-slate-200">
-                  {order.items.map((i) => i.title).join(", ") || "—"}
+                  {order.items.length > 0
+                    ? order.items.map((item, index) => (
+                        <span key={`${order.id}-${index}`}>
+                          {index > 0 ? ", " : ""}
+                          {item.title}
+                          {item.product_type_label ? (
+                            <span className="text-slate-500">
+                              {" "}
+                              · {item.product_type_label}
+                            </span>
+                          ) : null}
+                          {item.game_name ? (
+                            <span className="text-slate-500">
+                              {" "}
+                              · {item.game_name}
+                            </span>
+                          ) : null}
+                        </span>
+                      ))
+                    : "—"}
                 </p>
 
                 <div className="mt-4 grid gap-3 md:grid-cols-3">

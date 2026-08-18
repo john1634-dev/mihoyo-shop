@@ -50,7 +50,8 @@ function isMissingRegionColumnError(message?: string): boolean {
 function isMissingOptionalColumnError(message?: string): boolean {
   if (!message) return false;
   return (
-    (/shopee_url|updated_at/i.test(message) && /column|schema|exist/i.test(message)) ||
+    (/shopee_url|updated_at|product_type/i.test(message) &&
+      /column|schema|exist/i.test(message)) ||
     isMissingRegionColumnError(message)
   );
 }
