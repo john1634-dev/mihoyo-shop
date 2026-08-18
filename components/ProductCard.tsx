@@ -19,8 +19,8 @@ const BADGE_STYLES: Record<ProductBadge, string> = {
   NEW: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
   SOLD_OUT: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
   ENDGAME: "bg-blue-50 text-blue-800 ring-1 ring-blue-200",
-  REROLL: "bg-sky-50 text-sky-800 ring-1 ring-sky-200",
-  TOP_UP: "bg-cyan-100 text-cyan-800 ring-1 ring-cyan-200",
+  REROLL: "bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200",
+  TOP_UP: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
 };
 
 function productBadgeLabel(badge: ProductBadge): string {
@@ -140,7 +140,7 @@ export default function ProductCard({
         href={productHref}
         className="relative block overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--surface-elevated)]">
+        <div className="relative aspect-[16/10] overflow-hidden bg-[var(--surface-elevated)] sm:aspect-[4/3]">
           {product.cover_image_url ? (
             <Image
               src={product.cover_image_url}

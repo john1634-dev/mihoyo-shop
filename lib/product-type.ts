@@ -75,3 +75,17 @@ export function parseStorefrontProductTypeFilter(
 export function storefrontProductTypeHref(type: ProductType): string {
   return `/products?type=${encodeURIComponent(type)}`;
 }
+
+/** Shareable catalog URL using existing `type` + `game` slug query params. */
+export function storefrontCatalogHref(input: {
+  type?: ProductType | "";
+  game?: string | null;
+}): string {
+  const params = new URLSearchParams();
+  const type = parseStorefrontProductTypeFilter(input.type);
+  const game = input.game?.trim() || "";
+  if (type) params.set("type", type);
+  if (game) params.set("game", game);
+  const query = params.toString();
+  return query ? `/products?${query}` : "/products";
+}

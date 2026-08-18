@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
 import GameImage from "@/components/GameImage";
+import GameCategoryCard from "@/components/GameCategoryCard";
 import FindAccountCTA from "@/components/FindAccountCTA";
 import { CloseIcon, FilterIcon } from "@/components/icons";
 import { getGameImageUrl } from "@/lib/games";
@@ -22,6 +23,7 @@ import {
   getProductTypeLabel,
   parseStorefrontProductTypeFilter,
   PRODUCT_TYPES,
+  storefrontCatalogHref,
   type ProductType,
 } from "@/lib/product-type";
 import type { Game, Product } from "@/lib/types";
@@ -95,6 +97,13 @@ function buildProductListHref(
 
   const query = params.toString();
   return query ? `/products?${query}` : "/products";
+}
+
+function catalogTypeTitle(typeFilter: string): string {
+  if (typeFilter === "TOP_UP") return "Game Top Up";
+  if (typeFilter === "ENDGAME_ACCOUNT") return "Endgame Accounts";
+  if (typeFilter === "REROLL_ACCOUNT") return "Reroll Accounts";
+  return "Game Accounts";
 }
 
 type ProductFiltersProps = {
@@ -376,6 +385,7 @@ export type ProductsClientProps = {
   currencyCode: string;
   serverFilter: string;
   typeFilter: string;
+  typeScopedGames?: Array<{ game: Game; listingCount: number }>;
 };
 
 export default function ProductsClient({
@@ -390,10 +400,14 @@ export default function ProductsClient({
   currencyCode,
   serverFilter,
   typeFilter,
+  typeScopedGames = [],
 }: ProductsClientProps) {
   const router = useRouter();
   const [filterOpen, setFilterOpen] = useState(false);
 
+  const selectorGames = typeFilter
+    ? typeScopedGames.map((entry) => entry.game)
+    : games;
   const activeGame = games.find((game) => game.slug === gameSlug);
   const gameNameById = useMemo(
     () => new Map(games.map((game) => [game.id, game.name])),
@@ -500,7 +514,7 @@ export default function ProductsClient({
   const filterPanel = (
     <ProductFilters
       key={`${gameSlug}-${searchQuery}-${normalizedSort}-${statusFilter}-${normalizedRegion}-${normalizedCurrency}-${normalizedServer}-${typeFilter}`}
-      games={games}
+      games={selectorGames}
       gameSlug={gameSlug}
       searchQuery={searchQuery}
       sort={normalizedSort}
@@ -529,7 +543,7 @@ export default function ProductsClient({
             </li>
             <li aria-hidden>/</li>
             <li>
-              {activeGame ? (
+              {activeGame || typeFilter ? (
                 <Link href="/products" className="hover:text-[var(--foreground)]">
                   Accounts
                 </Link>
@@ -539,6 +553,27 @@ export default function ProductsClient({
                 </span>
               )}
             </li>
+            {typeFilter ? (
+              <>
+                <li aria-hidden>/</li>
+                <li>
+                  {activeGame ? (
+                    <Link
+                      href={storefrontCatalogHref({
+                        type: typeFilter as ProductType,
+                      })}
+                      className="hover:text-[var(--foreground)]"
+                    >
+                      {catalogTypeTitle(typeFilter)}
+                    </Link>
+                  ) : (
+                    <span className="text-[var(--foreground)]" aria-current="page">
+                      {catalogTypeTitle(typeFilter)}
+                    </span>
+                  )}
+                </li>
+              </>
+            ) : null}
             {activeGame && (
               <>
                 <li aria-hidden>/</li>
@@ -551,30 +586,24 @@ export default function ProductsClient({
         </nav>
 
         <div className="mt-6 max-w-2xl">
-          {activeGame && getGameImageUrl(activeGame) ? (
+          {activeGame && !typeFilter && getGameImageUrl(activeGame) ? (
             <div className="relative mb-5 aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)]">
               <GameImage game={activeGame} variant="header" />
             </div>
           ) : null}
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            {activeGame
-              ? `${activeGame.name} ${
-                  typeFilter === "TOP_UP"
-                    ? "Top Up"
-                    : typeFilter
-                      ? getProductTypeLabel(typeFilter as ProductType)
-                      : "Accounts"
-                }`
-              : typeFilter === "TOP_UP"
-                ? "Game Top Up"
-                : typeFilter
-                  ? `${getProductTypeLabel(typeFilter as ProductType)}s`
-                  : "Game Accounts"}
+            {activeGame && typeFilter
+              ? `${activeGame.name} — ${catalogTypeTitle(typeFilter)}`
+              : activeGame
+                ? `${activeGame.name} Accounts`
+                : catalogTypeTitle(typeFilter)}
           </h1>
           <p className="mt-3 text-[var(--muted)]">
             {typeFilter === "TOP_UP"
               ? "WhatsApp-only game top up listings."
-              : "Browse our available game accounts."}
+              : typeFilter
+                ? "Choose a game, then browse listings in this category."
+                : "Browse our available game accounts."}
           </p>
           <div className="mt-5">
             <FindAccountCTA
@@ -587,6 +616,53 @@ export default function ProductsClient({
         </div>
 
         <ActiveFilters chips={activeFilterChips} onClear={clearFilters} />
+
+        {typeFilter ? (
+          <div className="mt-8">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              Choose a game
+            </p>
+            {typeScopedGames.length === 0 ? (
+              <p className="text-sm text-[var(--muted)]">
+                No games have available listings in this category yet.
+              </p>
+            ) : (
+              <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:overflow-visible sm:px-0">
+                <div className="flex gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+                  {typeScopedGames.map(({ game, listingCount }) => (
+                    <div
+                      key={game.id}
+                      className={`w-[11.5rem] shrink-0 sm:w-auto ${
+                        gameSlug === game.slug
+                          ? "rounded-2xl ring-2 ring-[var(--accent-strong)]"
+                          : ""
+                      }`}
+                    >
+                      <GameCategoryCard
+                        game={game}
+                        accountCount={listingCount}
+                        href={storefrontCatalogHref({
+                          type: typeFilter as ProductType,
+                          game: game.slug,
+                        })}
+                        cta={
+                          typeFilter === "TOP_UP"
+                            ? "View top up"
+                            : "View accounts"
+                        }
+                        countLabel={
+                          listingCount === 1
+                            ? "1 listing"
+                            : `${listingCount} listings`
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
 
         <div className="mt-8 flex items-center justify-between gap-3 lg:hidden">
           <p className="text-sm text-[var(--muted)]">

@@ -84,6 +84,14 @@ body {
   color: var(--muted);
 }
 
+.home-dept-title {
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--foreground);
+}
+
 /* Storefront layout */
 .storefront-main {
   background: var(--background);
@@ -193,12 +201,17 @@ body {
 
 /* Hero */
 .hero-compact {
-  min-height: clamp(350px, 42vh, 500px);
+  min-height: 0;
+}
+
+.hero-compact .hero-title {
+  font-size: clamp(1.2rem, 2.8vw, 1.75rem);
+  letter-spacing: -0.02em;
 }
 
 @media (max-width: 767px) {
   .hero-compact {
-    min-height: clamp(320px, 48vh, 420px);
+    min-height: 0;
   }
 }
 
@@ -243,22 +256,16 @@ body {
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 55%, #eff6ff 100%);
-}
-
-.hero-premium::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(37, 99, 235, 0.08), transparent),
-    radial-gradient(ellipse 50% 40% at 90% 20%, rgba(59, 130, 246, 0.06), transparent);
-  pointer-events: none;
+  background: #ffffff;
 }
 
 /* Product & game cards */
+.home-product-grid .product-card {
+  min-height: 100%;
+}
+
 .product-card {
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--border);
   background: var(--surface-card);
   box-shadow: var(--shadow-card);

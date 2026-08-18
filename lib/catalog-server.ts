@@ -337,3 +337,31 @@ export function buildAccountCounts(
 
   return counts;
 }
+
+/** Count available listings per game (one product row = one listing). */
+export function buildListingCountsByGame(
+  products: Product[]
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+
+  for (const product of products) {
+    if (!product.game_id) continue;
+    if (product.status !== "available") continue;
+    counts[product.game_id] = (counts[product.game_id] || 0) + 1;
+  }
+
+  return counts;
+}
+
+export function gamesWithAvailableListings(
+  games: Game[],
+  products: Product[]
+): Array<{ game: Game; listingCount: number }> {
+  const counts = buildListingCountsByGame(products);
+  return games
+    .filter((game) => (counts[game.id] || 0) > 0)
+    .map((game) => ({
+      game,
+      listingCount: counts[game.id],
+    }));
+}

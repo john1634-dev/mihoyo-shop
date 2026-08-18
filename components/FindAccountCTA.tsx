@@ -20,6 +20,7 @@ type FindAccountCTAProps = {
   className?: string;
   variant?: "primary" | "secondary" | "whatsapp";
   label?: string;
+  compact?: boolean;
 };
 
 export default function FindAccountCTA({
@@ -28,6 +29,7 @@ export default function FindAccountCTA({
   className = "",
   variant = "secondary",
   label = "Find Me an Account",
+  compact = false,
 }: FindAccountCTAProps) {
   const [open, setOpen] = useState(false);
   const [game, setGame] = useState(defaultGame);
@@ -74,12 +76,13 @@ export default function FindAccountCTA({
     window.open(href, "_blank", "noopener,noreferrer");
   }
 
+  const sizeClass = compact ? "min-h-10 px-4 text-sm" : "min-h-12 px-6";
   const buttonClass =
     variant === "primary"
-      ? `btn-primary min-h-12 px-6 ${className}`
+      ? `btn-primary ${sizeClass} ${className}`
       : variant === "whatsapp"
-        ? `btn-whatsapp min-h-12 px-6 ${className}`
-        : `btn-secondary min-h-12 px-6 ${className}`;
+        ? `btn-whatsapp ${sizeClass} ${className}`
+        : `btn-secondary ${sizeClass} ${className}`;
 
   return (
     <>

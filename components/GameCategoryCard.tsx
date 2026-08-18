@@ -6,20 +6,37 @@ import type { Game } from "@/lib/types";
 type GameCategoryCardProps = {
   game: Game;
   accountCount: number;
+  href?: string;
+  cta?: string;
+  countLabel?: string;
+  compact?: boolean;
 };
 
 export default function GameCategoryCard({
   game,
   accountCount,
+  href,
+  cta = "Browse accounts",
+  countLabel,
+  compact = false,
 }: GameCategoryCardProps) {
   const hasStock = accountCount > 0;
+  const listingLabel =
+    countLabel ||
+    (accountCount === 0
+      ? "Sold Out"
+      : accountCount === 1
+        ? "1 Account Available"
+        : `${accountCount} Accounts Available`);
 
   return (
     <Link
-      href={`/products?game=${game.slug}`}
-      className="game-card group relative block overflow-hidden rounded-2xl"
+      href={href || `/products?game=${game.slug}`}
+      className={`game-card group relative block overflow-hidden ${compact ? "rounded-xl" : "rounded-2xl"}`}
     >
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div
+        className={`relative overflow-hidden ${compact ? "aspect-[16/10]" : "aspect-[4/3]"}`}
+      >
         <GameImage
           game={game}
           variant="card"
@@ -30,18 +47,16 @@ export default function GameCategoryCard({
           aria-hidden
         />
 
-        <div className="absolute inset-x-0 bottom-0 p-4">
+        <div className={`absolute inset-x-0 bottom-0 ${compact ? "p-3" : "p-4"}`}>
           <div className="flex items-end justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <h3 className="truncate text-base font-semibold tracking-tight text-white sm:text-lg">
+              <h3
+                className={`truncate font-semibold tracking-tight text-white ${compact ? "text-sm sm:text-base" : "text-base sm:text-lg"}`}
+              >
                 {game.name}
               </h3>
               <p className="mt-1 text-xs text-slate-200 sm:text-sm">
-                {accountCount === 0
-                  ? "Sold Out"
-                  : accountCount === 1
-                    ? "1 Account Available"
-                    : `${accountCount} Accounts Available`}
+                {listingLabel}
               </p>
             </div>
             {hasStock && (
@@ -51,8 +66,10 @@ export default function GameCategoryCard({
             )}
           </div>
 
-          <span className="mt-3 inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-blue-100 transition duration-200 group-hover:text-white">
-            Browse accounts
+          <span
+            className={`inline-flex items-center gap-1 font-semibold text-blue-100 transition duration-200 group-hover:text-white ${compact ? "mt-2 min-h-9 text-xs sm:text-sm" : "mt-3 min-h-10 text-sm"}`}
+          >
+            {cta}
             <ArrowRightIcon className="h-4 w-4 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none" />
           </span>
         </div>

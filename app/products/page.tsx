@@ -3,6 +3,7 @@ import ProductsClient from "@/components/ProductsClient";
 import {
   fetchActiveGames,
   fetchFilteredProducts,
+  gamesWithAvailableListings,
   normalizeProductSort,
 } from "@/lib/catalog-server";
 import { fetchProductStockSummaryMap } from "@/lib/catalog-stock-server";
@@ -82,19 +83,34 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const typeFilter = parseStorefrontProductTypeFilter(params.type);
 
   const games = await fetchActiveGames();
-  const products = await fetchFilteredProducts(
-    {
-      game: gameSlug,
-      q: searchQuery,
-      sort,
-      status: statusFilter,
-      region: regionCode || undefined,
-      currency: currencyCode || undefined,
-      server: serverFilter || undefined,
-      type: typeFilter || undefined,
-    },
-    games
-  );
+  const [products, typeAvailableProducts] = await Promise.all([
+    fetchFilteredProducts(
+      {
+        game: gameSlug,
+        q: searchQuery,
+        sort,
+        status: statusFilter,
+        region: regionCode || undefined,
+        currency: currencyCode || undefined,
+        server: serverFilter || undefined,
+        type: typeFilter || undefined,
+      },
+      games
+    ),
+    typeFilter
+      ? fetchFilteredProducts(
+          {
+            type: typeFilter,
+            status: "available",
+          },
+          games
+        )
+      : Promise.resolve([]),
+  ]);
+
+  const typeScopedGames = typeFilter
+    ? gamesWithAvailableListings(games, typeAvailableProducts)
+    : [];
   const stockSummaryByProductId = await fetchProductStockSummaryMap(
     products.map((product) => product.id)
   );
@@ -112,6 +128,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       currencyCode={currencyCode}
       serverFilter={serverFilter}
       typeFilter={typeFilter}
+      typeScopedGames={typeScopedGames}
     />
   );
 }
