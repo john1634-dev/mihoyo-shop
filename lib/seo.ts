@@ -26,13 +26,22 @@ export type ProductSeoFields = {
 /** Absolute document title for PDP / OG / Twitter. */
 export function buildProductPageTitle(fields: ProductSeoFields): string {
   const parts: string[] = [];
-  const isTopUp = normalizeProductType(fields.productType) === "TOP_UP";
+  const productType = normalizeProductType(fields.productType);
+  const isTopUp = productType === "TOP_UP";
+  const isReroll = productType === "REROLL_ACCOUNT";
   const title = fields.title?.trim() || (isTopUp ? "Game Top Up" : "Game Account");
   parts.push(title);
 
   const game = fields.gameName?.trim();
   if (game) {
-    parts.push(isTopUp ? `${game} Top Up` : `${game} Account`);
+    if (isTopUp) {
+      parts.push(`${game} Top Up`);
+    } else if (isReroll) {
+      parts.push(`${game} Reroll Account`);
+    } else {
+      parts.push(`${game} Endgame Account`);
+      parts.push(`${game} Account`);
+    }
   }
 
   const server = fields.server?.trim();

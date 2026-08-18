@@ -5,11 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
-import GameImage from "@/components/GameImage";
 import GameCategoryCard from "@/components/GameCategoryCard";
 import FindAccountCTA from "@/components/FindAccountCTA";
 import { CloseIcon, FilterIcon } from "@/components/icons";
-import { getGameImageUrl } from "@/lib/games";
 import { normalizeProductSort } from "@/lib/catalog-server";
 import {
   REGION_OPTIONS,
@@ -18,8 +16,14 @@ import {
   normalizeCurrencyCode,
   normalizeRegionCode,
 } from "@/lib/catalog-meta";
+import { WHATSAPP_URL } from "@/lib/config";
 import type { ProductStockSummary } from "@/lib/inventory-stock";
 import {
+  CATALOG_TYPE_NAV,
+  catalogNoGamesForTypeMessage,
+  catalogNoListingsForGameMessage,
+  catalogTypeLandingPrompt,
+  catalogTypeTitle,
   getProductTypeLabel,
   parseStorefrontProductTypeFilter,
   PRODUCT_TYPES,
@@ -99,12 +103,13 @@ function buildProductListHref(
   return query ? `/products?${query}` : "/products";
 }
 
-function catalogTypeTitle(typeFilter: string): string {
-  if (typeFilter === "TOP_UP") return "Game Top Up";
-  if (typeFilter === "ENDGAME_ACCOUNT") return "Endgame Accounts";
-  if (typeFilter === "REROLL_ACCOUNT") return "Reroll Accounts";
-  return "Game Accounts";
-}
+const TYPE_NAV_ACTIVE: Record<ProductType, string> = {
+  ENDGAME_ACCOUNT:
+    "border-blue-200 bg-blue-50 text-blue-800",
+  REROLL_ACCOUNT:
+    "border-indigo-200 bg-indigo-50 text-indigo-800",
+  TOP_UP: "border-emerald-200 bg-emerald-50 text-emerald-800",
+};
 
 type ProductFiltersProps = {
   games: Game[];
@@ -145,6 +150,78 @@ function ProductFilters({
 
   return (
     <div className="space-y-5">
+      <div>
+        <label
+          htmlFor="product-type"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
+        >
+          Product type
+        </label>
+        <select
+          id="product-type"
+          value={typeFilter}
+          onChange={(event) => onNavigate({ type: event.target.value })}
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
+        >
+          <option value="">All types</option>
+          {PRODUCT_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {getProductTypeLabel(type)}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+          Game
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={buildHref({ game: "" })}
+            className={`rounded-full px-3 py-1.5 text-xs ${
+              !gameSlug
+                ? "bg-[var(--accent-strong)] text-white"
+                : "border border-[var(--border)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
+            }`}
+          >
+            All
+          </Link>
+          {games.map((game) => (
+            <Link
+              key={game.id}
+              href={buildHref({ game: game.slug })}
+              className={`rounded-full px-3 py-1.5 text-xs ${
+                gameSlug === game.slug
+                  ? "bg-[var(--accent-strong)] text-white"
+                  : "border border-[var(--border)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
+              }`}
+            >
+              {game.name}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="product-sort"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
+        >
+          Sort
+        </label>
+        <select
+          id="product-sort"
+          value={sort}
+          onChange={(event) => onNavigate({ sort: event.target.value })}
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
+        >
+          <option value="newest">Newest</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+        </select>
+      </div>
+
       <form onSubmit={submitSearch} className="space-y-5">
         <div>
           <label
@@ -184,47 +261,6 @@ function ProductFilters({
           Search
         </button>
       </form>
-
-      <div>
-        <label
-          htmlFor="product-type"
-          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
-        >
-          Product type
-        </label>
-        <select
-          id="product-type"
-          value={typeFilter}
-          onChange={(event) => onNavigate({ type: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
-        >
-          <option value="">All types</option>
-          {PRODUCT_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {getProductTypeLabel(type)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label
-          htmlFor="product-sort"
-          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
-        >
-          Sort
-        </label>
-        <select
-          id="product-sort"
-          value={sort}
-          onChange={(event) => onNavigate({ sort: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
-        >
-          <option value="newest">Newest</option>
-          <option value="price-asc">Price: Low to High</option>
-          <option value="price-desc">Price: High to Low</option>
-        </select>
-      </div>
 
       <div>
         <label
@@ -287,37 +323,6 @@ function ProductFilters({
             </option>
           ))}
         </select>
-      </div>
-
-      <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-          Game
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={buildHref({ game: "" })}
-            className={`rounded-full px-3 py-1.5 text-xs ${
-              !gameSlug
-                ? "bg-[var(--accent-strong)] text-white"
-                : "border border-[var(--border)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
-            }`}
-          >
-            All
-          </Link>
-          {games.map((game) => (
-            <Link
-              key={game.id}
-              href={buildHref({ game: game.slug })}
-              className={`rounded-full px-3 py-1.5 text-xs ${
-                gameSlug === game.slug
-                  ? "bg-[var(--accent-strong)] text-white"
-                  : "border border-[var(--border)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
-              }`}
-            >
-              {game.name}
-            </Link>
-          ))}
-        </div>
       </div>
 
       <div className="pt-2">
@@ -386,6 +391,7 @@ export type ProductsClientProps = {
   serverFilter: string;
   typeFilter: string;
   typeScopedGames?: Array<{ game: Game; listingCount: number }>;
+  gameScopedTypes?: Array<{ type: ProductType; listingCount: number }>;
 };
 
 export default function ProductsClient({
@@ -401,6 +407,7 @@ export default function ProductsClient({
   serverFilter,
   typeFilter,
   typeScopedGames = [],
+  gameScopedTypes = [],
 }: ProductsClientProps) {
   const router = useRouter();
   const [filterOpen, setFilterOpen] = useState(false);
@@ -511,6 +518,31 @@ export default function ProductsClient({
     });
   }
 
+  const isTypeLanding = Boolean(typeFilter) && !gameSlug && !searchQuery.trim();
+  const showProductGrid = !isTypeLanding;
+  const selectedType = typeFilter as ProductType;
+  const listingNoun =
+    typeFilter === "TOP_UP" ? "listing" : typeFilter ? "account" : "account";
+  const listingCountLabel =
+    products.length === 1
+      ? `1 ${listingNoun} available`
+      : `${products.length} ${listingNoun}s available`;
+
+  const pageTitle =
+    activeGame && typeFilter
+      ? activeGame.name
+      : activeGame
+        ? activeGame.name
+        : catalogTypeTitle(typeFilter);
+  const pageSubtitle =
+    activeGame && typeFilter
+      ? catalogTypeTitle(typeFilter)
+      : typeFilter
+        ? catalogTypeLandingPrompt(selectedType)
+        : activeGame
+          ? "What are you looking for?"
+          : "Browse our available game accounts.";
+
   const filterPanel = (
     <ProductFilters
       key={`${gameSlug}-${searchQuery}-${normalizedSort}-${statusFilter}-${normalizedRegion}-${normalizedCurrency}-${normalizedServer}-${typeFilter}`}
@@ -533,34 +565,22 @@ export default function ProductsClient({
     <main className="storefront-main flex min-h-screen flex-col overflow-x-hidden">
       <Navbar games={games} />
 
-      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 md:px-6 md:py-10">
-        <nav aria-label="Breadcrumb" className="text-sm text-[var(--muted)]">
-          <ol className="flex flex-wrap items-center gap-2">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-4 md:px-6 md:py-6">
+        <nav aria-label="Breadcrumb" className="text-xs text-[var(--muted)] sm:text-sm">
+          <ol className="flex flex-wrap items-center gap-1.5">
             <li>
               <Link href="/" className="hover:text-[var(--foreground)]">
                 Home
               </Link>
             </li>
-            <li aria-hidden>/</li>
-            <li>
-              {activeGame || typeFilter ? (
-                <Link href="/products" className="hover:text-[var(--foreground)]">
-                  Accounts
-                </Link>
-              ) : (
-                <span className="text-[var(--foreground)]" aria-current="page">
-                  Accounts
-                </span>
-              )}
-            </li>
             {typeFilter ? (
               <>
-                <li aria-hidden>/</li>
+                <li aria-hidden>→</li>
                 <li>
                   {activeGame ? (
                     <Link
                       href={storefrontCatalogHref({
-                        type: typeFilter as ProductType,
+                        type: selectedType,
                       })}
                       className="hover:text-[var(--foreground)]"
                     >
@@ -573,157 +593,319 @@ export default function ProductsClient({
                   )}
                 </li>
               </>
-            ) : null}
-            {activeGame && (
+            ) : (
               <>
-                <li aria-hidden>/</li>
+                <li aria-hidden>→</li>
+                <li>
+                  {activeGame ? (
+                    <Link href="/products" className="hover:text-[var(--foreground)]">
+                      Accounts
+                    </Link>
+                  ) : (
+                    <span className="text-[var(--foreground)]" aria-current="page">
+                      Accounts
+                    </span>
+                  )}
+                </li>
+              </>
+            )}
+            {activeGame ? (
+              <>
+                <li aria-hidden>→</li>
                 <li className="text-[var(--foreground)]" aria-current="page">
                   {activeGame.name}
                 </li>
               </>
-            )}
+            ) : null}
           </ol>
         </nav>
 
-        <div className="mt-6 max-w-2xl">
-          {activeGame && !typeFilter && getGameImageUrl(activeGame) ? (
-            <div className="relative mb-5 aspect-[16/10] w-full max-w-sm overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)]">
-              <GameImage game={activeGame} variant="header" />
-            </div>
-          ) : null}
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            {activeGame && typeFilter
-              ? `${activeGame.name} — ${catalogTypeTitle(typeFilter)}`
-              : activeGame
-                ? `${activeGame.name} Accounts`
-                : catalogTypeTitle(typeFilter)}
-          </h1>
-          <p className="mt-3 text-[var(--muted)]">
-            {typeFilter === "TOP_UP"
-              ? "WhatsApp-only game top up listings."
-              : typeFilter
-                ? "Choose a game, then browse listings in this category."
-                : "Browse our available game accounts."}
-          </p>
-          <div className="mt-5">
-            <FindAccountCTA
-              games={games}
-              defaultGame={activeGame?.name || ""}
-              variant="secondary"
-              className="min-h-11 px-4 text-sm"
-            />
-          </div>
+        <div
+          className="mt-4 flex flex-wrap gap-2"
+          aria-label="Product type"
+        >
+          {CATALOG_TYPE_NAV.map((item) => {
+            const active = typeFilter === item.type;
+            return (
+              <Link
+                key={item.type}
+                href={storefrontCatalogHref({
+                  type: item.type,
+                  game: gameSlug || undefined,
+                })}
+                className={`inline-flex min-h-10 items-center rounded-full border px-3 py-1.5 text-sm font-medium ${
+                  active
+                    ? TYPE_NAV_ACTIVE[item.type]
+                    : "border-[var(--border)] bg-white text-[var(--muted-strong)] hover:border-[var(--accent)]"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-5">
+          <h1 className="home-dept-title">{pageTitle}</h1>
+          {activeGame && typeFilter ? (
+            <p className="mt-1 text-sm font-medium text-[var(--foreground)]">
+              {pageSubtitle}
+            </p>
+          ) : (
+            <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">
+              {pageSubtitle}
+            </p>
+          )}
         </div>
 
         <ActiveFilters chips={activeFilterChips} onClear={clearFilters} />
 
-        {typeFilter ? (
-          <div className="mt-8">
+        {activeGame && !typeFilter && gameScopedTypes.length > 0 ? (
+          <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {gameScopedTypes.map(({ type, listingCount }) => (
+              <Link
+                key={type}
+                href={storefrontCatalogHref({
+                  type,
+                  game: activeGame.slug,
+                })}
+                className={`rounded-xl border px-4 py-3 ${TYPE_NAV_ACTIVE[type]}`}
+              >
+                <p className="text-sm font-semibold">{catalogTypeTitle(type)}</p>
+                <p className="mt-1 text-xs opacity-80">
+                  {listingCount === 1
+                    ? type === "TOP_UP"
+                      ? "1 listing"
+                      : "1 account"
+                    : type === "TOP_UP"
+                      ? `${listingCount} listings`
+                      : `${listingCount} accounts`}
+                </p>
+              </Link>
+            ))}
+          </div>
+        ) : null}
+
+        {typeFilter && !gameSlug ? (
+          <div className="mt-5">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
               Choose a game
             </p>
             {typeScopedGames.length === 0 ? (
-              <p className="text-sm text-[var(--muted)]">
-                No games have available listings in this category yet.
-              </p>
-            ) : (
-              <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:overflow-visible sm:px-0">
-                <div className="flex gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
-                  {typeScopedGames.map(({ game, listingCount }) => (
-                    <div
-                      key={game.id}
-                      className={`w-[11.5rem] shrink-0 sm:w-auto ${
-                        gameSlug === game.slug
-                          ? "rounded-2xl ring-2 ring-[var(--accent-strong)]"
-                          : ""
-                      }`}
-                    >
-                      <GameCategoryCard
-                        game={game}
-                        accountCount={listingCount}
-                        href={storefrontCatalogHref({
-                          type: typeFilter as ProductType,
-                          game: game.slug,
-                        })}
-                        cta={
-                          typeFilter === "TOP_UP"
-                            ? "View top up"
-                            : "View accounts"
-                        }
-                        countLabel={
-                          listingCount === 1
-                            ? "1 listing"
-                            : `${listingCount} listings`
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : null}
-
-        <div className="mt-8 flex items-center justify-between gap-3 lg:hidden">
-          <p className="text-sm text-[var(--muted)]">
-            {products.length} account{products.length === 1 ? "" : "s"} found
-          </p>
-          <button
-            type="button"
-            onClick={() => setFilterOpen(true)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2.5 text-sm"
-            aria-expanded={filterOpen}
-            aria-controls="mobile-filters"
-          >
-            <FilterIcon />
-            Filters
-          </button>
-        </div>
-
-        <div className="mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 rounded-2xl border border-[var(--border)] bg-[var(--surface-card)]/80 p-5">
-              <h2 className="mb-5 text-sm font-semibold text-[var(--foreground)]">Filters</h2>
-              {filterPanel}
-            </div>
-          </aside>
-
-          <div className="min-w-0">
-            <p className="mb-6 hidden text-sm text-[var(--muted)] lg:block">
-              {products.length} account{products.length === 1 ? "" : "s"} found
-            </p>
-
-            {products.length === 0 && (
-              <div className="surface-card p-10 text-center sm:p-12">
-                <h2 className="text-xl font-semibold">No accounts found</h2>
-                <p className="mt-2 text-[var(--muted)]">
-                  Try changing your search or filters.
+              <div className="border border-dashed border-[var(--border)] bg-white px-4 py-6 text-center">
+                <p className="text-sm text-[var(--foreground)]">
+                  {catalogNoGamesForTypeMessage(selectedType)}
                 </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
-                  <button type="button" onClick={clearFilters} className="btn-secondary">
-                    Clear filters
-                  </button>
-                  <Link href="/products" className="btn-primary">
-                    Browse all accounts
-                  </Link>
-                </div>
+                {typeFilter === "TOP_UP" ? (
+                  <a
+                    href={WHATSAPP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-whatsapp mt-4 inline-flex min-h-11 px-4 text-sm"
+                  >
+                    Contact us on WhatsApp
+                  </a>
+                ) : (
+                  <div className="mt-4 flex justify-center">
+                    <FindAccountCTA
+                      games={games}
+                      variant="whatsapp"
+                      label="Contact us on WhatsApp"
+                      compact
+                    />
+                  </div>
+                )}
               </div>
-            )}
-
-            {products.length > 0 && (
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    gameNameById={gameNameById}
-                    stockSummary={stockSummaryByProductId?.[product.id]}
+            ) : (
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+                {typeScopedGames.map(({ game, listingCount }) => (
+                  <GameCategoryCard
+                    key={game.id}
+                    game={game}
+                    accountCount={listingCount}
+                    variant="tile"
+                    href={storefrontCatalogHref({
+                      type: selectedType,
+                      game: game.slug,
+                    })}
+                    cta={
+                      typeFilter === "TOP_UP" ? "View top up" : "Browse →"
+                    }
+                    countLabel={
+                      typeFilter === "TOP_UP"
+                        ? listingCount === 1
+                          ? "1 listing"
+                          : `${listingCount} listings`
+                        : listingCount === 1
+                          ? "1 account"
+                          : `${listingCount} accounts`
+                    }
                   />
                 ))}
               </div>
             )}
           </div>
-        </div>
+        ) : null}
+
+        {typeFilter && gameSlug ? (
+          <div className="mt-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              Choose a game
+            </p>
+            {typeScopedGames.length === 0 ? (
+              <div className="border border-dashed border-[var(--border)] bg-white px-4 py-6 text-center">
+                <p className="text-sm text-[var(--foreground)]">
+                  {catalogNoGamesForTypeMessage(selectedType)}
+                </p>
+                {typeFilter === "TOP_UP" ? (
+                  <a
+                    href={WHATSAPP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-whatsapp mt-4 inline-flex min-h-11 px-4 text-sm"
+                  >
+                    Contact us on WhatsApp
+                  </a>
+                ) : null}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {typeScopedGames.map(({ game }) => {
+                  const active = gameSlug === game.slug;
+                  return (
+                    <Link
+                      key={game.id}
+                      href={storefrontCatalogHref({
+                        type: selectedType,
+                        game: game.slug,
+                      })}
+                      className={`inline-flex min-h-10 items-center rounded-full border px-3 py-1.5 text-sm ${
+                        active
+                          ? "border-[var(--accent-strong)] bg-[var(--accent-strong)] text-white"
+                          : "border-[var(--border)] bg-white text-[var(--muted-strong)] hover:border-[var(--accent)]"
+                      }`}
+                    >
+                      {game.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {showProductGrid ? (
+          <>
+            <div className="mt-6 flex items-center gap-2 lg:hidden">
+              <p className="min-w-0 flex-1 truncate text-sm text-[var(--muted)]">
+                {listingCountLabel}
+              </p>
+              <label className="sr-only" htmlFor="mobile-product-sort">
+                Sort
+              </label>
+              <select
+                id="mobile-product-sort"
+                value={normalizedSort}
+                onChange={(event) => navigateFilters({ sort: event.target.value })}
+                className="min-h-11 max-w-[9.5rem] rounded-xl border border-[var(--border)] bg-white px-2 text-sm text-[var(--foreground)]"
+              >
+                <option value="newest">Newest</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => setFilterOpen(true)}
+                className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-3 py-2.5 text-sm"
+                aria-expanded={filterOpen}
+                aria-controls="mobile-filters"
+              >
+                <FilterIcon />
+                Filters
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+              <aside className="hidden lg:block">
+                <div className="sticky top-24 rounded-xl border border-[var(--border)] bg-white p-4">
+                  <h2 className="mb-4 text-sm font-semibold text-[var(--foreground)]">
+                    Filters
+                  </h2>
+                  {filterPanel}
+                </div>
+              </aside>
+
+              <div className="min-w-0">
+                <p className="mb-4 hidden text-sm text-[var(--muted)] lg:block">
+                  {listingCountLabel}
+                </p>
+
+                {products.length === 0 ? (
+                  <div className="border border-[var(--border)] bg-white px-4 py-8 text-center">
+                    {typeFilter && activeGame ? (
+                      <>
+                        <p className="text-sm text-[var(--foreground)]">
+                          {catalogNoListingsForGameMessage(
+                            selectedType,
+                            activeGame.name
+                          )}
+                        </p>
+                        <Link
+                          href={storefrontCatalogHref({ type: selectedType })}
+                          className="btn-secondary mt-4 inline-flex min-h-11 px-4 text-sm"
+                        >
+                          Browse other games
+                        </Link>
+                      </>
+                    ) : activeGame && !typeFilter ? (
+                      <>
+                        <p className="text-sm text-[var(--foreground)]">
+                          No listings are currently available for {activeGame.name}.
+                        </p>
+                        <Link
+                          href="/products"
+                          className="btn-secondary mt-4 inline-flex min-h-11 px-4 text-sm"
+                        >
+                          Browse other games
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <h2 className="text-base font-semibold">No accounts found</h2>
+                        <p className="mt-2 text-sm text-[var(--muted)]">
+                          Try changing your search or filters.
+                        </p>
+                        <div className="mt-5 flex flex-wrap justify-center gap-3">
+                          <button
+                            type="button"
+                            onClick={clearFilters}
+                            className="btn-secondary min-h-11"
+                          >
+                            Clear filters
+                          </button>
+                          <Link href="/products" className="btn-primary min-h-11">
+                            Browse all accounts
+                          </Link>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
+                    {products.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        gameNameById={gameNameById}
+                        stockSummary={stockSummaryByProductId?.[product.id]}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
 
       {filterOpen && (

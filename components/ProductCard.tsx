@@ -9,7 +9,13 @@ import {
   type CustomerStockDisplayLevel,
   type ProductStockSummary,
 } from "@/lib/inventory-stock";
-import { isWhatsAppOnlyProductType, normalizeProductType } from "@/lib/product-type";
+import {
+  getProductTypeLabel,
+  isWhatsAppOnlyProductType,
+  normalizeProductType,
+  storefrontPurchaseStateLabel,
+  type ProductType,
+} from "@/lib/product-type";
 import { ArrowRightIcon } from "@/components/icons";
 import type { Product } from "@/lib/types";
 
@@ -20,6 +26,12 @@ const BADGE_STYLES: Record<ProductBadge, string> = {
   SOLD_OUT: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
   ENDGAME: "bg-blue-50 text-blue-800 ring-1 ring-blue-200",
   REROLL: "bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200",
+  TOP_UP: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
+};
+
+const TYPE_BADGE_STYLES: Record<ProductType, string> = {
+  ENDGAME_ACCOUNT: "bg-blue-50 text-blue-800 ring-1 ring-blue-200",
+  REROLL_ACCOUNT: "bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200",
   TOP_UP: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
 };
 
@@ -64,6 +76,11 @@ function locationSummaryLine(product: Product): string | null {
   }
 
   return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+function shortDescription(value: string | null | undefined): string | null {
+  const text = value?.replace(/\s+/g, " ").trim();
+  return text ? text : null;
 }
 
 type ProductCardProps = {
@@ -111,9 +128,8 @@ export default function ProductCard({
   availableStock,
   stockSummary,
 }: ProductCardProps) {
-  const isTopUp = isWhatsAppOnlyProductType(
-    normalizeProductType(product.product_type)
-  );
+  const productType = normalizeProductType(product.product_type);
+  const isTopUp = isWhatsAppOnlyProductType(productType);
   const resolvedSummary = resolveSummary(stockSummary, availableStock);
   const stockDisplay = isTopUp
     ? resolveCustomerStockDisplay({
@@ -125,14 +141,24 @@ export default function ProductCard({
         productStatus: product.status,
         summary: resolvedSummary,
       });
+  const purchaseStateLabel = storefrontPurchaseStateLabel({
+    productType,
+    stockLabel: stockDisplay.label,
+    listed: product.status === "available",
+  });
   const resolvedGame = resolveGameName(product, gameName, gameNameById);
   const badges = getProductBadges(
     product,
     stockDisplay.availableCount,
     stockDisplay.inventoryManaged
   );
-  const summary = locationSummaryLine(product);
+  const overlayBadges = badges.filter(
+    (badge) => badge === "NEW" || badge === "SOLD_OUT"
+  );
+  const summary = isTopUp ? null : locationSummaryLine(product);
+  const blurb = shortDescription(product.description);
   const productHref = `/product/${product.slug}`;
+  const typeLabel = getProductTypeLabel(productType);
 
   return (
     <article className="product-card group flex h-full flex-col overflow-hidden">
@@ -146,7 +172,7 @@ export default function ProductCard({
               src={product.cover_image_url}
               alt={`${product.title}${resolvedGame ? ` — ${resolvedGame}` : ""}`}
               fill
-              sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 240px"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
               quality={PRODUCT_IMAGE_QUALITY}
               className="object-cover transition duration-200 ease-out group-hover:scale-[1.02] motion-reduce:transform-none"
               loading="lazy"
@@ -157,9 +183,9 @@ export default function ProductCard({
             </div>
           )}
 
-          {badges.length > 0 && (
+          {overlayBadges.length > 0 && (
             <div className="absolute left-1.5 top-1.5 flex flex-wrap gap-1 sm:left-2 sm:top-2">
-              {badges.map((badge) => (
+              {overlayBadges.map((badge) => (
                 <span
                   key={badge}
                   className={`rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:rounded-md sm:px-2 sm:text-[10px] ${BADGE_STYLES[badge]}`}
@@ -176,39 +202,55 @@ export default function ProductCard({
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-2 sm:p-4">
-        {resolvedGame && (
-          <span className="inline-flex max-w-full truncate rounded-full bg-[var(--accent-soft)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--accent-strong)] ring-1 ring-blue-200 sm:px-2 sm:text-[10px]">
-            {resolvedGame}
-          </span>
-        )}
+      <div className="flex flex-1 flex-col p-2.5 sm:p-3.5">
+        <span
+          className={`inline-flex w-fit max-w-full truncate rounded-md px-1.5 py-0.5 text-[10px] font-semibold sm:px-2 sm:text-[11px] ${TYPE_BADGE_STYLES[productType]}`}
+        >
+          {typeLabel}
+        </span>
 
-        <Link href={productHref} className="mt-1 block sm:mt-2">
-          <h3 className="line-clamp-2 text-[11px] font-semibold leading-snug text-[var(--foreground)] transition duration-200 group-hover:text-[var(--accent-strong)] sm:text-sm md:text-base">
+        {resolvedGame ? (
+          <p className="mt-1.5 truncate text-[10px] font-medium uppercase tracking-wide text-[var(--muted)] sm:text-xs">
+            {resolvedGame}
+          </p>
+        ) : null}
+
+        <Link href={productHref} className="mt-1 block">
+          <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-[var(--foreground)] transition duration-200 group-hover:text-[var(--accent-strong)] sm:text-sm">
             {product.title}
           </h3>
         </Link>
 
-        {summary && (
+        {summary ? (
           <p className="mt-1 hidden text-xs font-medium text-[var(--muted)] sm:block">
             {summary}
           </p>
-        )}
+        ) : null}
 
-        <div className="mt-auto pt-2 sm:pt-4">
-          <p className="text-sm font-bold tracking-tight text-[var(--accent-strong)] sm:text-xl md:text-2xl">
+        {blurb ? (
+          <p className="mt-1 hidden text-xs leading-snug text-[var(--muted)] sm:line-clamp-2 sm:block">
+            {blurb}
+          </p>
+        ) : null}
+
+        <div className="mt-auto pt-2 sm:pt-3">
+          <p className="text-base font-bold tracking-tight text-[var(--accent-strong)] sm:text-xl">
             {formatPrice(Number(product.price), product.currency)}
           </p>
 
           <span
-            className={`mt-1 inline-flex max-w-full truncate rounded-full px-1.5 py-0.5 text-[9px] font-medium ring-1 sm:mt-2 sm:px-2.5 sm:py-1 sm:text-[11px] ${STOCK_BADGE_STYLES[stockDisplay.level]}`}
+            className={`mt-1 inline-flex max-w-full truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 sm:mt-1.5 sm:px-2.5 sm:py-1 sm:text-[11px] ${
+              isTopUp
+                ? "bg-emerald-50 text-emerald-800 ring-emerald-200"
+                : STOCK_BADGE_STYLES[stockDisplay.level]
+            }`}
           >
-            {stockDisplay.label}
+            {purchaseStateLabel}
           </span>
 
           <Link
             href={productHref}
-            className="btn-primary mt-2 hidden min-h-11 w-full gap-1.5 px-3 py-2 sm:mt-4 sm:inline-flex"
+            className="btn-primary mt-2 hidden min-h-11 w-full gap-1.5 px-3 py-2 sm:mt-3 sm:inline-flex"
           >
             {isTopUp ? "View Top Up" : "View Account"}
             <ArrowRightIcon className="h-4 w-4 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none" />

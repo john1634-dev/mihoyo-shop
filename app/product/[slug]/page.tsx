@@ -32,7 +32,14 @@ import {
   resolveCustomerStockDisplay,
   resolveCustomerStockDisplayFromSummary,
 } from "@/lib/inventory-stock";
-import { isWhatsAppOnlyProductType, normalizeProductType } from "@/lib/product-type";
+import {
+  catalogTypeTitle,
+  getPdpProductTypeLabel,
+  isWhatsAppOnlyProductType,
+  normalizeProductType,
+  storefrontCatalogHref,
+  storefrontPurchaseStateLabel,
+} from "@/lib/product-type";
 import type { Metadata } from "next";
 import type { Product } from "@/lib/types";
 
@@ -222,6 +229,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     );
   }
 
+  const typedProduct = product as Product;
+  const productType = normalizeProductType(typedProduct.product_type);
+  const isTopUp = isWhatsAppOnlyProductType(productType);
+  const isReroll = productType === "REROLL_ACCOUNT";
+
   const [{ data: images }, { data: game }, relatedResult, { data: navGames }] =
     await Promise.all([
       supabase
@@ -237,14 +249,24 @@ export default async function ProductPage({ params }: ProductPageProps) {
             .maybeSingle()
         : Promise.resolve({ data: null }),
       product.game_id
-        ? supabase
-            .from("products")
-            .select(productSelect)
-            .eq("game_id", product.game_id)
-            .eq("status", "available")
-            .neq("id", product.id)
-            .order("created_at", { ascending: false })
-            .limit(4)
+        ? productSelect.includes("product_type")
+          ? supabase
+              .from("products")
+              .select(productSelect)
+              .eq("game_id", product.game_id)
+              .eq("product_type", productType)
+              .eq("status", "available")
+              .neq("id", product.id)
+              .order("created_at", { ascending: false })
+              .limit(4)
+          : supabase
+              .from("products")
+              .select(productSelect)
+              .eq("game_id", product.game_id)
+              .eq("status", "available")
+              .neq("id", product.id)
+              .order("created_at", { ascending: false })
+              .limit(4)
         : Promise.resolve({ data: [] as Product[] }),
       supabase
         .from("games")
@@ -253,15 +275,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
         .order("sort_order", { ascending: true }),
     ]);
 
-  const related = (relatedResult.data || []) as Product[];
+  const related = ((relatedResult.data || []) as Product[]).filter(
+    (item) => normalizeProductType(item.product_type) === productType
+  );
   const relatedStockSummaryByProductId = await fetchProductStockSummaryMap(
     related.map((item) => item.id)
   );
 
-  const typedProduct = product as Product;
-  const isTopUp = isWhatsAppOnlyProductType(
-    normalizeProductType(typedProduct.product_type)
-  );
   const productStockSummary = await fetchProductStockSummaryMap([product.id]);
   const stockSummary = productStockSummary[product.id];
   const availableStock = stockSummary?.available_count ?? 0;
@@ -301,6 +321,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
     (product as Product).region_code
   );
   const regionLabel = getRegionLabel(regionCode);
+  const purchaseStateLabel = storefrontPurchaseStateLabel({
+    productType,
+    stockLabel: stockDisplay.label,
+    listed: isListed,
+  });
+  const typeLabel = getPdpProductTypeLabel(productType);
+  const showAccountFacts =
+    !isTopUp &&
+    Boolean(product.server || product.ar_level != null || regionCode);
   const canonical = `${SITE_URL.replace(/\/$/, "")}/product/${slug}`;
   const metaDescription = buildProductMetaDescription({
     title: product.title,
@@ -315,9 +344,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const breadcrumbItems = [
     { name: "Home", path: "/" },
-    { name: "Accounts", path: "/products" },
+    {
+      name: catalogTypeTitle(productType),
+      path: storefrontCatalogHref({ type: productType }),
+    },
     ...(game
-      ? [{ name: game.name, path: `/products?game=${game.slug}` }]
+      ? [
+          {
+            name: game.name,
+            path: storefrontCatalogHref({
+              type: productType,
+              game: game.slug,
+            }),
+          },
+        ]
       : []),
     { name: product.title, path: `/product/${slug}` },
   ];
@@ -372,43 +412,69 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </ol>
         </nav>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-10 xl:gap-12">
-          <ProductGallery title={product.title} images={galleryImages} />
+        <div className="mt-5 grid gap-6 lg:grid-cols-2 lg:gap-10 xl:gap-12">
+          <div className="order-2 min-w-0 lg:order-1">
+            <ProductGallery title={product.title} images={galleryImages} />
+          </div>
 
-          <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+          <div className="order-1 min-w-0 lg:order-2 lg:sticky lg:top-24 lg:self-start">
             <div className="product-info-panel">
-              {game && (
+              {game ? (
                 <Link
-                  href={`/products?game=${game.slug}`}
+                  href={storefrontCatalogHref({
+                    type: productType,
+                    game: game.slug,
+                  })}
                   className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)] transition duration-200 hover:text-[var(--accent-strong)]"
                 >
                   {game.name}
                 </Link>
-              )}
+              ) : null}
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span
                   className={
-                    stockDisplay.level === "in_stock" ||
-                    stockDisplay.level === "manual_available"
-                      ? "inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200"
-                      : stockDisplay.level === "low_stock"
-                        ? "inline-flex rounded-md bg-amber-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800 ring-1 ring-amber-200"
-                        : "inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-600 ring-1 ring-slate-200"
+                    isTopUp
+                      ? "inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 ring-1 ring-emerald-200"
+                      : isReroll
+                        ? "inline-flex rounded-md bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-800 ring-1 ring-indigo-200"
+                        : "inline-flex rounded-md bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-800 ring-1 ring-blue-200"
                   }
                 >
-                  {stockDisplay.label}
+                  {typeLabel}
+                </span>
+                <span
+                  className={
+                    isTopUp
+                      ? "inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 ring-1 ring-emerald-200"
+                      : stockDisplay.level === "in_stock" ||
+                          stockDisplay.level === "manual_available"
+                        ? "inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200"
+                        : stockDisplay.level === "low_stock"
+                          ? "inline-flex rounded-md bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200"
+                          : "inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200"
+                  }
+                >
+                  {purchaseStateLabel}
                 </span>
               </div>
 
-              <h1 className="mt-4 line-clamp-3 text-2xl font-bold leading-tight tracking-tight text-[var(--foreground)] sm:text-3xl lg:line-clamp-none lg:text-4xl">
+              <h1 className="mt-3 line-clamp-3 text-xl font-bold leading-tight tracking-tight text-[var(--foreground)] sm:text-3xl lg:line-clamp-none lg:text-4xl">
                 {product.title}
               </h1>
 
-              {(product.server ||
-                product.ar_level != null ||
-                regionCode) && (
-                <div className="mt-5 grid grid-cols-2 gap-2 sm:max-w-sm">
+              {isTopUp ? (
+                <p className="mt-2 text-sm font-medium text-emerald-800">
+                  Purchased through WhatsApp
+                </p>
+              ) : isReroll ? (
+                <p className="mt-2 text-sm text-[var(--muted)]">
+                  Fresh-start reroll account.
+                </p>
+              ) : null}
+
+              {showAccountFacts ? (
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:max-w-sm">
                   {product.ar_level != null && (
                     <div className="summary-chip">
                       <span className="summary-chip-label">Level</span>
@@ -432,19 +498,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     </div>
                   )}
                 </div>
-              )}
+              ) : null}
 
-              <p className="product-price mt-6">
+              <p className="product-price mt-4">
                 {formatPrice(Number(product.price), listingCurrency)}
               </p>
-              <p className="mt-2 text-sm font-medium text-[var(--muted-strong)]">
-                {stockDisplay.label}
-              </p>
-              <p className="mt-1 text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
-                {listingCurrency}
+              <p className="mt-1 text-sm font-medium text-[var(--muted-strong)]">
+                {purchaseStateLabel}
               </p>
 
-              <div className="mt-6 hidden lg:block">
+              <div className="mt-5">
                 <PurchaseButtons
                   product={typedProduct}
                   gameName={game?.name}
@@ -458,28 +521,31 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <ul className="mt-5 space-y-2 text-xs leading-relaxed text-[var(--muted)] sm:text-sm">
                 {isTopUp ? (
                   <>
-                    <li>Top up is fulfilled manually after you message us on WhatsApp.</li>
-                    <li>Please include your game UID and server in the chat.</li>
-                    <li>Card checkout and Shopee are not used for top up listings.</li>
+                    <li>WhatsApp order — we confirm the package with you in chat.</li>
+                    <li>Manual confirmation. Please include your game UID and server.</li>
+                    <li>Game top up support via WhatsApp. Not automatic delivery.</li>
                   </>
                 ) : (
                   <>
-                    <li>Delivery is manual after confirmed purchase — not instant.</li>
-                    <li>Pay by card (Stripe), Shopee, or continue on WhatsApp.</li>
-                    <li>After-sales help is available via WhatsApp after your purchase.</li>
+                    <li>Account delivery is manual after confirmed purchase — not instant.</li>
+                    <li>Secure checkout by card (Stripe), Shopee, or WhatsApp.</li>
+                    <li>After-sales support is available via WhatsApp after your purchase.</li>
                   </>
                 )}
               </ul>
 
-              <div className="mt-5">
-                <FindAccountCTA
-                  games={navGames || []}
-                  defaultGame={game?.name || ""}
-                  variant="secondary"
-                  className="w-full min-h-11 px-4 text-sm"
-                  label="Looking for something else?"
-                />
-              </div>
+              {!isTopUp ? (
+                <div className="mt-5">
+                  <FindAccountCTA
+                    games={navGames || []}
+                    defaultGame={game?.name || ""}
+                    variant="secondary"
+                    compact
+                    className="w-full"
+                    label="Looking for something else?"
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -496,12 +562,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
         )}
 
         {related.length > 0 && (
-          <section className="mt-14 border-t border-[var(--border)] pt-10">
-            <h2 className="section-title">Related accounts</h2>
-            <p className="section-subtitle">
-              More available listings from {game?.name || "this game"}
+          <section className="mt-10 border-t border-[var(--border)] pt-8">
+            <h2 className="home-dept-title">
+              {isTopUp ? "More top up" : "Related accounts"}
+            </h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              More {game?.name || "this game"} {catalogTypeTitle(productType).toLowerCase()}
             </p>
-            <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
               {related.map((item) => (
                 <ProductCard
                   key={item.id}

@@ -14,6 +14,7 @@ import {
   normalizeRegionCode,
 } from "@/lib/catalog-meta";
 import { parseStorefrontProductTypeFilter } from "@/lib/product-type";
+import { buildListingCountsByGame } from "@/lib/catalog-filters";
 import type { Game, Product } from "@/lib/types";
 
 export const GAME_PUBLIC_SELECT =
@@ -338,20 +339,11 @@ export function buildAccountCounts(
   return counts;
 }
 
-/** Count available listings per game (one product row = one listing). */
-export function buildListingCountsByGame(
-  products: Product[]
-): Record<string, number> {
-  const counts: Record<string, number> = {};
-
-  for (const product of products) {
-    if (!product.game_id) continue;
-    if (product.status !== "available") continue;
-    counts[product.game_id] = (counts[product.game_id] || 0) + 1;
-  }
-
-  return counts;
-}
+export {
+  buildListingCountsByGame,
+  filterAvailableProductsByTypeAndGame,
+  typesWithAvailableListings,
+} from "@/lib/catalog-filters";
 
 export function gamesWithAvailableListings(
   games: Game[],

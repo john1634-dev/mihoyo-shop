@@ -42,6 +42,24 @@ export function getProductTypeLabel(type: ProductType): string {
   }
 }
 
+/** PDP heading — Top Up uses the fuller "Game Top Up" phrase. */
+export function getPdpProductTypeLabel(type: ProductType): string {
+  if (type === "TOP_UP") return "Game Top Up";
+  return getProductTypeLabel(type);
+}
+
+/** Purchase-state copy for cards/PDP — does not change inventory math. */
+export function storefrontPurchaseStateLabel(input: {
+  productType: ProductType;
+  stockLabel: string;
+  listed: boolean;
+}): string {
+  if (isWhatsAppOnlyProductType(input.productType)) {
+    return input.listed ? "WhatsApp Only" : "Unavailable";
+  }
+  return input.stockLabel;
+}
+
 export function isAccountProductType(type: ProductType): boolean {
   return type === "ENDGAME_ACCOUNT" || type === "REROLL_ACCOUNT";
 }
@@ -76,6 +94,12 @@ export function storefrontProductTypeHref(type: ProductType): string {
   return `/products?type=${encodeURIComponent(type)}`;
 }
 
+/** Existing `games.slug` query value — trim only, no second slug system. */
+export function parseStorefrontGameSlug(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value.trim();
+}
+
 /** Shareable catalog URL using existing `type` + `game` slug query params. */
 export function storefrontCatalogHref(input: {
   type?: ProductType | "";
@@ -83,9 +107,49 @@ export function storefrontCatalogHref(input: {
 }): string {
   const params = new URLSearchParams();
   const type = parseStorefrontProductTypeFilter(input.type);
-  const game = input.game?.trim() || "";
+  const game = parseStorefrontGameSlug(input.game);
   if (type) params.set("type", type);
   if (game) params.set("game", game);
   const query = params.toString();
   return query ? `/products?${query}` : "/products";
 }
+
+export function catalogTypeTitle(type: ProductType | string): string {
+  const resolved = parseStorefrontProductTypeFilter(type);
+  if (resolved === "TOP_UP") return "Game Top Up";
+  if (resolved === "ENDGAME_ACCOUNT") return "Endgame Accounts";
+  if (resolved === "REROLL_ACCOUNT") return "Reroll Accounts";
+  return "Game Accounts";
+}
+
+export function catalogTypeLandingPrompt(type: ProductType): string {
+  switch (type) {
+    case "REROLL_ACCOUNT":
+      return "Choose a game to find a fresh-start account.";
+    case "TOP_UP":
+      return "Choose your game and contact us on WhatsApp to top up.";
+    default:
+      return "Choose a game to find the account you're looking for.";
+  }
+}
+
+export function catalogNoGamesForTypeMessage(type: ProductType): string {
+  if (type === "TOP_UP") return "No top up listings are available yet.";
+  return `No ${catalogTypeTitle(type)} are available yet.`;
+}
+
+export function catalogNoListingsForGameMessage(
+  type: ProductType,
+  gameName: string
+): string {
+  return `No ${catalogTypeTitle(type)} are currently available for ${gameName}.`;
+}
+
+export const CATALOG_TYPE_NAV: Array<{
+  type: ProductType;
+  label: string;
+}> = [
+  { type: "ENDGAME_ACCOUNT", label: "Endgame Accounts" },
+  { type: "REROLL_ACCOUNT", label: "Reroll Accounts" },
+  { type: "TOP_UP", label: "Top Up" },
+];

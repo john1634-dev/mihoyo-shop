@@ -71,7 +71,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
   return (
     <>
       <div className="space-y-3 sm:space-y-4">
-        <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] shadow-[var(--shadow-card)]">
+        <div className="group relative aspect-[16/10] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] shadow-[var(--shadow-card)] lg:aspect-[4/3]">
           <button
             type="button"
             onClick={() => setLightboxOpen(true)}

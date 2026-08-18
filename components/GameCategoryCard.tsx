@@ -1,6 +1,7 @@
 import Link from "next/link";
 import GameImage from "@/components/GameImage";
 import { ArrowRightIcon } from "@/components/icons";
+import { getGameImageUrl } from "@/lib/games";
 import type { Game } from "@/lib/types";
 
 type GameCategoryCardProps = {
@@ -10,6 +11,8 @@ type GameCategoryCardProps = {
   cta?: string;
   countLabel?: string;
   compact?: boolean;
+  variant?: "media" | "tile";
+  selected?: boolean;
 };
 
 export default function GameCategoryCard({
@@ -19,6 +22,8 @@ export default function GameCategoryCard({
   cta = "Browse accounts",
   countLabel,
   compact = false,
+  variant = "media",
+  selected = false,
 }: GameCategoryCardProps) {
   const hasStock = accountCount > 0;
   const listingLabel =
@@ -28,11 +33,51 @@ export default function GameCategoryCard({
       : accountCount === 1
         ? "1 Account Available"
         : `${accountCount} Accounts Available`);
+  const targetHref = href || `/products?game=${game.slug}`;
+
+  if (variant === "tile") {
+    const thumb = getGameImageUrl(game);
+    return (
+      <Link
+        href={targetHref}
+        className={`game-card flex h-full min-h-[5.75rem] items-center gap-3 rounded-xl bg-white p-3 ${
+          selected ? "ring-2 ring-[var(--accent-strong)]" : ""
+        }`}
+      >
+        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[var(--surface-muted)] sm:h-14 sm:w-14">
+          {thumb ? (
+            <GameImage
+              game={game}
+              variant="card"
+              sizes="56px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm font-bold text-[var(--accent-strong)]">
+              {game.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-sm font-semibold text-[var(--foreground)] sm:text-[15px]">
+            {game.name}
+          </h3>
+          <p className="mt-0.5 text-xs text-[var(--muted)]">{listingLabel}</p>
+          <span className="mt-1 inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-[var(--accent-strong)]">
+            {cta}
+            <ArrowRightIcon className="h-3.5 w-3.5" />
+          </span>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link
-      href={href || `/products?game=${game.slug}`}
-      className={`game-card group relative block overflow-hidden ${compact ? "rounded-xl" : "rounded-2xl"}`}
+      href={targetHref}
+      className={`game-card group relative block overflow-hidden ${compact ? "rounded-xl" : "rounded-2xl"} ${
+        selected ? "ring-2 ring-[var(--accent-strong)]" : ""
+      }`}
     >
       <div
         className={`relative overflow-hidden ${compact ? "aspect-[16/10]" : "aspect-[4/3]"}`}

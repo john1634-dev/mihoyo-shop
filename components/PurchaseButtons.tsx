@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   buildProductWhatsAppMessage,
   buildTopUpWhatsAppMessage,
   buildWhatsAppUrl,
-  formatPrice,
   resolveShopeeUrl,
 } from "@/lib/config";
 import { ShopeeIcon, WhatsAppIcon } from "@/components/icons";
@@ -68,11 +67,6 @@ export default function PurchaseButtons({
       active = false;
     };
   }, []);
-
-  const priceLabel = useMemo(
-    () => formatPrice(Number(product.price), product.currency || "MYR"),
-    [product.price, product.currency]
-  );
 
   if (!available) {
     return (
@@ -165,10 +159,10 @@ export default function PurchaseButtons({
           target="_blank"
           rel="noopener noreferrer"
           className={`btn-whatsapp ${pad}`}
-          aria-label="Order this top up on WhatsApp"
+          aria-label="Order on WhatsApp"
         >
           <WhatsAppIcon />
-          Order on WhatsApp — {priceLabel}
+          Order via WhatsApp
         </a>
       </div>
     );
@@ -186,7 +180,7 @@ export default function PurchaseButtons({
             }}
             className={`btn-primary ${pad} ${layout === "row" ? "sm:col-span-2" : ""}`}
           >
-            Buy with Card — {priceLabel}
+            Buy Now
           </button>
 
           {showCardForm && (

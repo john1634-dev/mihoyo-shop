@@ -5,6 +5,7 @@ import {
   fetchFilteredProducts,
   gamesWithAvailableListings,
   normalizeProductSort,
+  typesWithAvailableListings,
 } from "@/lib/catalog-server";
 import { fetchProductStockSummaryMap } from "@/lib/catalog-stock-server";
 import {
@@ -12,7 +13,10 @@ import {
   normalizeRegionCode,
 } from "@/lib/catalog-meta";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/config";
-import { parseStorefrontProductTypeFilter } from "@/lib/product-type";
+import {
+  parseStorefrontGameSlug,
+  parseStorefrontProductTypeFilter,
+} from "@/lib/product-type";
 import { OG_IMAGE_PATH, absoluteUrl, productsHasActiveFilters } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -71,7 +75,7 @@ export async function generateMetadata({
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const params = await searchParams;
 
-  const gameSlug = params.game?.trim() || "";
+  const gameSlug = parseStorefrontGameSlug(params.game);
   const searchQuery = params.q?.trim() || "";
   const sort = normalizeProductSort(params.sort?.trim());
   const statusFilter = params.status?.trim() || "available";
@@ -81,22 +85,32 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     : "";
   const serverFilter = params.server?.trim() || "";
   const typeFilter = parseStorefrontProductTypeFilter(params.type);
+  const hasRefineFilters = Boolean(
+    searchQuery ||
+      regionCode ||
+      currencyCode ||
+      serverFilter ||
+      statusFilter !== "available"
+  );
+  const needsProductGrid = !typeFilter || Boolean(gameSlug) || hasRefineFilters;
 
   const games = await fetchActiveGames();
   const [products, typeAvailableProducts] = await Promise.all([
-    fetchFilteredProducts(
-      {
-        game: gameSlug,
-        q: searchQuery,
-        sort,
-        status: statusFilter,
-        region: regionCode || undefined,
-        currency: currencyCode || undefined,
-        server: serverFilter || undefined,
-        type: typeFilter || undefined,
-      },
-      games
-    ),
+    needsProductGrid
+      ? fetchFilteredProducts(
+          {
+            game: gameSlug,
+            q: searchQuery,
+            sort,
+            status: statusFilter,
+            region: regionCode || undefined,
+            currency: currencyCode || undefined,
+            server: serverFilter || undefined,
+            type: typeFilter || undefined,
+          },
+          games
+        )
+      : Promise.resolve([]),
     typeFilter
       ? fetchFilteredProducts(
           {
@@ -111,6 +125,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const typeScopedGames = typeFilter
     ? gamesWithAvailableListings(games, typeAvailableProducts)
     : [];
+  const gameScopedTypes =
+    gameSlug && !typeFilter ? typesWithAvailableListings(products) : [];
   const stockSummaryByProductId = await fetchProductStockSummaryMap(
     products.map((product) => product.id)
   );
@@ -129,6 +145,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       serverFilter={serverFilter}
       typeFilter={typeFilter}
       typeScopedGames={typeScopedGames}
+      gameScopedTypes={gameScopedTypes}
     />
   );
 }
