@@ -99,7 +99,7 @@ function AccountOrdersContent() {
         )}
 
         {!loading && !error && orders.length === 0 && (
-          <div className="mt-8 rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-8 text-center">
+          <div className="mt-8 rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)]/70 p-8 text-center">
             <p className="text-[var(--muted-strong)]">No card checkout orders yet.</p>
             <Link href="/products" className="btn-primary mt-5 inline-flex">
               Browse accounts
@@ -113,7 +113,7 @@ function AccountOrdersContent() {
             return (
               <article
                 key={order.id}
-                className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-5"
+                className="rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)]/70 p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>

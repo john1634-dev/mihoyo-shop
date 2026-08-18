@@ -80,7 +80,7 @@ function AccountContent() {
           </div>
         ) : (
           <div className="mt-10 space-y-5">
-            <section className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-6">
+            <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)]/70 p-6">
               <h2 className="text-lg font-semibold">Profile</h2>
               <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                 <div>
@@ -108,7 +108,7 @@ function AccountContent() {
               </dl>
             </section>
 
-            <section className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-6">
+            <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)]/70 p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold">Orders</h2>
@@ -125,7 +125,7 @@ function AccountContent() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-6">
+            <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)]/70 p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold">Wishlist</h2>
@@ -142,7 +142,7 @@ function AccountContent() {
               </div>
             </section>
 
-            <section className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]/70 p-6">
+            <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)]/70 p-6">
               <h2 className="text-lg font-semibold">Need help?</h2>
               <p className="mt-2 text-sm text-[var(--muted)]">
                 Contact us on WhatsApp for availability and purchase support.

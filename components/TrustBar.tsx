@@ -27,7 +27,7 @@ export default function TrustBar() {
   return (
     <section
       aria-label="Trust highlights"
-      className="border-y border-[var(--border)] bg-white"
+      className="border-y border-[var(--border)] bg-[var(--surface-card)]"
     >
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-2.5 px-4 py-4 md:px-6 lg:grid-cols-4 lg:gap-4 lg:py-4">
         {TRUST_ITEMS.map(({ title, description, Icon }) => (

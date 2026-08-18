@@ -40,7 +40,7 @@ export default function GameCategoryCard({
     return (
       <Link
         href={targetHref}
-        className={`game-card flex h-full min-h-[5.75rem] items-center gap-3 rounded-xl bg-white p-3 ${
+        className={`game-card flex h-full min-h-[5.75rem] items-center gap-3 rounded-xl bg-[var(--surface-card)] p-3 ${
           selected ? "ring-2 ring-[var(--accent-strong)]" : ""
         }`}
       >
@@ -105,7 +105,7 @@ export default function GameCategoryCard({
               </p>
             </div>
             {hasStock && (
-              <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 ring-1 ring-emerald-200">
+              <span className="shrink-0 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-200 ring-1 ring-emerald-400/25">
                 Live
               </span>
             )}

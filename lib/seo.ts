@@ -96,7 +96,7 @@ export function buildProductMetaDescription(fields: ProductSeoFields): string {
   segments.push(
     isTopUp
       ? "Order via WhatsApp."
-      : "Pay securely by card through Stripe, or purchase via Shopee or WhatsApp."
+      : "Pay securely by card through Stripe, or enquire on WhatsApp."
   );
 
   const built = segments.join(" ").replace(/\s+/g, " ").trim();

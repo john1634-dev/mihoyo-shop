@@ -36,6 +36,43 @@ export const SUPPLIER_INTERNAL_PRODUCT_FIELDS = [
   "sync_error",
 ] as const;
 
+/**
+ * Strip supplier-originated headers/HTML before public display.
+ * Does not mutate stored Admin/supplier descriptions.
+ */
+export function sanitizePublicProductDescription(
+  value: string | null | undefined
+): string | null {
+  if (!value) return null;
+
+  let text = value.replace(/\r\n/g, "\n");
+  text = text
+    .split("\n")
+    .filter((line) => !/^\s*original\s+supplier\s+title\s*:/i.test(line.trim()))
+    .join("\n");
+  text = text.replace(/<script[\s\S]*?<\/script>/gi, " ");
+  text = text.replace(/<style[\s\S]*?<\/style>/gi, " ");
+  text = text.replace(/<[^>]+>/g, " ");
+  text = text.replace(/!\[[^\]]*]\([^)]+\)/g, " ");
+  text = text.replace(/https?:\/\/\S+\.(?:jpg|jpeg|png|gif|webp|svg)(\?\S*)?/gi, " ");
+  text = text.replace(/(?:\.\.\/)+images\/\S+/gi, " ");
+  text = text.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+
+  if (!text) return null;
+  if (!/[A-Za-z0-9\u00C0-\u024F\u4e00-\u9fff]/.test(text)) return null;
+  return text;
+}
+
+export function withSanitizedPublicDescription<
+  T extends { description?: string | null },
+>(product: T | null): T | null {
+  if (!product) return null;
+  return {
+    ...product,
+    description: sanitizePublicProductDescription(product.description),
+  };
+}
+
 const NEW_PRODUCT_DAYS = 7;
 const RECOMMENDED_LIMIT = 8;
 const JUST_ADDED_LIMIT = 8;

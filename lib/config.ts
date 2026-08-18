@@ -1,7 +1,7 @@
 export const SITE_NAME = "Baitu Games";
 export const SITE_TAGLINE = "Premium Game Accounts";
 export const SITE_DESCRIPTION =
-  "Browse premium game accounts and game top up for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and Wuthering Waves. Pay securely by card through Stripe, or purchase via Shopee or WhatsApp.";
+  "Browse premium game accounts and game top up for Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and Wuthering Waves. Pay securely by card through Stripe, or enquire on WhatsApp.";
 
 /** Canonical production origin — used when env is missing or invalid in production builds. */
 export const PRODUCTION_SITE_URL = "https://www.baitugames.com";

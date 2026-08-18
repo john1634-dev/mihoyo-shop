@@ -56,11 +56,11 @@ function AuthCallbackForm() {
       </div>
 
       {status === "loading" ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-white p-8 text-center text-[var(--muted)] shadow-[var(--shadow-card)]">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] p-8 text-center text-[var(--muted)] shadow-[var(--shadow-card)]">
           Confirming your account...
         </div>
       ) : (
-        <div className="rounded-2xl border border-[var(--border)] bg-white p-8 shadow-[var(--shadow-card)]">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] p-8 shadow-[var(--shadow-card)]">
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
             {error}
           </div>

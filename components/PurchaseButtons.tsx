@@ -5,9 +5,8 @@ import {
   buildProductWhatsAppMessage,
   buildTopUpWhatsAppMessage,
   buildWhatsAppUrl,
-  resolveShopeeUrl,
 } from "@/lib/config";
-import { ShopeeIcon, WhatsAppIcon } from "@/components/icons";
+import { WhatsAppIcon } from "@/components/icons";
 import { getAccessToken } from "@/lib/auth";
 import {
   isWhatsAppOnlyProductType,
@@ -32,7 +31,7 @@ type PurchaseButtonsProps = {
   available: boolean;
   layout?: "stack" | "row";
   size?: "sm" | "md" | "lg";
-  /** full = Card + Shopee + WhatsApp; marketplace = Shopee + WhatsApp only (mobile sticky). */
+  /** full = Card + WhatsApp; marketplace = compact Card + WhatsApp (mobile sticky). */
   mode?: "full" | "marketplace";
   className?: string;
 };
@@ -55,6 +54,7 @@ export default function PurchaseButtons({
   const whatsappOnly = isWhatsAppOnlyProductType(
     normalizeProductType(product.product_type)
   );
+  const compact = mode === "marketplace";
 
   useEffect(() => {
     let active = true;
@@ -94,8 +94,6 @@ export default function PurchaseButtons({
       ? buildTopUpWhatsAppMessage(whatsappInfo)
       : buildProductWhatsAppMessage(whatsappInfo)
   );
-
-  const shopeeHref = resolveShopeeUrl(product.shopee_url);
 
   const pad =
     size === "lg"
@@ -170,77 +168,63 @@ export default function PurchaseButtons({
 
   return (
     <div className={`${wrap} ${className}`}>
-      {mode === "full" ? (
-        <>
-          <button
-            type="button"
-            onClick={() => {
-              setShowCardForm((open) => !open);
-              setError("");
-            }}
-            className={`btn-primary ${pad} ${layout === "row" ? "sm:col-span-2" : ""}`}
-          >
-            Buy Now
-          </button>
-
-          {showCardForm && (
-            <form
-              onSubmit={startCardCheckout}
-              className={`space-y-2 rounded-xl border border-[var(--border)] bg-white p-3 shadow-[var(--shadow-card)] sm:p-4 ${
-                layout === "row" ? "sm:col-span-2" : ""
-              }`}
-            >
-              <p className="text-xs leading-relaxed text-[var(--muted)]">
-                Payment confirms your order. We source and verify the account after
-                payment — delivery is manual, not instant.
-              </p>
-              {loggedInEmail ? (
-                <p className="text-xs text-[var(--muted-strong)]">
-                  Receipt email: <span className="font-medium">{loggedInEmail}</span>
-                </p>
-              ) : (
-                <>
-                  <label
-                    className="block text-xs font-medium text-[var(--muted-strong)]"
-                    htmlFor={`card-email-${product.id}`}
-                  >
-                    Email for receipt
-                  </label>
-                  <input
-                    id={`card-email-${product.id}`}
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@email.com"
-                    className="w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
-                    autoComplete="email"
-                    required
-                  />
-                </>
-              )}
-              {error ? <p className="text-xs text-red-400">{error}</p> : null}
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary w-full disabled:opacity-60"
-              >
-                {loading ? "Redirecting to Stripe…" : "Continue to secure checkout"}
-              </button>
-            </form>
-          )}
-        </>
-      ) : null}
-
-      <a
-        href={shopeeHref}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`btn-shopee ${pad}`}
-        aria-label="Buy on Shopee"
+      <button
+        type="button"
+        onClick={() => {
+          setShowCardForm((open) => !open);
+          setError("");
+        }}
+        className={`btn-primary ${pad}`}
       >
-        <ShopeeIcon />
-        Buy on Shopee
-      </a>
+        Buy Now
+      </button>
+
+      {showCardForm && (
+        <form
+          onSubmit={startCardCheckout}
+          className={`space-y-2 rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] p-3 shadow-[var(--shadow-card)] sm:p-4 ${
+            layout === "row" ? "sm:col-span-2" : ""
+          } ${compact ? "p-2.5" : ""}`}
+        >
+          <p className="text-xs leading-relaxed text-[var(--muted)]">
+            Payment confirms your order. We source and verify the account after
+            payment — delivery is manual, not instant.
+          </p>
+          {loggedInEmail ? (
+            <p className="text-xs text-[var(--muted-strong)]">
+              Receipt email: <span className="font-medium">{loggedInEmail}</span>
+            </p>
+          ) : (
+            <>
+              <label
+                className="block text-xs font-medium text-[var(--muted-strong)]"
+                htmlFor={`card-email-${product.id}`}
+              >
+                Email for receipt
+              </label>
+              <input
+                id={`card-email-${product.id}`}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@email.com"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-card)] px-3 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
+                autoComplete="email"
+                required
+              />
+            </>
+          )}
+          {error ? <p className="text-xs text-red-400">{error}</p> : null}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full disabled:opacity-60"
+          >
+            {loading ? "Redirecting to Stripe…" : "Continue to secure checkout"}
+          </button>
+        </form>
+      )}
+
       <a
         href={whatsappHref}
         target="_blank"

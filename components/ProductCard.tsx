@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatPrice } from "@/lib/config";
 import { getRegionLabel, normalizeRegionCode } from "@/lib/catalog-meta";
-import { getProductBadges, type ProductBadge } from "@/lib/products-public";
+import { getProductBadges, sanitizePublicProductDescription, type ProductBadge } from "@/lib/products-public";
 import {
   resolveCustomerStockDisplay,
   resolveCustomerStockDisplayFromSummary,
@@ -22,17 +22,17 @@ import type { Product } from "@/lib/types";
 const PRODUCT_IMAGE_QUALITY = 88;
 
 const BADGE_STYLES: Record<ProductBadge, string> = {
-  NEW: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
-  SOLD_OUT: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
-  ENDGAME: "bg-blue-50 text-blue-800 ring-1 ring-blue-200",
-  REROLL: "bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200",
-  TOP_UP: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
+  NEW: "bg-blue-500/15 text-blue-200 ring-1 ring-blue-400/25",
+  SOLD_OUT: "bg-slate-500/20 text-slate-300 ring-1 ring-slate-400/25",
+  ENDGAME: "bg-blue-500/15 text-blue-200 ring-1 ring-blue-400/25",
+  REROLL: "bg-indigo-500/15 text-indigo-200 ring-1 ring-indigo-400/25",
+  TOP_UP: "bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-400/25",
 };
 
 const TYPE_BADGE_STYLES: Record<ProductType, string> = {
-  ENDGAME_ACCOUNT: "bg-blue-50 text-blue-800 ring-1 ring-blue-200",
-  REROLL_ACCOUNT: "bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200",
-  TOP_UP: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
+  ENDGAME_ACCOUNT: "bg-blue-500/15 text-blue-200 ring-1 ring-blue-400/25",
+  REROLL_ACCOUNT: "bg-indigo-500/15 text-indigo-200 ring-1 ring-indigo-400/25",
+  TOP_UP: "bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-400/25",
 };
 
 function productBadgeLabel(badge: ProductBadge): string {
@@ -44,11 +44,11 @@ function productBadgeLabel(badge: ProductBadge): string {
 }
 
 const STOCK_BADGE_STYLES: Record<CustomerStockDisplayLevel, string> = {
-  in_stock: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  low_stock: "bg-amber-50 text-amber-800 ring-amber-200",
-  out_of_stock: "bg-slate-100 text-slate-600 ring-slate-200",
-  manual_available: "bg-blue-50 text-blue-700 ring-blue-200",
-  unavailable: "bg-slate-100 text-slate-600 ring-slate-200",
+  in_stock: "bg-emerald-500/15 text-emerald-200 ring-emerald-400/25",
+  low_stock: "bg-amber-500/15 text-amber-200 ring-amber-400/25",
+  out_of_stock: "bg-slate-500/20 text-slate-300 ring-slate-400/25",
+  manual_available: "bg-blue-500/15 text-blue-200 ring-blue-400/25",
+  unavailable: "bg-slate-500/20 text-slate-300 ring-slate-400/25",
 };
 
 function locationSummaryLine(product: Product): string | null {
@@ -79,7 +79,7 @@ function locationSummaryLine(product: Product): string | null {
 }
 
 function shortDescription(value: string | null | undefined): string | null {
-  const text = value?.replace(/\s+/g, " ").trim();
+  const text = sanitizePublicProductDescription(value)?.replace(/\s+/g, " ").trim();
   return text ? text : null;
 }
 
@@ -241,7 +241,7 @@ export default function ProductCard({
           <span
             className={`mt-1 inline-flex max-w-full truncate rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 sm:mt-1.5 sm:px-2.5 sm:py-1 sm:text-[11px] ${
               isTopUp
-                ? "bg-emerald-50 text-emerald-800 ring-emerald-200"
+                ? "bg-emerald-500/15 text-emerald-200 ring-emerald-400/25"
                 : STOCK_BADGE_STYLES[stockDisplay.level]
             }`}
           >

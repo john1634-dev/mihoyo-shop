@@ -157,7 +157,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search accounts..."
-            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--accent-strong)]"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--accent-strong)]"
           />
         </form>
 
@@ -167,7 +167,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Chat with us on WhatsApp"
-            className="hidden min-h-11 items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-sm text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-50 lg:inline-flex"
+            className="hidden min-h-11 items-center gap-1.5 rounded-xl border border-[var(--border)] px-3 py-2 text-sm text-emerald-300 transition hover:border-emerald-400/40 hover:bg-emerald-500/10 lg:inline-flex"
           >
             <WhatsAppIcon className="h-4 w-4" />
             <span className="hidden xl:inline">WhatsApp</span>
@@ -250,7 +250,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search accounts..."
               autoFocus
-              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--accent-strong)]"
+              className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--accent-strong)]"
             />
           </form>
         </div>
@@ -266,7 +266,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
           />
           <nav
             id="mobile-nav-menu"
-            className="relative z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-[var(--border)] bg-white px-4 py-4 lg:hidden"
+            className="relative z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-[var(--border)] bg-[var(--surface-card)] px-4 py-4 lg:hidden"
             aria-label="Mobile"
           >
             <form onSubmit={handleSearch} className="mb-4">
@@ -279,7 +279,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search accounts..."
-                className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
+                className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
               />
             </form>
 
@@ -349,7 +349,7 @@ export default function Navbar({ games = [] }: NavbarProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={closeMenu}
-                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-emerald-700 hover:bg-[var(--surface-muted)]"
+                className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-emerald-300 hover:bg-[var(--surface-muted)]"
               >
                 <WhatsAppIcon className="h-4 w-4" />
                 Chat on WhatsApp

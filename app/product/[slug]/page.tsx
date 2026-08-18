@@ -12,6 +12,8 @@ import {
   PUBLIC_PRODUCT_SELECT,
   PUBLIC_PRODUCT_SELECT_LEGACY,
   PUBLIC_PRODUCT_IMAGE_SELECT,
+  withSanitizedPublicDescription,
+  sanitizePublicProductDescription,
 } from "@/lib/products-public";
 import {
   getRegionLabel,
@@ -74,7 +76,7 @@ async function fetchPublicProductBySlug(slug: string): Promise<{
 
   if (!primary.error) {
     return {
-      data: primary.data as Product,
+      data: withSanitizedPublicDescription(primary.data as Product),
       error: null,
       select: PUBLIC_PRODUCT_SELECT,
     };
@@ -89,7 +91,7 @@ async function fetchPublicProductBySlug(slug: string): Promise<{
 
     if (!legacy.error) {
       return {
-        data: (legacy.data as Product) || null,
+        data: withSanitizedPublicDescription((legacy.data as Product) || null),
         error: null,
         select: PUBLIC_PRODUCT_SELECT_LEGACY,
       };
@@ -104,7 +106,7 @@ async function fetchPublicProductBySlug(slug: string): Promise<{
       .single();
 
     return {
-      data: (minimal.data as Product) || null,
+      data: withSanitizedPublicDescription((minimal.data as Product) || null),
       error: minimal.error,
       select: minimalSelect,
     };
@@ -166,7 +168,7 @@ export async function generateMetadata({
     regionCode: product.region_code,
     price: product.price,
     currency: product.currency,
-    description: product.description,
+    description: sanitizePublicProductDescription(product.description),
     productType: (product as { product_type?: string }).product_type,
   };
 
@@ -275,9 +277,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
         .order("sort_order", { ascending: true }),
     ]);
 
-  const related = ((relatedResult.data || []) as Product[]).filter(
-    (item) => normalizeProductType(item.product_type) === productType
-  );
+  const related = ((relatedResult.data || []) as Product[])
+    .map((item) => withSanitizedPublicDescription(item) as Product)
+    .filter((item) => normalizeProductType(item.product_type) === productType);
   const relatedStockSummaryByProductId = await fetchProductStockSummaryMap(
     related.map((item) => item.id)
   );
@@ -435,10 +437,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <span
                   className={
                     isTopUp
-                      ? "inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 ring-1 ring-emerald-200"
+                      ? "inline-flex rounded-md bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-400/25"
                       : isReroll
-                        ? "inline-flex rounded-md bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-800 ring-1 ring-indigo-200"
-                        : "inline-flex rounded-md bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-800 ring-1 ring-blue-200"
+                        ? "inline-flex rounded-md bg-indigo-500/15 px-2.5 py-1 text-[11px] font-semibold text-indigo-200 ring-1 ring-indigo-400/25"
+                        : "inline-flex rounded-md bg-blue-500/15 px-2.5 py-1 text-[11px] font-semibold text-blue-200 ring-1 ring-blue-400/25"
                   }
                 >
                   {typeLabel}
@@ -446,13 +448,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <span
                   className={
                     isTopUp
-                      ? "inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 ring-1 ring-emerald-200"
+                      ? "inline-flex rounded-md bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-400/25"
                       : stockDisplay.level === "in_stock" ||
                           stockDisplay.level === "manual_available"
-                        ? "inline-flex rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200"
+                        ? "inline-flex rounded-md bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-400/25"
                         : stockDisplay.level === "low_stock"
-                          ? "inline-flex rounded-md bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200"
-                          : "inline-flex rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200"
+                          ? "inline-flex rounded-md bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold text-amber-200 ring-1 ring-amber-400/25"
+                          : "inline-flex rounded-md bg-slate-500/15 px-2.5 py-1 text-[11px] font-semibold text-slate-300 ring-1 ring-slate-400/25"
                   }
                 >
                   {purchaseStateLabel}
@@ -464,7 +466,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </h1>
 
               {isTopUp ? (
-                <p className="mt-2 text-sm font-medium text-emerald-800">
+                <p className="mt-2 text-sm font-medium text-emerald-300">
                   Purchased through WhatsApp
                 </p>
               ) : isReroll ? (
@@ -528,7 +530,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 ) : (
                   <>
                     <li>Account delivery is manual after confirmed purchase — not instant.</li>
-                    <li>Secure checkout by card (Stripe), Shopee, or WhatsApp.</li>
+                    <li>Secure checkout by card (Stripe) or WhatsApp.</li>
                     <li>After-sales support is available via WhatsApp after your purchase.</li>
                   </>
                 )}
@@ -555,7 +557,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <h2 className="text-lg font-semibold text-[var(--foreground)]">
               {isTopUp ? "Top Up details" : "Account details"}
             </h2>
-            <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-[var(--border)] bg-white p-5 text-sm leading-7 text-[var(--muted-strong)] shadow-[var(--shadow-card)]">
+            <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] p-5 text-sm leading-7 text-[var(--muted-strong)] shadow-[var(--shadow-card)]">
               {product.description}
             </div>
           </section>

@@ -24,6 +24,7 @@ import {
   ADMIN_CREATABLE_PRODUCT_TYPES,
   getProductTypeLabel,
   isAdminCreatableProductType,
+  isWhatsAppOnlyProductType,
   normalizeProductType,
   type AdminCreatableProductType,
 } from "@/lib/product-type";
@@ -301,7 +302,12 @@ export default function EditProductPage() {
       });
 
       setLoading(false);
-      void loadStockSummary();
+      if (isWhatsAppOnlyProductType(loadedType)) {
+        setStockSummary(null);
+        setStockLoading(false);
+      } else {
+        void loadStockSummary();
+      }
     }
 
     void loadData();
@@ -511,7 +517,9 @@ export default function EditProductPage() {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <span className={productStatusBadgeClass(status)}>{status}</span>
               </div>
-              {stockSummary && !stockLoading && (
+              {stockSummary &&
+                !stockLoading &&
+                !isWhatsAppOnlyProductType(productType) && (
                 <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
                   <div>
                     <span className="text-slate-500">Stock: </span>
@@ -535,12 +543,14 @@ export default function EditProductPage() {
               )}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link
-                href={inventoryManageHref(productId)}
-                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium hover:border-cyan-500 hover:text-cyan-300"
-              >
-                Manage Inventory
-              </Link>
+              {!isWhatsAppOnlyProductType(productType) ? (
+                <Link
+                  href={inventoryManageHref(productId)}
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium hover:border-cyan-500 hover:text-cyan-300"
+                >
+                  Manage Inventory
+                </Link>
+              ) : null}
               <ProductListingStatusControl
                 productId={productId}
                 productTitle={title || "Product"}
@@ -940,11 +950,20 @@ export default function EditProductPage() {
             </div>
           </section>
 
-          <ProductStockSummaryPanel
-            summary={stockSummary}
-            loading={stockLoading}
-            manageHref={inventoryManageHref(productId)}
-          />
+          {!isWhatsAppOnlyProductType(productType) ? (
+            <ProductStockSummaryPanel
+              summary={stockSummary}
+              loading={stockLoading}
+              manageHref={inventoryManageHref(productId)}
+            />
+          ) : (
+            <section className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+              <h3 className="font-medium">Inventory</h3>
+              <p className="mt-2 text-sm text-slate-400">
+                Top Up is WhatsApp-only and does not use inventory assignment.
+              </p>
+            </section>
+          )}
 
           {error && (
             <div className="rounded-xl border border-red-900 bg-red-950/40 p-4 text-sm text-red-400">

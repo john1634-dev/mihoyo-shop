@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 /* =============================================================================
-   Storefront Light Mode tokens (public site default)
+   Storefront dark theme tokens (public site default)
    Admin / supplier pages keep their own hardcoded dark UI.
    ============================================================================= */
 :root {
-  --background: #f7f8fa;
-  --foreground: #0f172a;
+  --background: #0f172a;
+  --foreground: #f8fafc;
   --accent: #3b82f6;
-  --accent-strong: #2563eb;
-  --accent-soft: #dbeafe;
+  --accent-strong: #60a5fa;
+  --accent-soft: rgba(59, 130, 246, 0.16);
   --accent-purple: #8b5cf6;
-  --surface: #ffffff;
-  --surface-elevated: #ffffff;
-  --surface-card: #ffffff;
-  --surface-muted: #f1f5f9;
-  --border: rgba(15, 23, 42, 0.08);
-  --muted: #64748b;
-  --muted-strong: #475569;
-  --navbar-bg: rgba(255, 255, 255, 0.9);
-  --footer-bg: #f1f5f9;
-  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -12px rgba(15, 23, 42, 0.1);
-  --shadow-card-hover: 0 2px 4px rgba(15, 23, 42, 0.04), 0 16px 32px -16px rgba(37, 99, 235, 0.18);
+  --surface: #111827;
+  --surface-elevated: #172033;
+  --surface-card: #1a2744;
+  --surface-muted: #152033;
+  --border: rgba(148, 163, 184, 0.16);
+  --muted: #94a3b8;
+  --muted-strong: #cbd5e1;
+  --navbar-bg: rgba(15, 23, 42, 0.88);
+  --footer-bg: #0b1220;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 12px 32px -16px rgba(0, 0, 0, 0.45);
+  --shadow-card-hover: 0 2px 4px rgba(0, 0, 0, 0.28), 0 20px 40px -18px rgba(59, 130, 246, 0.28);
 }
 
 @theme inline {
@@ -50,7 +50,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent-strong) 70%, white);
+  outline: 2px solid color-mix(in srgb, var(--accent-strong) 70%, transparent);
   outline-offset: 2px;
 }
 
@@ -216,15 +216,15 @@ body {
 }
 
 .hero-split {
-  background: linear-gradient(160deg, #ffffff 0%, #f7f8fa 45%, #eff6ff 100%);
+  background: linear-gradient(160deg, #0f172a 0%, #111827 45%, #172033 100%);
 }
 
 .hero-grid-decoration {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
   pointer-events: none;
@@ -256,7 +256,7 @@ body {
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--border);
-  background: #ffffff;
+  background: var(--background);
 }
 
 /* Product & game cards */

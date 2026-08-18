@@ -40,8 +40,8 @@ const TYPE_SECTIONS: Array<{
     title: "Endgame Accounts",
     subtitle: "Premium high-level game accounts ready to play.",
     viewAllLabel: "View All Endgame Accounts →",
-    kickerClass: "text-blue-700",
-    ruleClass: "border-blue-200",
+    kickerClass: "text-blue-300",
+    ruleClass: "border-blue-500/30",
   },
   {
     type: "REROLL_ACCOUNT",
@@ -49,8 +49,8 @@ const TYPE_SECTIONS: Array<{
     title: "Reroll Accounts",
     subtitle: "Fresh-start and reroll accounts for a new beginning.",
     viewAllLabel: "View All Reroll Accounts →",
-    kickerClass: "text-indigo-700",
-    ruleClass: "border-indigo-200",
+    kickerClass: "text-indigo-300",
+    ruleClass: "border-indigo-500/30",
   },
   {
     type: "TOP_UP",
@@ -58,8 +58,8 @@ const TYPE_SECTIONS: Array<{
     title: "Game Top Up",
     subtitle: "Fast and easy game top up through WhatsApp.",
     viewAllLabel: "View All Top Up →",
-    kickerClass: "text-emerald-700",
-    ruleClass: "border-emerald-200",
+    kickerClass: "text-emerald-300",
+    ruleClass: "border-emerald-500/30",
   },
 ];
 
@@ -123,7 +123,7 @@ function ProductTypeSection({
         </div>
 
         {products.length === 0 ? (
-          <p className="border border-dashed border-[var(--border)] bg-white px-4 py-6 text-center text-sm text-[var(--muted)]">
+          <p className="border border-dashed border-[var(--border)] bg-[var(--surface-card)] px-4 py-6 text-center text-sm text-[var(--muted)]">
             No listings available yet.
           </p>
         ) : (
@@ -291,7 +291,7 @@ export default async function Home() {
       ) : null}
 
       <section className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 md:py-8">
-        <div className="border border-[var(--border)] bg-white px-4 py-5 text-center sm:px-6">
+        <div className="border border-[var(--border)] bg-[var(--surface-card)] px-4 py-5 text-center sm:px-6">
           <h2 className="text-base font-semibold tracking-tight text-[var(--foreground)] sm:text-lg">
             Find me an account
           </h2>

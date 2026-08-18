@@ -101,7 +101,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
               <button
                 type="button"
                 onClick={() => goTo(safeIndex - 1)}
-                className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-white/90 text-[var(--foreground)] opacity-0 shadow-[var(--shadow-card)] transition duration-200 hover:bg-white group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
+                className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-card)]/90 text-[var(--foreground)] opacity-0 shadow-[var(--shadow-card)] transition duration-200 hover:bg-[var(--surface-elevated)] group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
                 aria-label="Previous image"
               >
                 <ChevronLeftIcon />
@@ -109,7 +109,7 @@ export default function ProductGallery({ title, images }: ProductGalleryProps) {
               <button
                 type="button"
                 onClick={() => goTo(safeIndex + 1)}
-                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-white/90 text-[var(--foreground)] opacity-0 shadow-[var(--shadow-card)] transition duration-200 hover:bg-white group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
+                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface-card)]/90 text-[var(--foreground)] opacity-0 shadow-[var(--shadow-card)] transition duration-200 hover:bg-[var(--surface-elevated)] group-hover:opacity-100 focus-visible:opacity-100 sm:h-10 sm:w-10"
                 aria-label="Next image"
               >
                 <ChevronRightIcon />

@@ -11,13 +11,20 @@ import {
   type AdminStockFilter,
   type ProductStockSummary,
 } from "@/lib/inventory-stock";
-import { getProductTypeLabel, normalizeProductType } from "@/lib/product-type";
+import {
+  PRODUCT_TYPES,
+  getProductTypeLabel,
+  isWhatsAppOnlyProductType,
+  normalizeProductType,
+  type ProductType,
+} from "@/lib/product-type";
 import ProductListingStatusControl from "@/components/admin/ProductListingStatusControl";
 import { supabase } from "@/lib/supabase";
 
 type Product = {
   id: string;
   title: string;
+  slug?: string | null;
   price: number;
   currency: string;
   status: string;
@@ -43,6 +50,26 @@ function productStatusClass(status: string): string {
     return "inline-flex rounded-full bg-red-500/10 px-2 py-0.5 text-[11px] font-medium capitalize text-red-300 ring-1 ring-red-500/25";
   }
   return "inline-flex rounded-full bg-slate-800 px-2 py-0.5 text-[11px] font-medium capitalize text-slate-400";
+}
+
+function adminProductTypeClass(type: ProductType): string {
+  if (type === "TOP_UP") {
+    return "inline-flex rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300 ring-1 ring-cyan-500/25";
+  }
+  if (type === "REROLL_ACCOUNT") {
+    return "inline-flex rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-300 ring-1 ring-violet-500/25";
+  }
+  return "inline-flex rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-300 ring-1 ring-blue-500/25";
+}
+
+function adminStockLabel(
+  productType: string | null | undefined,
+  summary: ProductStockSummary | undefined
+): string {
+  if (isWhatsAppOnlyProductType(normalizeProductType(productType))) {
+    return "WhatsApp only";
+  }
+  return formatAdminProductStockDisplay(summary);
 }
 
 function formatUpdatedAt(value: string | null): string {
@@ -100,6 +127,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [gameFilter, setGameFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState<AdminStockFilter>("all");
   const [, startTransition] = useTransition();
 
@@ -114,7 +142,7 @@ export default function ProductsPage() {
         supabase
           .from("products")
           .select(
-            "id,title,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at,product_type"
+            "id,title,slug,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at,product_type"
           )
           .order("updated_at", { ascending: false }),
         supabase.from("games").select("id,name").order("name", { ascending: true }),
@@ -131,7 +159,7 @@ export default function ProductsPage() {
         const fallback = await supabase
           .from("products")
           .select(
-            "id,title,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at"
+            "id,title,slug,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at"
           )
           .order("updated_at", { ascending: false });
         productList = (fallback.data || null) as Product[] | null;
@@ -197,11 +225,21 @@ export default function ProductsPage() {
         return false;
       }
 
+      if (
+        typeFilter !== "all" &&
+        normalizeProductType(product.product_type) !== typeFilter
+      ) {
+        return false;
+      }
+
       const summary = stockMap[product.id];
       const inventoryManaged = (summary?.total_count ?? 0) > 0;
       const available = summary?.available_count ?? 0;
+      const isTopUp = isWhatsAppOnlyProductType(
+        normalizeProductType(product.product_type)
+      );
 
-      if (stockFilter !== "all") {
+      if (stockFilter !== "all" && !isTopUp) {
         if (!inventoryManaged) {
           if (stockFilter === "out_of_stock") return false;
           return true;
@@ -213,15 +251,12 @@ export default function ProductsPage() {
 
       if (!query) return true;
 
-      const gameName = gameNameById.get(product.game_id || "") || "";
       return (
         product.title.toLowerCase().includes(query) ||
-        (product.server || "").toLowerCase().includes(query) ||
-        product.status.toLowerCase().includes(query) ||
-        gameName.toLowerCase().includes(query)
+        (product.slug || "").toLowerCase().includes(query)
       );
     });
-  }, [products, search, statusFilter, gameFilter, stockFilter, stockMap, gameNameById]);
+  }, [products, search, statusFilter, gameFilter, typeFilter, stockFilter, stockMap]);
 
   function handleStatusChange(productId: string, nextStatus: string) {
     setProducts((current) =>
@@ -270,7 +305,19 @@ export default function ProductsPage() {
           placeholder="Search products..."
           className="min-h-11 w-full min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-blue-500 lg:max-w-xs"
         />
-        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:flex sm:flex-wrap">
+          <select
+            value={typeFilter}
+            onChange={(event) => setTypeFilter(event.target.value)}
+            className="min-h-11 min-w-0 rounded-lg border border-slate-700 bg-slate-900 px-2 py-2 text-sm"
+          >
+            <option value="all">All types</option>
+            {PRODUCT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {getProductTypeLabel(type)}
+              </option>
+            ))}
+          </select>
           <select
             value={gameFilter}
             onChange={(event) => setGameFilter(event.target.value)}
@@ -357,11 +404,12 @@ export default function ProductsPage() {
               <table className="w-full table-fixed text-sm">
                 <thead className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm">
                   <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <th className="w-[34%] px-3 py-2.5 font-semibold">Product</th>
+                    <th className="w-[22%] px-3 py-2.5 font-semibold">Title</th>
+                    <th className="w-[13%] px-3 py-2.5 font-semibold">Type</th>
                     <th className="w-[12%] px-3 py-2.5 font-semibold">Game</th>
                     <th className="w-[10%] px-3 py-2.5 font-semibold">Price</th>
-                    <th className="w-[14%] px-3 py-2.5 font-semibold">Stock</th>
                     <th className="w-[10%] px-3 py-2.5 font-semibold">Status</th>
+                    <th className="w-[13%] px-3 py-2.5 font-semibold">Stock</th>
                     <th className="w-[10%] px-3 py-2.5 font-semibold">Updated</th>
                     <th className="w-[10%] px-3 py-2.5 font-semibold">Actions</th>
                   </tr>
@@ -370,7 +418,8 @@ export default function ProductsPage() {
                   {filtered.map((product) => {
                     const summary = stockMap[product.id];
                     const gameName = gameNameById.get(product.game_id || "") || "—";
-                    const stockLabel = formatAdminProductStockDisplay(summary);
+                    const productType = normalizeProductType(product.product_type);
+                    const stockLabel = adminStockLabel(product.product_type, summary);
 
                     return (
                       <tr
@@ -387,21 +436,6 @@ export default function ProductsPage() {
                               <p className="line-clamp-2 text-sm font-medium leading-snug">
                                 {product.title}
                               </p>
-                              {normalizeProductType(product.product_type) !==
-                                "ENDGAME_ACCOUNT" && (
-                                <span
-                                  className={
-                                    normalizeProductType(product.product_type) ===
-                                    "TOP_UP"
-                                      ? "mt-0.5 inline-flex rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300 ring-1 ring-cyan-500/25"
-                                      : "mt-0.5 inline-flex rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-300 ring-1 ring-violet-500/25"
-                                  }
-                                >
-                                  {getProductTypeLabel(
-                                    normalizeProductType(product.product_type)
-                                  )}
-                                </span>
-                              )}
                               {(product.server || product.ar_level != null) && (
                                 <p className="mt-0.5 truncate text-[11px] text-slate-500">
                                   {product.server || "—"}
@@ -411,18 +445,23 @@ export default function ProductsPage() {
                             </div>
                           </div>
                         </td>
+                        <td className="px-3 py-3">
+                          <span className={adminProductTypeClass(productType)}>
+                            {getProductTypeLabel(productType)}
+                          </span>
+                        </td>
                         <td className="px-3 py-3 text-slate-300">
                           <span className="line-clamp-2">{gameName}</span>
                         </td>
                         <td className="px-3 py-3 font-semibold tabular-nums">
                           {formatPrice(Number(product.price), product.currency)}
                         </td>
-                        <td className="px-3 py-3 text-xs text-slate-300">{stockLabel}</td>
                         <td className="px-3 py-3">
                           <span className={productStatusClass(product.status)}>
                             {product.status}
                           </span>
                         </td>
+                        <td className="px-3 py-3 text-xs text-slate-300">{stockLabel}</td>
                         <td className="px-3 py-3 text-xs text-slate-500">
                           {formatUpdatedAt(product.updated_at)}
                         </td>
@@ -456,7 +495,8 @@ export default function ProductsPage() {
             {filtered.map((product) => {
               const summary = stockMap[product.id];
               const gameName = gameNameById.get(product.game_id || "") || "—";
-              const stockLabel = formatAdminProductStockDisplay(summary);
+              const productType = normalizeProductType(product.product_type);
+              const stockLabel = adminStockLabel(product.product_type, summary);
 
               return (
                 <article
@@ -473,14 +513,11 @@ export default function ProductsPage() {
                       <h2 className="line-clamp-2 text-sm font-semibold leading-snug">
                         {product.title}
                       </h2>
-                      {normalizeProductType(product.product_type) !==
-                        "ENDGAME_ACCOUNT" && (
-                        <p className="mt-0.5 text-[10px] font-medium text-slate-400">
-                          {getProductTypeLabel(
-                            normalizeProductType(product.product_type)
-                          )}
-                        </p>
-                      )}
+                      <p className="mt-0.5">
+                        <span className={adminProductTypeClass(productType)}>
+                          {getProductTypeLabel(productType)}
+                        </span>
+                      </p>
                       <p className="mt-0.5 truncate text-xs text-slate-400">{gameName}</p>
                       <p className="mt-1 text-sm font-bold tabular-nums">
                         {formatPrice(Number(product.price), product.currency)}
@@ -499,6 +536,7 @@ export default function ProductsPage() {
                         {product.status}
                       </span>
                     </span>
+                    <span>Updated: {formatUpdatedAt(product.updated_at)}</span>
                   </div>
 
                   <div className="mt-2.5 flex gap-2">

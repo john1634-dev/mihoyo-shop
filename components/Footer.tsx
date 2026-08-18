@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   buildWhatsAppUrl,
-  SHOPEE_STORE_URL,
   SITE_NAME,
   SITE_TAGLINE,
   WHATSAPP_DISPLAY,
@@ -26,7 +25,7 @@ export default async function Footer() {
             <p className="mt-1 text-sm text-[var(--muted-strong)]">{SITE_TAGLINE}</p>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-[var(--muted)]">
               Premium game account listings for popular titles. Pay securely by
-              card through Stripe, or purchase via Shopee or WhatsApp.
+              card through Stripe, or enquire on WhatsApp.
             </p>
           </div>
 
@@ -99,19 +98,9 @@ export default async function Footer() {
                   href={buildWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-700 transition hover:text-emerald-800"
+                  className="text-emerald-300 transition hover:text-emerald-200"
                 >
                   WhatsApp {WHATSAPP_DISPLAY}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={SHOPEE_STORE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-orange-700 transition hover:text-orange-800"
-                >
-                  Shopee store
                 </a>
               </li>
               <li>

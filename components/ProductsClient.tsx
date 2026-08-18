@@ -105,10 +105,10 @@ function buildProductListHref(
 
 const TYPE_NAV_ACTIVE: Record<ProductType, string> = {
   ENDGAME_ACCOUNT:
-    "border-blue-200 bg-blue-50 text-blue-800",
+    "border-blue-400/30 bg-blue-500/15 text-blue-200",
   REROLL_ACCOUNT:
-    "border-indigo-200 bg-indigo-50 text-indigo-800",
-  TOP_UP: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    "border-indigo-400/30 bg-indigo-500/15 text-indigo-200",
+  TOP_UP: "border-emerald-400/30 bg-emerald-500/15 text-emerald-200",
 };
 
 type ProductFiltersProps = {
@@ -161,7 +161,7 @@ function ProductFilters({
           id="product-type"
           value={typeFilter}
           onChange={(event) => onNavigate({ type: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="">All types</option>
           {PRODUCT_TYPES.map((type) => (
@@ -181,7 +181,7 @@ function ProductFilters({
             href={buildHref({ game: "" })}
             className={`rounded-full px-3 py-1.5 text-xs ${
               !gameSlug
-                ? "bg-[var(--accent-strong)] text-white"
+                ? "bg-[var(--accent)] text-white"
                 : "border border-[var(--border)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
             }`}
           >
@@ -193,7 +193,7 @@ function ProductFilters({
               href={buildHref({ game: game.slug })}
               className={`rounded-full px-3 py-1.5 text-xs ${
                 gameSlug === game.slug
-                  ? "bg-[var(--accent-strong)] text-white"
+                  ? "bg-[var(--accent)] text-white"
                   : "border border-[var(--border)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
               }`}
             >
@@ -214,7 +214,7 @@ function ProductFilters({
           id="product-sort"
           value={sort}
           onChange={(event) => onNavigate({ sort: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="newest">Newest</option>
           <option value="price-asc">Price: Low to High</option>
@@ -236,7 +236,7 @@ function ProductFilters({
             value={localSearch}
             onChange={(event) => setLocalSearch(event.target.value)}
             placeholder="Search accounts..."
-            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
           />
         </div>
 
@@ -253,7 +253,7 @@ function ProductFilters({
             value={localServer}
             onChange={(event) => setLocalServer(event.target.value)}
             placeholder="e.g. Asia, SEA"
-            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
+            className="min-h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent-strong)]"
           />
         </div>
 
@@ -273,7 +273,7 @@ function ProductFilters({
           id="product-status"
           value={statusFilter}
           onChange={(event) => onNavigate({ status: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="available">Available</option>
           <option value="sold">Sold out</option>
@@ -292,7 +292,7 @@ function ProductFilters({
           id="product-region"
           value={regionCode}
           onChange={(event) => onNavigate({ region: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="">All regions</option>
           {REGION_OPTIONS.map((region) => (
@@ -314,7 +314,7 @@ function ProductFilters({
           id="product-currency"
           value={currencyCode}
           onChange={(event) => onNavigate({ currency: event.target.value })}
-          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-4 py-3 text-sm text-[var(--foreground)]"
         >
           <option value="">All currencies</option>
           {SUPPORTED_CURRENCIES.map((code) => (
@@ -358,7 +358,7 @@ function ActiveFilters({
         <Link
           key={chip.key}
           href={chip.href}
-          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--border)] bg-white px-2.5 py-1 text-xs text-[var(--foreground)] shadow-[var(--shadow-card)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-card)] px-2.5 py-1 text-xs text-[var(--foreground)] shadow-[var(--shadow-card)] transition hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
         >
           <span className="truncate">{chip.label}</span>
           <span className="shrink-0 text-[var(--muted)]" aria-hidden>
@@ -636,7 +636,7 @@ export default function ProductsClient({
                 className={`inline-flex min-h-10 items-center rounded-full border px-3 py-1.5 text-sm font-medium ${
                   active
                     ? TYPE_NAV_ACTIVE[item.type]
-                    : "border-[var(--border)] bg-white text-[var(--muted-strong)] hover:border-[var(--accent)]"
+                    : "border-[var(--border)] bg-[var(--surface-card)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
                 }`}
               >
                 {item.label}
@@ -692,7 +692,7 @@ export default function ProductsClient({
               Choose a game
             </p>
             {typeScopedGames.length === 0 ? (
-              <div className="border border-dashed border-[var(--border)] bg-white px-4 py-6 text-center">
+              <div className="border border-dashed border-[var(--border)] bg-[var(--surface-card)] px-4 py-6 text-center">
                 <p className="text-sm text-[var(--foreground)]">
                   {catalogNoGamesForTypeMessage(selectedType)}
                 </p>
@@ -753,7 +753,7 @@ export default function ProductsClient({
               Choose a game
             </p>
             {typeScopedGames.length === 0 ? (
-              <div className="border border-dashed border-[var(--border)] bg-white px-4 py-6 text-center">
+              <div className="border border-dashed border-[var(--border)] bg-[var(--surface-card)] px-4 py-6 text-center">
                 <p className="text-sm text-[var(--foreground)]">
                   {catalogNoGamesForTypeMessage(selectedType)}
                 </p>
@@ -781,8 +781,8 @@ export default function ProductsClient({
                       })}
                       className={`inline-flex min-h-10 items-center rounded-full border px-3 py-1.5 text-sm ${
                         active
-                          ? "border-[var(--accent-strong)] bg-[var(--accent-strong)] text-white"
-                          : "border-[var(--border)] bg-white text-[var(--muted-strong)] hover:border-[var(--accent)]"
+                          ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                          : "border-[var(--border)] bg-[var(--surface-card)] text-[var(--muted-strong)] hover:border-[var(--accent)]"
                       }`}
                     >
                       {game.name}
@@ -807,7 +807,7 @@ export default function ProductsClient({
                 id="mobile-product-sort"
                 value={normalizedSort}
                 onChange={(event) => navigateFilters({ sort: event.target.value })}
-                className="min-h-11 max-w-[9.5rem] rounded-xl border border-[var(--border)] bg-white px-2 text-sm text-[var(--foreground)]"
+                className="min-h-11 max-w-[9.5rem] rounded-xl border border-[var(--border)] bg-[var(--surface-card)] px-2 text-sm text-[var(--foreground)]"
               >
                 <option value="newest">Newest</option>
                 <option value="price-asc">Price: Low to High</option>
@@ -827,7 +827,7 @@ export default function ProductsClient({
 
             <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
               <aside className="hidden lg:block">
-                <div className="sticky top-24 rounded-xl border border-[var(--border)] bg-white p-4">
+                <div className="sticky top-24 rounded-xl border border-[var(--border)] bg-[var(--surface-card)] p-4">
                   <h2 className="mb-4 text-sm font-semibold text-[var(--foreground)]">
                     Filters
                   </h2>
@@ -841,7 +841,7 @@ export default function ProductsClient({
                 </p>
 
                 {products.length === 0 ? (
-                  <div className="border border-[var(--border)] bg-white px-4 py-8 text-center">
+                  <div className="border border-[var(--border)] bg-[var(--surface-card)] px-4 py-8 text-center">
                     {typeFilter && activeGame ? (
                       <>
                         <p className="text-sm text-[var(--foreground)]">
@@ -918,7 +918,7 @@ export default function ProductsClient({
           />
           <div
             id="mobile-filters"
-            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-[var(--border)] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-card-hover)]"
+            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl border border-[var(--border)] bg-[var(--surface-card)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[var(--shadow-card-hover)]"
             role="dialog"
             aria-modal="true"
             aria-label="Filter accounts"

@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)] p-8"
+          className="rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)] p-8"
         >
           <div className="space-y-5">
             <div>
@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-xl border border-[var(--border)] bg-white text-[var(--foreground)] px-4 py-3 outline-none focus:border-blue-500"
+                className="w-full rounded-xl border border-[var(--border)] bg-[var(--surface-card)] text-[var(--foreground)] px-4 py-3 outline-none focus:border-blue-500"
               />
             </div>
 

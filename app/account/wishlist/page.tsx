@@ -100,7 +100,7 @@ export default function WishlistPage() {
           {loading ? (
             <p className="mt-10 text-[var(--muted)]">Loading...</p>
           ) : items.length === 0 ? (
-            <div className="mt-10 rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)] p-12 text-center">
+            <div className="mt-10 rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)] p-12 text-center">
               <p className="text-[var(--muted)]">Your wishlist is empty.</p>
 
               <Link
@@ -124,7 +124,7 @@ export default function WishlistPage() {
                 return (
                   <div
                     key={item.product_id}
-                    className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)]"
+                    className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)]"
                   >
                     <div className="relative aspect-square bg-[var(--surface-muted)]">
                       {product.cover_image_url ? (

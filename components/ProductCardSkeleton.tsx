@@ -1,7 +1,7 @@
 export function ProductCardSkeleton() {
   return (
     <div
-      className="overflow-hidden rounded-xl border border-[var(--border)] bg-white shadow-[var(--shadow-card)] sm:rounded-2xl"
+      className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-card)] shadow-[var(--shadow-card)] sm:rounded-2xl"
       aria-hidden
     >
       <div className="aspect-[4/3] animate-pulse bg-[var(--surface-muted)] sm:aspect-[16/10]" />

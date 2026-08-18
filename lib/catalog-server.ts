@@ -8,6 +8,7 @@ import {
   PUBLIC_PRODUCT_SELECT_LEGACY,
   PUBLIC_RECENTLY_SOLD_SELECT,
   PUBLIC_RECENTLY_SOLD_SELECT_LEGACY,
+  sanitizePublicProductDescription,
 } from "@/lib/products-public";
 import {
   normalizeCurrencyCode,
@@ -62,6 +63,13 @@ function isMissingOptionalColumnError(message?: string): boolean {
 type ProductQueryBuilder = ReturnType<
   ReturnType<typeof supabase.from>["select"]
 >;
+
+function toPublicProducts(rows: unknown): Product[] {
+  return ((rows || []) as Product[]).map((product) => ({
+    ...product,
+    description: sanitizePublicProductDescription(product.description),
+  }));
+}
 
 function sanitizeSearchTerm(value: string): string {
   return value.replace(/[%_,.()"'\\]/g, " ").replace(/\s+/g, " ").trim();
@@ -158,7 +166,7 @@ export async function fetchAvailableProducts(): Promise<Product[]> {
     .order("created_at", { ascending: false });
 
   if (!primary.error) {
-    return (primary.data || []) as Product[];
+    return toPublicProducts(primary.data);
   }
 
   if (isMissingOptionalColumnError(primary.error.message)) {
@@ -172,7 +180,7 @@ export async function fetchAvailableProducts(): Promise<Product[]> {
       .order("created_at", { ascending: false });
 
     if (!fallback.error) {
-      return (fallback.data || []) as Product[];
+      return toPublicProducts(fallback.data);
     }
 
     const minimal = await supabase
@@ -188,7 +196,7 @@ export async function fetchAvailableProducts(): Promise<Product[]> {
       return [];
     }
 
-    return (minimal.data || []) as Product[];
+    return toPublicProducts(minimal.data);
   }
 
   console.error("[catalog] fetchAvailableProducts:", primary.error.message);
@@ -251,7 +259,7 @@ export async function fetchRecentlySoldProducts(
     return [];
   }
 
-  return rows;
+  return toPublicProducts(rows);
 }
 
 export async function fetchFilteredProducts(
@@ -270,7 +278,7 @@ export async function fetchFilteredProducts(
   const primary = await primaryQuery;
 
   if (!primary.error) {
-    return (primary.data || []) as Product[];
+    return toPublicProducts(primary.data);
   }
 
   if (isMissingOptionalColumnError(primary.error.message)) {
@@ -286,7 +294,7 @@ export async function fetchFilteredProducts(
     const fallback = await fallbackQuery;
 
     if (!fallback.error) {
-      return (fallback.data || []) as Product[];
+      return toPublicProducts(fallback.data);
     }
 
     const minimalQuery = applyProductFilters(
@@ -306,7 +314,7 @@ export async function fetchFilteredProducts(
       return [];
     }
 
-    return (minimal.data || []) as Product[];
+    return toPublicProducts(minimal.data);
   }
 
   console.error("[catalog] fetchFilteredProducts:", primary.error.message);
