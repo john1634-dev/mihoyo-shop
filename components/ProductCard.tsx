@@ -4,10 +4,12 @@ import { formatPrice } from "@/lib/config";
 import { getRegionLabel, normalizeRegionCode } from "@/lib/catalog-meta";
 import { getProductBadges, type ProductBadge } from "@/lib/products-public";
 import {
+  resolveCustomerStockDisplay,
   resolveCustomerStockDisplayFromSummary,
   type CustomerStockDisplayLevel,
   type ProductStockSummary,
 } from "@/lib/inventory-stock";
+import { isWhatsAppOnlyProductType, normalizeProductType } from "@/lib/product-type";
 import { ArrowRightIcon } from "@/components/icons";
 import type { Product } from "@/lib/types";
 
@@ -17,11 +19,13 @@ const BADGE_STYLES: Record<ProductBadge, string> = {
   NEW: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
   SOLD_OUT: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
   REROLL: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",
+  TOP_UP: "bg-cyan-100 text-cyan-800 ring-1 ring-cyan-200",
 };
 
 function productBadgeLabel(badge: ProductBadge): string {
   if (badge === "SOLD_OUT") return "Sold";
   if (badge === "REROLL") return "Reroll Account";
+  if (badge === "TOP_UP") return "Top Up";
   return badge;
 }
 
@@ -105,11 +109,20 @@ export default function ProductCard({
   availableStock,
   stockSummary,
 }: ProductCardProps) {
+  const isTopUp = isWhatsAppOnlyProductType(
+    normalizeProductType(product.product_type)
+  );
   const resolvedSummary = resolveSummary(stockSummary, availableStock);
-  const stockDisplay = resolveCustomerStockDisplayFromSummary({
-    productStatus: product.status,
-    summary: resolvedSummary,
-  });
+  const stockDisplay = isTopUp
+    ? resolveCustomerStockDisplay({
+        productStatus: product.status,
+        availableCount: 0,
+        inventoryManaged: false,
+      })
+    : resolveCustomerStockDisplayFromSummary({
+        productStatus: product.status,
+        summary: resolvedSummary,
+      });
   const resolvedGame = resolveGameName(product, gameName, gameNameById);
   const badges = getProductBadges(
     product,
@@ -195,7 +208,7 @@ export default function ProductCard({
             href={productHref}
             className="btn-primary mt-2 hidden min-h-11 w-full gap-1.5 px-3 py-2 sm:mt-4 sm:inline-flex"
           >
-            View Account
+            {isTopUp ? "View Top Up" : "View Account"}
             <ArrowRightIcon className="h-4 w-4 transition duration-200 group-hover:translate-x-0.5 motion-reduce:transform-none" />
           </Link>
         </div>

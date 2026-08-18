@@ -387,10 +387,19 @@ export default function ProductsPage() {
                               <p className="line-clamp-2 text-sm font-medium leading-snug">
                                 {product.title}
                               </p>
-                              {normalizeProductType(product.product_type) ===
-                                "REROLL_ACCOUNT" && (
-                                <span className="mt-0.5 inline-flex rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-300 ring-1 ring-violet-500/25">
-                                  {getProductTypeLabel("REROLL_ACCOUNT")}
+                              {normalizeProductType(product.product_type) !==
+                                "ENDGAME_ACCOUNT" && (
+                                <span
+                                  className={
+                                    normalizeProductType(product.product_type) ===
+                                    "TOP_UP"
+                                      ? "mt-0.5 inline-flex rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-300 ring-1 ring-cyan-500/25"
+                                      : "mt-0.5 inline-flex rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-300 ring-1 ring-violet-500/25"
+                                  }
+                                >
+                                  {getProductTypeLabel(
+                                    normalizeProductType(product.product_type)
+                                  )}
                                 </span>
                               )}
                               {(product.server || product.ar_level != null) && (
@@ -464,6 +473,14 @@ export default function ProductsPage() {
                       <h2 className="line-clamp-2 text-sm font-semibold leading-snug">
                         {product.title}
                       </h2>
+                      {normalizeProductType(product.product_type) !==
+                        "ENDGAME_ACCOUNT" && (
+                        <p className="mt-0.5 text-[10px] font-medium text-slate-400">
+                          {getProductTypeLabel(
+                            normalizeProductType(product.product_type)
+                          )}
+                        </p>
+                      )}
                       <p className="mt-0.5 truncate text-xs text-slate-400">{gameName}</p>
                       <p className="mt-1 text-sm font-bold tabular-nums">
                         {formatPrice(Number(product.price), product.currency)}

@@ -275,12 +275,11 @@ export default function EditProductPage() {
       setSupplierName(product.supplier_name || "");
       setShopeeUrl(product.shopee_url || "");
       setStatus(product.status || "available");
+      const loadedType = normalizeProductType(
+        (product as { product_type?: string }).product_type
+      );
       setProductType(
-        normalizeProductType(
-          (product as { product_type?: string }).product_type
-        ) === "REROLL_ACCOUNT"
-          ? "REROLL_ACCOUNT"
-          : "ENDGAME_ACCOUNT"
+        isAdminCreatableProductType(loadedType) ? loadedType : "ENDGAME_ACCOUNT"
       );
 
       const loadedCostVnd =

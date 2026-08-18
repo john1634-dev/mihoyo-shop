@@ -1,5 +1,6 @@
 import { SITE_NAME, SITE_URL, formatPrice } from "@/lib/config";
 import { getRegionLabel } from "@/lib/catalog-meta";
+import { normalizeProductType } from "@/lib/product-type";
 
 export const OG_IMAGE_PATH = "/opengraph-image";
 
@@ -19,17 +20,19 @@ export type ProductSeoFields = {
   price?: number | null;
   currency?: string | null;
   description?: string | null;
+  productType?: string | null;
 };
 
 /** Absolute document title for PDP / OG / Twitter. */
 export function buildProductPageTitle(fields: ProductSeoFields): string {
   const parts: string[] = [];
-  const title = fields.title?.trim() || "Game Account";
+  const isTopUp = normalizeProductType(fields.productType) === "TOP_UP";
+  const title = fields.title?.trim() || (isTopUp ? "Game Top Up" : "Game Account");
   parts.push(title);
 
   const game = fields.gameName?.trim();
   if (game) {
-    parts.push(`${game} Account`);
+    parts.push(isTopUp ? `${game} Top Up` : `${game} Account`);
   }
 
   const server = fields.server?.trim();
@@ -48,7 +51,8 @@ export function buildProductPageTitle(fields: ProductSeoFields): string {
 
 /** Concise meta description — does not invent server/region. */
 export function buildProductMetaDescription(fields: ProductSeoFields): string {
-  const title = fields.title?.trim() || "this account";
+  const isTopUp = normalizeProductType(fields.productType) === "TOP_UP";
+  const title = fields.title?.trim() || (isTopUp ? "this top up" : "this account");
   const game = fields.gameName?.trim();
   const server = fields.server?.trim();
   const regionLabel = getRegionLabel(fields.regionCode);
@@ -61,7 +65,11 @@ export function buildProductMetaDescription(fields: ProductSeoFields): string {
   const segments: string[] = [];
 
   if (game) {
-    segments.push(`Buy ${title} — ${game} account at ${SITE_NAME}.`);
+    segments.push(
+      isTopUp
+        ? `Buy ${title} — ${game} top up at ${SITE_NAME}.`
+        : `Buy ${title} — ${game} account at ${SITE_NAME}.`
+    );
   } else {
     segments.push(`Buy ${title} at ${SITE_NAME}.`);
   }
@@ -77,7 +85,9 @@ export function buildProductMetaDescription(fields: ProductSeoFields): string {
   }
 
   segments.push(
-    "Pay securely by card through Stripe, or purchase via Shopee or WhatsApp."
+    isTopUp
+      ? "Order via WhatsApp."
+      : "Pay securely by card through Stripe, or purchase via Shopee or WhatsApp."
   );
 
   const built = segments.join(" ").replace(/\s+/g, " ").trim();

@@ -9,10 +9,11 @@ export type ProductType = (typeof PRODUCT_TYPES)[number];
 
 export const DEFAULT_PRODUCT_TYPE: ProductType = "ENDGAME_ACCOUNT";
 
-/** Admin may create Endgame and Reroll only — Top Up reserved for Phase 16.3. */
+/** Admin may create Endgame, Reroll, and WhatsApp-only Top Up listings. */
 export const ADMIN_CREATABLE_PRODUCT_TYPES = [
   "ENDGAME_ACCOUNT",
   "REROLL_ACCOUNT",
+  "TOP_UP",
 ] as const;
 
 export type AdminCreatableProductType =
@@ -27,10 +28,7 @@ export function normalizeProductType(value: unknown): ProductType {
 export function isAdminCreatableProductType(
   value: string
 ): value is AdminCreatableProductType {
-  return (
-    value === "ENDGAME_ACCOUNT" ||
-    value === "REROLL_ACCOUNT"
-  );
+  return (ADMIN_CREATABLE_PRODUCT_TYPES as readonly string[]).includes(value);
 }
 
 export function getProductTypeLabel(type: ProductType): string {
@@ -46,4 +44,13 @@ export function getProductTypeLabel(type: ProductType): string {
 
 export function isAccountProductType(type: ProductType): boolean {
   return type === "ENDGAME_ACCOUNT" || type === "REROLL_ACCOUNT";
+}
+
+/** Top Up is fulfilled via WhatsApp enquiry — never Stripe or Shopee. */
+export function isWhatsAppOnlyProductType(type: ProductType): boolean {
+  return type === "TOP_UP";
+}
+
+export function isStripeCheckoutAllowed(type: ProductType): boolean {
+  return isAccountProductType(type);
 }

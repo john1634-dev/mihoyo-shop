@@ -12,7 +12,8 @@ type ProductPurchaseBarProps = {
 
 /**
  * Mobile-only sticky purchase bar (PDP).
- * Shows price + Shopee + WhatsApp. Card checkout stays in the desktop panel only.
+ * Account listings: Shopee + WhatsApp. Top Up: WhatsApp only.
+ * Card checkout stays in the desktop panel for account products.
  */
 export default function ProductPurchaseBar({
   product,

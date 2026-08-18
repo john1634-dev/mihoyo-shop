@@ -32,7 +32,7 @@ export type Product = {
   created_at?: string;
   updated_at?: string;
   shopee_url?: string | null;
-  /** ENDGAME_ACCOUNT | REROLL_ACCOUNT | TOP_UP (future). Defaults to ENDGAME_ACCOUNT. */
+  /** ENDGAME_ACCOUNT | REROLL_ACCOUNT | TOP_UP. Defaults to ENDGAME_ACCOUNT. */
   product_type?: ProductType | null;
   supplier_cost?: number | null;
   supplier_name?: string | null;

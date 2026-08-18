@@ -3,12 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   buildProductWhatsAppMessage,
+  buildTopUpWhatsAppMessage,
   buildWhatsAppUrl,
   formatPrice,
   resolveShopeeUrl,
 } from "@/lib/config";
 import { ShopeeIcon, WhatsAppIcon } from "@/components/icons";
 import { getAccessToken } from "@/lib/auth";
+import {
+  isWhatsAppOnlyProductType,
+  normalizeProductType,
+} from "@/lib/product-type";
 import { isValidEmail } from "@/lib/validation";
 import { supabase } from "@/lib/supabase";
 
@@ -22,6 +27,7 @@ type PurchaseButtonsProps = {
     ar_level?: number | null;
     slug?: string | null;
     shopee_url?: string | null;
+    product_type?: string | null;
   };
   gameName?: string | null;
   available: boolean;
@@ -46,6 +52,10 @@ export default function PurchaseButtons({
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const whatsappOnly = isWhatsAppOnlyProductType(
+    normalizeProductType(product.product_type)
+  );
 
   useEffect(() => {
     let active = true;
@@ -74,17 +84,21 @@ export default function PurchaseButtons({
     );
   }
 
+  const whatsappInfo = {
+    id: product.id,
+    title: product.title,
+    price: Number(product.price),
+    currency: product.currency || "MYR",
+    gameName,
+    server: product.server,
+    arLevel: product.ar_level,
+    slug: product.slug,
+  };
+
   const whatsappHref = buildWhatsAppUrl(
-    buildProductWhatsAppMessage({
-      id: product.id,
-      title: product.title,
-      price: Number(product.price),
-      currency: product.currency || "MYR",
-      gameName,
-      server: product.server,
-      arLevel: product.ar_level,
-      slug: product.slug,
-    })
+    whatsappOnly
+      ? buildTopUpWhatsAppMessage(whatsappInfo)
+      : buildProductWhatsAppMessage(whatsappInfo)
   );
 
   const shopeeHref = resolveShopeeUrl(product.shopee_url);
@@ -97,12 +111,13 @@ export default function PurchaseButtons({
         : "px-4 py-3 text-sm";
 
   const wrap =
-    layout === "row"
-      ? "grid w-full min-w-0 grid-cols-2 gap-2"
-      : "flex w-full min-w-0 flex-col gap-2.5";
+    whatsappOnly || layout !== "row"
+      ? "flex w-full min-w-0 flex-col gap-2.5"
+      : "grid w-full min-w-0 grid-cols-2 gap-2";
 
   async function startCardCheckout(event: React.FormEvent) {
     event.preventDefault();
+    if (whatsappOnly) return;
     setError("");
     setLoading(true);
 
@@ -140,6 +155,23 @@ export default function PurchaseButtons({
       setError(err instanceof Error ? err.message : "Checkout failed.");
       setLoading(false);
     }
+  }
+
+  if (whatsappOnly) {
+    return (
+      <div className={`${wrap} ${className}`}>
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`btn-whatsapp ${pad}`}
+          aria-label="Order this top up on WhatsApp"
+        >
+          <WhatsAppIcon />
+          Order on WhatsApp — {priceLabel}
+        </a>
+      </div>
+    );
   }
 
   return (

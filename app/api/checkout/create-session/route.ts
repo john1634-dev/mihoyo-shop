@@ -10,6 +10,10 @@ import {
 import { isStorefrontPurchasable } from "@/lib/inventory-stock";
 import { fetchProductStockSummary } from "@/lib/inventory-stock-server";
 import { generateOrderNumber } from "@/lib/orders";
+import {
+  isStripeCheckoutAllowed,
+  normalizeProductType,
+} from "@/lib/product-type";
 import { checkRateLimit, clientIpFromRequest } from "@/lib/rate-limit";
 import { getStripe, toStripeUnitAmount } from "@/lib/stripe";
 import { getRequestUser } from "@/lib/supabase";
@@ -26,6 +30,8 @@ type Body = {
 };
 
 const CHECKOUT_SELECT =
+  "id,title,slug,price,currency,status,cover_image_url,product_type";
+const CHECKOUT_SELECT_LEGACY =
   "id,title,slug,price,currency,status,cover_image_url";
 
 export async function POST(request: Request) {
@@ -70,11 +76,25 @@ export async function POST(request: Request) {
     const { user } = await getRequestUser(request);
     const service = getSupabaseService();
 
-    const { data: product, error: productError } = await service
+    let productResult = await service
       .from("products")
       .select(CHECKOUT_SELECT)
       .eq("id", productId)
       .maybeSingle();
+
+    if (
+      productResult.error &&
+      /product_type|column|schema/i.test(productResult.error.message)
+    ) {
+      productResult = await service
+        .from("products")
+        .select(CHECKOUT_SELECT_LEGACY)
+        .eq("id", productId)
+        .maybeSingle();
+    }
+
+    const product = productResult.data;
+    const productError = productResult.error;
 
     if (productError || !product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -83,6 +103,16 @@ export async function POST(request: Request) {
     if (product.status !== "available") {
       return NextResponse.json(
         { error: "This listing is not available for purchase." },
+        { status: 409 }
+      );
+    }
+
+    const productType = normalizeProductType(
+      (product as { product_type?: string }).product_type
+    );
+    if (!isStripeCheckoutAllowed(productType)) {
+      return NextResponse.json(
+        { error: "This listing is purchased via WhatsApp." },
         { status: 409 }
       );
     }

@@ -147,6 +147,36 @@ export function buildProductWhatsAppMessage(product: WhatsAppProductInfo): strin
   return lines.join("\n");
 }
 
+/** Prefill for Top Up WhatsApp enquiry — no order/DB write. */
+export function buildTopUpWhatsAppMessage(product: WhatsAppProductInfo): string {
+  const priceLabel = formatPriceDetailed(product.price, product.currency || "MYR");
+  const productUrl =
+    product.slug && product.slug.trim()
+      ? `${SITE_URL.replace(/\/$/, "")}/product/${product.slug.trim()}`
+      : null;
+
+  const lines = [
+    "Hi BaituGames, I want to top up:",
+    "",
+    `Product: ${product.title.trim()}`,
+    `Game: ${product.gameName?.trim() || "N/A"}`,
+    `Price: ${priceLabel}`,
+  ];
+
+  if (productUrl) {
+    lines.push("", productUrl);
+  }
+
+  lines.push(
+    "",
+    "UID:",
+    "Server:",
+    "",
+    "Please confirm the package and payment."
+  );
+  return lines.join("\n");
+}
+
 export type FindAccountRequest = {
   game?: string;
   budget?: string;

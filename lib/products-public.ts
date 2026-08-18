@@ -40,7 +40,7 @@ const NEW_PRODUCT_DAYS = 7;
 const RECOMMENDED_LIMIT = 8;
 const JUST_ADDED_LIMIT = 8;
 
-export type ProductBadge = "NEW" | "SOLD_OUT" | "REROLL";
+export type ProductBadge = "NEW" | "SOLD_OUT" | "REROLL" | "TOP_UP";
 
 /** Higher score = more complete listing (not popularity or price). */
 function productListingScore(product: Product): number {
@@ -119,6 +119,10 @@ export function getProductBadges(
 
   if (normalizeProductType(product.product_type) === "REROLL_ACCOUNT") {
     badges.push("REROLL");
+  }
+
+  if (normalizeProductType(product.product_type) === "TOP_UP") {
+    badges.push("TOP_UP");
   }
 
   if (isNewProduct(product)) {

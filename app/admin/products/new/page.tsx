@@ -330,7 +330,9 @@ export default function NewProductPage() {
         </Link>
 
         <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Add Product</h1>
-        <p className="mt-2 text-slate-400">Create a new game account listing.</p>
+        <p className="mt-2 text-slate-400">
+          Create a new game account or top up listing.
+        </p>
 
         <form onSubmit={createProduct} className="mt-8 space-y-6 pb-28 lg:space-y-8 lg:pb-0">
           <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">

@@ -29,8 +29,10 @@ import {
 import { fetchProductStockSummaryMap } from "@/lib/catalog-stock-server";
 import {
   isStorefrontPurchasable,
+  resolveCustomerStockDisplay,
   resolveCustomerStockDisplayFromSummary,
 } from "@/lib/inventory-stock";
+import { isWhatsAppOnlyProductType, normalizeProductType } from "@/lib/product-type";
 import type { Metadata } from "next";
 import type { Product } from "@/lib/types";
 
@@ -46,7 +48,7 @@ function isMissingRegionColumnError(message?: string): boolean {
 function isMissingOptionalColumnError(message?: string): boolean {
   if (!message) return false;
   return (
-    (/shopee_url|updated_at|region_code/i.test(message) &&
+    (/shopee_url|updated_at|region_code|product_type/i.test(message) &&
       /column|schema|exist/i.test(message)) ||
     isMissingRegionColumnError(message)
   );
@@ -113,13 +115,28 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
 
-  const { data: product } = await supabase
+  let productQuery = await supabase
     .from("products")
     .select(
-      "title, description, cover_image_url, price, currency, status, game_id, server, region_code"
+      "title, description, cover_image_url, price, currency, status, game_id, server, region_code, product_type"
     )
     .eq("slug", slug)
     .single();
+
+  if (
+    productQuery.error &&
+    /product_type|column|schema/i.test(productQuery.error.message)
+  ) {
+    productQuery = await supabase
+      .from("products")
+      .select(
+        "title, description, cover_image_url, price, currency, status, game_id, server, region_code"
+      )
+      .eq("slug", slug)
+      .single();
+  }
+
+  const product = productQuery.data;
 
   if (!product || product.status === "hidden") {
     return { title: "Product Not Found", robots: { index: false } };
@@ -143,6 +160,7 @@ export async function generateMetadata({
     price: product.price,
     currency: product.currency,
     description: product.description,
+    productType: (product as { product_type?: string }).product_type,
   };
 
   const absoluteTitle = buildProductPageTitle(seoFields);
@@ -240,21 +258,33 @@ export default async function ProductPage({ params }: ProductPageProps) {
     related.map((item) => item.id)
   );
 
+  const typedProduct = product as Product;
+  const isTopUp = isWhatsAppOnlyProductType(
+    normalizeProductType(typedProduct.product_type)
+  );
   const productStockSummary = await fetchProductStockSummaryMap([product.id]);
   const stockSummary = productStockSummary[product.id];
   const availableStock = stockSummary?.available_count ?? 0;
   const isListed = product.status === "available";
-  const isAvailable = isStorefrontPurchasable({
-    productStatus: product.status,
-    summary: stockSummary,
-  });
-  const stockDisplay = resolveCustomerStockDisplayFromSummary({
-    productStatus: product.status,
-    summary: stockSummary,
-  });
-  const showInStockSeo =
-    isListed &&
-    (!stockDisplay.inventoryManaged || availableStock > 0);
+  const isAvailable = isTopUp
+    ? isListed
+    : isStorefrontPurchasable({
+        productStatus: product.status,
+        summary: stockSummary,
+      });
+  const stockDisplay = isTopUp
+    ? resolveCustomerStockDisplay({
+        productStatus: product.status,
+        availableCount: 0,
+        inventoryManaged: false,
+      })
+    : resolveCustomerStockDisplayFromSummary({
+        productStatus: product.status,
+        summary: stockSummary,
+      });
+  const showInStockSeo = isTopUp
+    ? isListed
+    : isListed && (!stockDisplay.inventoryManaged || availableStock > 0);
 
   const galleryImages =
     images && images.length > 0
@@ -266,7 +296,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
         ? [{ id: "cover", image_url: product.cover_image_url }]
         : [];
 
-  const typedProduct = product as Product;
   const listingCurrency = normalizeCurrencyCode(product.currency);
   const regionCode = normalizeRegionCode(
     (product as Product).region_code
@@ -281,6 +310,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     price: product.price,
     currency: listingCurrency,
     description: product.description,
+    productType: typedProduct.product_type,
   });
 
   const breadcrumbItems = [
@@ -426,9 +456,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
 
               <ul className="mt-5 space-y-2 text-xs leading-relaxed text-[var(--muted)] sm:text-sm">
-                <li>Delivery is manual after confirmed purchase — not instant.</li>
-                <li>Pay by card (Stripe), Shopee, or continue on WhatsApp.</li>
-                <li>After-sales help is available via WhatsApp after your purchase.</li>
+                {isTopUp ? (
+                  <>
+                    <li>Top up is fulfilled manually after you message us on WhatsApp.</li>
+                    <li>Please include your game UID and server in the chat.</li>
+                    <li>Card checkout and Shopee are not used for top up listings.</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Delivery is manual after confirmed purchase — not instant.</li>
+                    <li>Pay by card (Stripe), Shopee, or continue on WhatsApp.</li>
+                    <li>After-sales help is available via WhatsApp after your purchase.</li>
+                  </>
+                )}
               </ul>
 
               <div className="mt-5">
@@ -446,7 +486,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         {product.description && (
           <section className="mt-8 border-t border-[var(--border)] pt-8 lg:mt-10">
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">Account details</h2>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+              {isTopUp ? "Top Up details" : "Account details"}
+            </h2>
             <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-[var(--border)] bg-white p-5 text-sm leading-7 text-[var(--muted-strong)] shadow-[var(--shadow-card)]">
               {product.description}
             </div>
