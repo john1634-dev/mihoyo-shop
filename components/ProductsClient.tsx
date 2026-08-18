@@ -18,6 +18,12 @@ import {
   normalizeRegionCode,
 } from "@/lib/catalog-meta";
 import type { ProductStockSummary } from "@/lib/inventory-stock";
+import {
+  getProductTypeLabel,
+  parseStorefrontProductTypeFilter,
+  PRODUCT_TYPES,
+  type ProductType,
+} from "@/lib/product-type";
 import type { Game, Product } from "@/lib/types";
 
 type FilterOverrides = {
@@ -28,6 +34,7 @@ type FilterOverrides = {
   region?: string;
   currency?: string;
   server?: string;
+  type?: string;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -49,6 +56,7 @@ function buildProductListHref(
     regionCode: string;
     currencyCode: string;
     serverFilter: string;
+    typeFilter: string;
   },
   overrides: FilterOverrides = {}
 ) {
@@ -71,6 +79,10 @@ function buildProductListHref(
     overrides.server !== undefined
       ? overrides.server.trim()
       : current.serverFilter.trim();
+  const nextType =
+    overrides.type !== undefined
+      ? parseStorefrontProductTypeFilter(overrides.type)
+      : current.typeFilter;
 
   if (nextGame) params.set("game", nextGame);
   if (nextQ.trim()) params.set("q", nextQ.trim());
@@ -79,6 +91,7 @@ function buildProductListHref(
   if (nextRegion) params.set("region", nextRegion);
   if (nextCurrency) params.set("currency", nextCurrency);
   if (nextServer) params.set("server", nextServer);
+  if (nextType) params.set("type", nextType);
 
   const query = params.toString();
   return query ? `/products?${query}` : "/products";
@@ -93,6 +106,7 @@ type ProductFiltersProps = {
   regionCode: string;
   currencyCode: string;
   serverFilter: string;
+  typeFilter: string;
   buildHref: (overrides: FilterOverrides) => string;
   onNavigate: (overrides: FilterOverrides) => void;
   onClear: () => void;
@@ -107,6 +121,7 @@ function ProductFilters({
   regionCode,
   currencyCode,
   serverFilter,
+  typeFilter,
   buildHref,
   onNavigate,
   onClear,
@@ -160,6 +175,28 @@ function ProductFilters({
           Search
         </button>
       </form>
+
+      <div>
+        <label
+          htmlFor="product-type"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]"
+        >
+          Product type
+        </label>
+        <select
+          id="product-type"
+          value={typeFilter}
+          onChange={(event) => onNavigate({ type: event.target.value })}
+          className="w-full min-h-11 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)]"
+        >
+          <option value="">All types</option>
+          {PRODUCT_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {getProductTypeLabel(type)}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div>
         <label
@@ -338,6 +375,7 @@ export type ProductsClientProps = {
   regionCode: string;
   currencyCode: string;
   serverFilter: string;
+  typeFilter: string;
 };
 
 export default function ProductsClient({
@@ -351,6 +389,7 @@ export default function ProductsClient({
   regionCode,
   currencyCode,
   serverFilter,
+  typeFilter,
 }: ProductsClientProps) {
   const router = useRouter();
   const [filterOpen, setFilterOpen] = useState(false);
@@ -375,6 +414,7 @@ export default function ProductsClient({
     regionCode: normalizedRegion,
     currencyCode: normalizedCurrency,
     serverFilter: normalizedServer,
+    typeFilter,
   };
 
   function buildHref(overrides: FilterOverrides) {
@@ -433,6 +473,14 @@ export default function ProductsClient({
     });
   }
 
+  if (typeFilter) {
+    activeFilterChips.push({
+      key: "type",
+      label: getProductTypeLabel(typeFilter as ProductType),
+      href: buildProductListHref(filterState, { type: "" }),
+    });
+  }
+
   if (statusFilter !== "available") {
     activeFilterChips.push({
       key: "status",
@@ -451,7 +499,7 @@ export default function ProductsClient({
 
   const filterPanel = (
     <ProductFilters
-      key={`${gameSlug}-${searchQuery}-${normalizedSort}-${statusFilter}-${normalizedRegion}-${normalizedCurrency}-${normalizedServer}`}
+      key={`${gameSlug}-${searchQuery}-${normalizedSort}-${statusFilter}-${normalizedRegion}-${normalizedCurrency}-${normalizedServer}-${typeFilter}`}
       games={games}
       gameSlug={gameSlug}
       searchQuery={searchQuery}
@@ -460,6 +508,7 @@ export default function ProductsClient({
       regionCode={normalizedRegion}
       currencyCode={normalizedCurrency}
       serverFilter={normalizedServer}
+      typeFilter={typeFilter}
       buildHref={buildHref}
       onNavigate={navigateFilters}
       onClear={clearFilters}
@@ -508,10 +557,24 @@ export default function ProductsClient({
             </div>
           ) : null}
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            {activeGame ? `${activeGame.name} Accounts` : "Game Accounts"}
+            {activeGame
+              ? `${activeGame.name} ${
+                  typeFilter === "TOP_UP"
+                    ? "Top Up"
+                    : typeFilter
+                      ? getProductTypeLabel(typeFilter as ProductType)
+                      : "Accounts"
+                }`
+              : typeFilter === "TOP_UP"
+                ? "Game Top Up"
+                : typeFilter
+                  ? `${getProductTypeLabel(typeFilter as ProductType)}s`
+                  : "Game Accounts"}
           </h1>
           <p className="mt-3 text-[var(--muted)]">
-            Browse our available game accounts.
+            {typeFilter === "TOP_UP"
+              ? "WhatsApp-only game top up listings."
+              : "Browse our available game accounts."}
           </p>
           <div className="mt-5">
             <FindAccountCTA

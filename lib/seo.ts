@@ -164,12 +164,14 @@ export function productsHasActiveFilters(params: {
   region?: string;
   currency?: string;
   server?: string;
+  type?: string;
 }): boolean {
   if (params.game?.trim()) return true;
   if (params.q?.trim()) return true;
   if (params.region?.trim()) return true;
   if (params.currency?.trim()) return true;
   if (params.server?.trim()) return true;
+  if (params.type?.trim()) return true;
   const sort = params.sort?.trim();
   if (sort && sort !== "newest" && sort !== "featured" && sort !== "default") {
     return true;

@@ -11,6 +11,7 @@ import {
   normalizeRegionCode,
 } from "@/lib/catalog-meta";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/config";
+import { parseStorefrontProductTypeFilter } from "@/lib/product-type";
 import { OG_IMAGE_PATH, absoluteUrl, productsHasActiveFilters } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ type ProductsSearchParams = {
   region?: string;
   currency?: string;
   server?: string;
+  type?: string;
 };
 
 type ProductsPageProps = {
@@ -77,6 +79,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     ? normalizeCurrencyCode(params.currency, "")
     : "";
   const serverFilter = params.server?.trim() || "";
+  const typeFilter = parseStorefrontProductTypeFilter(params.type);
 
   const games = await fetchActiveGames();
   const products = await fetchFilteredProducts(
@@ -88,6 +91,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       region: regionCode || undefined,
       currency: currencyCode || undefined,
       server: serverFilter || undefined,
+      type: typeFilter || undefined,
     },
     games
   );
@@ -107,6 +111,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       regionCode={regionCode}
       currencyCode={currencyCode}
       serverFilter={serverFilter}
+      typeFilter={typeFilter}
     />
   );
 }

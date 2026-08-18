@@ -13,6 +13,7 @@ import {
   normalizeCurrencyCode,
   normalizeRegionCode,
 } from "@/lib/catalog-meta";
+import { parseStorefrontProductTypeFilter } from "@/lib/product-type";
 import type { Game, Product } from "@/lib/types";
 
 export const GAME_PUBLIC_SELECT =
@@ -30,6 +31,7 @@ export type ProductListFilters = {
   region?: string;
   currency?: string;
   server?: string;
+  type?: string;
 };
 
 /** Maps legacy `featured` / `default` URLs to newest-first ordering. */
@@ -68,7 +70,7 @@ function applyProductFilters(
   query: ProductQueryBuilder,
   filters: ProductListFilters,
   games: Game[] | undefined,
-  options: { includeRegionFilter: boolean }
+  options: { includeRegionFilter: boolean; includeProductTypeFilter?: boolean }
 ) {
   const gameSlug = filters.game?.trim() || "";
   const searchQuery = sanitizeSearchTerm(filters.q?.trim() || "");
@@ -79,6 +81,7 @@ function applyProductFilters(
     ? normalizeCurrencyCode(filters.currency, "")
     : "";
   const serverFilter = filters.server?.trim() || "";
+  const productType = parseStorefrontProductTypeFilter(filters.type);
 
   let next = query;
 
@@ -106,6 +109,10 @@ function applyProductFilters(
 
   if (options.includeRegionFilter && regionCode) {
     next = next.eq("region_code", regionCode);
+  }
+
+  if (options.includeProductTypeFilter && productType) {
+    next = next.eq("product_type", productType);
   }
 
   if (currencyCode) {
@@ -256,7 +263,7 @@ export async function fetchFilteredProducts(
     supabase.from("products").select(PUBLIC_PRODUCT_SELECT),
     filters,
     gameList,
-    { includeRegionFilter: true }
+    { includeRegionFilter: true, includeProductTypeFilter: true }
   );
 
   const primary = await primaryQuery;

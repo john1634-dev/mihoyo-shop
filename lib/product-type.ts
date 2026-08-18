@@ -54,3 +54,24 @@ export function isWhatsAppOnlyProductType(type: ProductType): boolean {
 export function isStripeCheckoutAllowed(type: ProductType): boolean {
   return isAccountProductType(type);
 }
+
+/**
+ * Parse a public /products?type= query. Unknown values are ignored
+ * (not coerced to ENDGAME_ACCOUNT).
+ */
+export function parseStorefrontProductTypeFilter(
+  value: unknown
+): ProductType | "" {
+  if (
+    value === "ENDGAME_ACCOUNT" ||
+    value === "REROLL_ACCOUNT" ||
+    value === "TOP_UP"
+  ) {
+    return value;
+  }
+  return "";
+}
+
+export function storefrontProductTypeHref(type: ProductType): string {
+  return `/products?type=${encodeURIComponent(type)}`;
+}

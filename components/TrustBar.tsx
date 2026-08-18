@@ -27,17 +27,17 @@ export default function TrustBar() {
   return (
     <section
       aria-label="Trust highlights"
-      className="border-y border-[var(--border)] bg-[var(--surface)]/80"
+      className="border-y border-[var(--border)] bg-white"
     >
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-8 md:px-6 lg:grid-cols-4 lg:gap-6 lg:py-10">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 py-5 md:px-6 lg:grid-cols-4 lg:gap-5 lg:py-6">
         {TRUST_ITEMS.map(({ title, description, Icon }) => (
-          <div key={title} className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-card)] text-[var(--accent-strong)] shadow-[var(--shadow-card)]">
-              <Icon className="h-5 w-5" />
+          <div key={title} className="flex items-start gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--accent-strong)]">
+              <Icon className="h-4 w-4" />
             </span>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-[var(--foreground)]">{title}</p>
-              <p className="mt-0.5 text-xs leading-relaxed text-[var(--muted)]">
+              <p className="mt-0.5 text-xs leading-snug text-[var(--muted)]">
                 {description}
               </p>
             </div>

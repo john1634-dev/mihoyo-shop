@@ -18,12 +18,14 @@ const PRODUCT_IMAGE_QUALITY = 88;
 const BADGE_STYLES: Record<ProductBadge, string> = {
   NEW: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
   SOLD_OUT: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
-  REROLL: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",
+  ENDGAME: "bg-blue-50 text-blue-800 ring-1 ring-blue-200",
+  REROLL: "bg-sky-50 text-sky-800 ring-1 ring-sky-200",
   TOP_UP: "bg-cyan-100 text-cyan-800 ring-1 ring-cyan-200",
 };
 
 function productBadgeLabel(badge: ProductBadge): string {
   if (badge === "SOLD_OUT") return "Sold";
+  if (badge === "ENDGAME") return "Endgame Account";
   if (badge === "REROLL") return "Reroll Account";
   if (badge === "TOP_UP") return "Top Up";
   return badge;
