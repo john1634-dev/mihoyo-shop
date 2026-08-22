@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { adminFetch } from "@/lib/admin-api";
@@ -132,6 +132,9 @@ export default function ProductsPage() {
   const [stockFilter, setStockFilter] = useState<AdminStockFilter>("all");
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -261,6 +264,50 @@ export default function ProductsPage() {
     });
   }, [products, search, statusFilter, gameFilter, typeFilter, stockFilter, stockMap]);
 
+  const filteredIdSet = useMemo(
+    () => new Set(filtered.map((product) => product.id)),
+    [filtered]
+  );
+
+  const visibleSelectedIds = useMemo(
+    () => [...selectedIds].filter((id) => filteredIdSet.has(id)),
+    [selectedIds, filteredIdSet]
+  );
+
+  const allFilteredSelected =
+    filtered.length > 0 && visibleSelectedIds.length === filtered.length;
+
+  const someFilteredSelected =
+    visibleSelectedIds.length > 0 && !allFilteredSelected;
+
+  const toggleSelectProduct = useCallback((productId: string) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(productId)) {
+        next.delete(productId);
+      } else {
+        next.add(productId);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAllFiltered = useCallback(() => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (allFilteredSelected) {
+        for (const product of filtered) {
+          next.delete(product.id);
+        }
+      } else {
+        for (const product of filtered) {
+          next.add(product.id);
+        }
+      }
+      return next;
+    });
+  }, [allFilteredSelected, filtered]);
+
   function handleStatusChange(productId: string, nextStatus: string) {
     setProducts((current) =>
       current.map((product) =>
@@ -326,6 +373,69 @@ export default function ProductsPage() {
     }
   }
 
+  async function confirmBulkDeleteProducts() {
+    if (visibleSelectedIds.length === 0) return;
+    setBulkDeleteLoading(true);
+    setError("");
+
+    try {
+      const res = await adminFetch("/api/admin/products/bulk-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_ids: visibleSelectedIds,
+          confirm: true,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        handleFeedback(data.error || "Bulk delete failed.", "error");
+        return;
+      }
+
+      const deletedIds = new Set<string>();
+      const hiddenIds = new Set<string>();
+
+      for (const result of data.results ?? []) {
+        if (result.deleted) deletedIds.add(result.productId);
+        if (result.hidden) hiddenIds.add(result.productId);
+      }
+
+      setProducts((current) => {
+        const remaining = current.filter((product) => !deletedIds.has(product.id));
+        return remaining.map((product) =>
+          hiddenIds.has(product.id) ? { ...product, status: "hidden" } : product
+        );
+      });
+      setSelectedIds(new Set());
+
+      const parts: string[] = [];
+      if ((data.deleted ?? 0) > 0) {
+        parts.push(`${data.deleted} deleted`);
+      }
+      if ((data.hidden ?? 0) > 0) {
+        parts.push(
+          `${data.hidden} hidden because ${data.hidden === 1 ? "it has" : "they have"} order history`
+        );
+      }
+      if ((data.failed ?? 0) > 0 || (data.notFound ?? 0) > 0) {
+        const failedCount = (data.failed ?? 0) + (data.notFound ?? 0);
+        parts.push(`${failedCount} could not be removed`);
+      }
+
+      handleFeedback(
+        parts.length > 0 ? `${parts.join(", ")}.` : "Bulk delete completed.",
+        parts.some((part) => part.includes("could not")) ? "error" : "success"
+      );
+      setBulkDeleteOpen(false);
+    } catch {
+      handleFeedback("Bulk delete failed.", "error");
+    } finally {
+      setBulkDeleteLoading(false);
+    }
+  }
+
   return (
     <div className="mx-auto min-w-0 max-w-7xl overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -338,12 +448,28 @@ export default function ProductsPage() {
             {filtered.length} listing{filtered.length === 1 ? "" : "s"} · compact management view
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium hover:bg-blue-500"
-        >
-          + Add Product
-        </Link>
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          {visibleSelectedIds.length > 0 && (
+            <>
+              <span className="text-sm text-slate-400">
+                {visibleSelectedIds.length} selected
+              </span>
+              <button
+                type="button"
+                onClick={() => setBulkDeleteOpen(true)}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-red-900/50 px-4 py-2.5 text-sm font-medium text-red-300 hover:border-red-500 hover:text-red-200"
+              >
+                Delete Selected
+              </button>
+            </>
+          )}
+          <Link
+            href="/admin/products/new"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium hover:bg-blue-500"
+          >
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-col gap-2 lg:flex-row lg:items-center">
@@ -453,7 +579,19 @@ export default function ProductsPage() {
               <table className="w-full table-fixed text-sm">
                 <thead className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur-sm">
                   <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <th className="w-[22%] px-3 py-2.5 font-semibold">Title</th>
+                    <th className="w-10 px-3 py-2.5 font-semibold">
+                      <input
+                        type="checkbox"
+                        aria-label="Select all products on this page"
+                        checked={allFilteredSelected}
+                        ref={(input) => {
+                          if (input) input.indeterminate = someFilteredSelected;
+                        }}
+                        onChange={toggleSelectAllFiltered}
+                        className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-blue-600 focus:ring-blue-500"
+                      />
+                    </th>
+                    <th className="w-[20%] px-3 py-2.5 font-semibold">Title</th>
                     <th className="w-[13%] px-3 py-2.5 font-semibold">Type</th>
                     <th className="w-[12%] px-3 py-2.5 font-semibold">Game</th>
                     <th className="w-[10%] px-3 py-2.5 font-semibold">Price</th>
@@ -475,6 +613,15 @@ export default function ProductsPage() {
                         key={product.id}
                         className="border-b border-slate-800/80 hover:bg-slate-900/50"
                       >
+                        <td className="px-3 py-3">
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${product.title}`}
+                            checked={selectedIds.has(product.id)}
+                            onChange={() => toggleSelectProduct(product.id)}
+                            className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
                         <td className="px-3 py-3">
                           <div className="flex min-w-0 items-center gap-2.5">
                             <ProductThumbnail
@@ -560,6 +707,13 @@ export default function ProductsPage() {
                   className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"
                 >
                   <div className="flex gap-3">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${product.title}`}
+                      checked={selectedIds.has(product.id)}
+                      onChange={() => toggleSelectProduct(product.id)}
+                      className="mt-1 h-4 w-4 shrink-0 rounded border-slate-600 bg-slate-900 text-blue-600 focus:ring-blue-500"
+                    />
                     <ProductThumbnail
                       title={product.title}
                       coverImageUrl={product.cover_image_url}
@@ -626,6 +780,25 @@ export default function ProductsPage() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        title="Delete selected products?"
+        description={
+          visibleSelectedIds.length > 0
+            ? `Delete ${visibleSelectedIds.length} selected product${visibleSelectedIds.length === 1 ? "" : "s"}? Listings with order history will be hidden instead of deleted. This cannot be undone for deletions.`
+            : ""
+        }
+        confirmLabel="Delete Selected"
+        loading={bulkDeleteLoading}
+        loadingLabel="Deleting…"
+        onConfirm={() => {
+          void confirmBulkDeleteProducts();
+        }}
+        onCancel={() => {
+          if (!bulkDeleteLoading) setBulkDeleteOpen(false);
+        }}
+      />
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

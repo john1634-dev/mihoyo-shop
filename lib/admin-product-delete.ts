@@ -194,3 +194,77 @@ export async function deleteAdminProduct(
     title: product.title,
   };
 }
+
+export const ADMIN_BULK_DELETE_MAX = 50;
+
+export type AdminProductBulkDeleteItemResult = AdminProductDeleteResult & {
+  productId: string;
+};
+
+export type AdminProductBulkDeleteSummary = {
+  requested: number;
+  deleted: number;
+  hidden: number;
+  failed: number;
+  notFound: number;
+  results: AdminProductBulkDeleteItemResult[];
+};
+
+/**
+ * Safely delete multiple admin products in one bounded batch.
+ */
+export async function bulkDeleteAdminProducts(
+  client: SupabaseClient,
+  input: { productIds: string[]; confirm: boolean }
+): Promise<AdminProductBulkDeleteSummary> {
+  const summary: AdminProductBulkDeleteSummary = {
+    requested: 0,
+    deleted: 0,
+    hidden: 0,
+    failed: 0,
+    notFound: 0,
+    results: [],
+  };
+
+  if (input.confirm !== true) {
+    return summary;
+  }
+
+  const uniqueIds = [
+    ...new Set(input.productIds.map((id) => id.trim()).filter(Boolean)),
+  ].slice(0, ADMIN_BULK_DELETE_MAX);
+
+  summary.requested = uniqueIds.length;
+
+  for (const productId of uniqueIds) {
+    const outcome = await deleteAdminProduct(client, {
+      productId,
+      confirm: true,
+    });
+
+    const item: AdminProductBulkDeleteItemResult = {
+      ...outcome,
+      productId: outcome.productId ?? productId,
+    };
+    summary.results.push(item);
+
+    if (outcome.deleted) {
+      summary.deleted += 1;
+      continue;
+    }
+
+    if (outcome.reason === "has_order_history" && outcome.hidden) {
+      summary.hidden += 1;
+      continue;
+    }
+
+    if (outcome.reason === "not_found") {
+      summary.notFound += 1;
+      continue;
+    }
+
+    summary.failed += 1;
+  }
+
+  return summary;
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import SupplierProductPreviewCard, {
   type SupplierPreviewData,
@@ -224,6 +224,9 @@ export default function ZinkGameSupplierPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const previewSectionRef = useRef<HTMLElement | null>(null);
+  const productUrlInputRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     async function loadGames() {
       const { data, error: gamesError } = await supabase
@@ -242,6 +245,29 @@ export default function ZinkGameSupplierPage() {
     void loadGames();
     void loadSyncRuns();
   }, []);
+
+  function scrollToPreviewSection() {
+    previewSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => productUrlInputRef.current?.focus(), 250);
+  }
+
+  function handleHeaderPreview() {
+    const url = productUrl.trim();
+    const id = productId.trim().toLowerCase();
+    if (url || id) {
+      void handlePreviewSubmit();
+      return;
+    }
+    scrollToPreviewSection();
+  }
+
+  function handleHeaderImportProduct() {
+    if (preview?.importStatus?.canImport) {
+      setConfirmOpen(true);
+      return;
+    }
+    scrollToPreviewSection();
+  }
 
   async function loadSyncRuns() {
     setSyncRunsLoading(true);
@@ -716,11 +742,44 @@ export default function ZinkGameSupplierPage() {
         ← Back to Products
       </Link>
 
-      <h1 className="mt-5 text-2xl font-bold sm:text-3xl">ZinkGame Supplier</h1>
-      <p className="mt-2 max-w-3xl text-slate-400">
-        Fetch supplier listings, preview account-code titles and pricing, then import
-        one product at a time. Nothing is written until you confirm import.
-      </p>
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">ZinkGame Supplier</h1>
+          <p className="mt-2 max-w-3xl text-slate-400">
+            Fetch supplier listings, preview account-code titles and pricing, then import
+            one product at a time. Nothing is written until you confirm import.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              setAutoSyncIntroOpen(true);
+              setAutoSyncResult(null);
+            }}
+            disabled={autoSyncLoading}
+            className="inline-flex min-h-11 items-center rounded-xl border border-amber-500/50 bg-amber-500/15 px-4 py-2.5 text-sm font-medium text-amber-100 hover:border-amber-400 disabled:opacity-50"
+          >
+            Sync Now
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleHeaderPreview()}
+            disabled={previewLoading}
+            className="inline-flex min-h-11 items-center rounded-xl border border-slate-600 px-4 py-2.5 text-sm font-medium text-white hover:border-slate-400 disabled:opacity-50"
+          >
+            {previewLoading ? "Loading..." : "Preview"}
+          </button>
+          <button
+            type="button"
+            onClick={handleHeaderImportProduct}
+            disabled={importLoading}
+            className="inline-flex min-h-11 items-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+          >
+            + Import Product
+          </button>
+        </div>
+      </div>
 
       {error && (
         <p className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -734,12 +793,17 @@ export default function ZinkGameSupplierPage() {
         </p>
       )}
 
-      <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-5">
+      <section
+        ref={previewSectionRef}
+        id="zinkgame-preview"
+        className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-5"
+      >
         <h2 className="text-lg font-semibold">Fetch Product Preview</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
             <label className="text-xs uppercase text-slate-500">Product URL</label>
             <input
+              ref={productUrlInputRef}
               value={productUrl}
               onChange={(event) => setProductUrl(event.target.value)}
               placeholder="https://zinkgame.com/product/..."

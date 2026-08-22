@@ -1,22 +1,22 @@
 /**
- * Extract the leading ZinkGame account code from a supplier listing title.
- * Example: "H4723 acc dư 53 day thẻ tháng" → "H4723"
+ * Leading supplier account code: one or more letters + digits at the start of the title.
+ * Examples: "H4723 acc..." → "H4723", "S1234 acc..." → "S1234"
+ *
+ * Returns null when the title does not begin with a confident account-code token.
  */
+const LEADING_ACCOUNT_CODE = /^([A-Za-z]+\d+)\b/;
+
 export function extractSupplierAccountCode(title: string): string | null {
   const trimmed = title.trim();
   if (!trimmed) return null;
 
-  const leading = trimmed.match(/^H(\d+)\b/i);
-  if (leading) {
-    return `H${leading[1]}`.toUpperCase();
-  }
+  const leading = trimmed.match(LEADING_ACCOUNT_CODE);
+  if (!leading) return null;
 
-  const token = trimmed.match(/\bH(\d+)\b/i);
-  if (token) {
-    return `H${token[1]}`.toUpperCase();
-  }
+  const code = leading[1].toUpperCase();
+  if (!/[A-Z]/.test(code) || !/\d/.test(code)) return null;
 
-  return null;
+  return code;
 }
 
 /** Public/admin product title derived from supplier title — account code only. */
