@@ -56,15 +56,9 @@ function makeLive(overrides: Partial<SupplierPreviewResult> = {}): SupplierPrevi
     source: "zinkgame",
     originalTitle: "Vietnamese title",
     translatedTitle: "H4702 CN Server Neu C6",
+    accountCode: "H4702",
+    accountCodeMissing: false,
     translationFailed: false,
-    translation: {
-      status: "completed",
-      sourceLanguage: "vi",
-      targetLanguage: "en",
-      sourceText: "Vietnamese title",
-      translatedText: "H4702 CN Server Neu C6",
-      provider: "rules",
-    },
     sourcePrice: 3_500_000,
     sourceCurrency: "VND",
     costMyr: 630,
@@ -227,14 +221,7 @@ async function main() {
     makeExisting(),
     makeLive({
       translatedTitle: "H4702 CN Server Neu C6 and Friends",
-      translation: {
-        status: "completed",
-        sourceLanguage: "vi",
-        targetLanguage: "en",
-        sourceText: "Vietnamese title",
-        translatedText: "H4702 CN Server Neu C6 and Friends",
-        provider: "rules",
-      },
+      accountCode: "H4702",
     }),
     { existingImageCount: 1 }
   );

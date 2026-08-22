@@ -102,6 +102,7 @@ export async function POST(request: Request) {
       url: url || undefined,
       markupPercent,
       gameId,
+      importMode: "manual",
     });
 
     if (!result.imported) {

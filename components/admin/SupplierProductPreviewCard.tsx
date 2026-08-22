@@ -9,6 +9,7 @@ export type SupplierPreviewData = {
   originalTitle: string;
   translatedTitle: string;
   translationFailed: boolean;
+  accountCodeMissing?: boolean;
   sourcePrice: number;
   sourceCurrency: string;
   costMyr: number | null;
@@ -112,12 +113,14 @@ export default function SupplierProductPreviewCard({
             <p className="mt-1 text-sm text-slate-200">{preview.originalTitle}</p>
           </div>
           <div>
-            <p className="text-xs font-medium uppercase text-slate-500">English</p>
+            <p className="text-xs font-medium uppercase text-slate-500">Product title</p>
             <p className="mt-1 text-sm font-medium text-white">
               {preview.translatedTitle}
             </p>
-            {preview.translationFailed && (
-              <p className="mt-1 text-xs text-amber-400">Translation failed — showing original.</p>
+            {preview.accountCodeMissing && (
+              <p className="mt-1 text-xs text-amber-400">
+                Account code not found — import will be skipped.
+              </p>
             )}
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">

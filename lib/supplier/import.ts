@@ -5,6 +5,9 @@ import { logServerError } from "@/lib/errors";
 import { getVndToMyrRate } from "@/lib/exchange-rate";
 import { buildSupplierDescription } from "@/lib/supplier/description";
 import {
+  buildStorefrontTitleFromSupplierTitle,
+} from "@/lib/supplier/account-code";
+import {
   extractSupplierCategory,
   loadActiveGames,
   resolveGameIdFromSupplierCategory,
@@ -46,7 +49,6 @@ export type SupplierImportSuccess = {
   costMyr: number;
   markupPercent: number;
   imageImportStatus: "pending";
-  translationFailed?: boolean;
 };
 
 export type SupplierImportFailure = {
@@ -73,8 +75,9 @@ export type ImportSupplierProductInput = {
   markupPercent?: number;
   gameId?: string;
   exchangeRate?: number;
-  translationProvider?: string;
   expectedCategorySlug?: string;
+  /** auto = category cron auto-import; manual = admin URL import. */
+  importMode?: "auto" | "manual";
 };
 
 const ALLOWED_SOURCES = new Set(["zinkgame"]);
@@ -258,7 +261,6 @@ export async function importSupplierProduct(
   try {
     preview = await buildSupplierProductPreview(supplierProduct, {
       markupPercent,
-      translationProvider: input.translationProvider,
       exchangeRate: input.exchangeRate,
     });
   } catch (error) {
@@ -344,24 +346,20 @@ export async function importSupplierProduct(
     };
   }
 
-  const translatedTitle = preview.translatedTitle.trim();
-  if (!translatedTitle) {
+  const accountCode = buildStorefrontTitleFromSupplierTitle(preview.originalTitle);
+  if (!accountCode) {
     return {
       imported: false,
       reason: "import_failed",
-      message: "Translated title is empty.",
+      message: "Supplier title does not contain a valid account code (e.g. H4723).",
     };
   }
 
-  if (preview.translationFailed) {
-    logServerError("supplier import translation", {
-      message: preview.translation.error ?? "Translation failed.",
-    });
-  }
+  const storefrontTitle = accountCode;
 
   let slug: string;
   try {
-    slug = await resolveUniqueProductSlug(client, translatedTitle);
+    slug = await resolveUniqueProductSlug(client, storefrontTitle);
   } catch (error) {
     logServerError("supplier import slug", error);
     return {
@@ -379,7 +377,7 @@ export async function importSupplierProduct(
   });
 
   const insertPayload = {
-    title: translatedTitle,
+    title: storefrontTitle,
     slug,
     description: buildSupplierDescription(
       preview.originalTitle,
@@ -406,6 +404,8 @@ export async function importSupplierProduct(
     source_status: supplierFields.source_status,
     source_price: supplierFields.source_price,
     source_currency: supplierFields.source_currency,
+    source_account_code: accountCode,
+    source_import_mode: input.importMode ?? "manual",
     last_synced_at: supplierFields.last_synced_at,
     last_source_check_at: supplierFields.last_source_check_at,
     sync_error: null,
@@ -449,6 +449,5 @@ export async function importSupplierProduct(
     costMyr: pricing.costMyr,
     markupPercent,
     imageImportStatus: "pending",
-    translationFailed: preview.translationFailed,
   };
 }

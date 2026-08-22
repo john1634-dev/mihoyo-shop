@@ -55,6 +55,10 @@ export type Product = {
   last_synced_at?: string | null;
   last_source_check_at?: string | null;
   sync_error?: string | null;
+  /** Leading ZinkGame account code (e.g. H4723). */
+  source_account_code?: string | null;
+  /** auto | manual for supplier imports; NULL for legacy/manual listings. */
+  source_import_mode?: "auto" | "manual" | null;
 };
 
 export type AdminProduct = Product & {

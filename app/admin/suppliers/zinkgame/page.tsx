@@ -718,7 +718,7 @@ export default function ZinkGameSupplierPage() {
 
       <h1 className="mt-5 text-2xl font-bold sm:text-3xl">ZinkGame Supplier</h1>
       <p className="mt-2 max-w-3xl text-slate-400">
-        Fetch supplier listings, preview translated titles and pricing, then import
+        Fetch supplier listings, preview account-code titles and pricing, then import
         one product at a time. Nothing is written until you confirm import.
       </p>
 

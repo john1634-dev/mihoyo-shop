@@ -296,14 +296,20 @@ export async function runZinkGameCategoryAutoImport(
       if (dryRun) {
         const preview = await buildSupplierProductPreview(live, {
           markupPercent,
-          translationProvider: "ai",
           exchangeRate,
         });
-        if (preview.translationFailed) {
-          result.translationFailures += 1;
-          logServerError("zinkgame auto-import translation", {
-            message: preview.translation.error ?? "Translation failed.",
+        if (preview.accountCodeMissing) {
+          result.skipped += 1;
+          result.newProducts -= 1;
+          pushDetail(result, {
+            externalProductId,
+            category: categorySlug,
+            title: live.title,
+            translatedTitle: null,
+            action: "skipped",
+            reason: "missing_account_code",
           });
+          return;
         }
         pushDetail(result, {
           externalProductId,
@@ -322,7 +328,7 @@ export async function runZinkGameCategoryAutoImport(
         markupPercent,
         gameId,
         exchangeRate,
-        translationProvider: "ai",
+        importMode: "auto",
         expectedCategorySlug: categorySlug,
       });
 
@@ -385,9 +391,6 @@ export async function runZinkGameCategoryAutoImport(
       }
 
       result.imported += 1;
-      if (imported.translationFailed) {
-        result.translationFailures += 1;
-      }
       let imagesImported = 0;
       try {
         const images = await importSupplierProductImages(client, {

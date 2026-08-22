@@ -2,19 +2,25 @@ import "server-only";
 
 import { getVndToMyrRate } from "@/lib/exchange-rate";
 import {
+  buildStorefrontTitleFromSupplierTitle,
+  extractSupplierAccountCode,
+} from "@/lib/supplier/account-code";
+import type { ImportStatusInfo } from "@/lib/supplier/import";
+import {
   calculateSupplierSellingPrice,
   getDefaultMarkupPercent,
 } from "@/lib/supplier/pricing";
-import type { ImportStatusInfo } from "@/lib/supplier/import";
-import { translateSupplierTitle } from "@/lib/supplier/translation";
 import type { SupplierProduct } from "@/lib/supplier/types";
 
 export type SupplierPreviewResult = {
   source: string;
   originalTitle: string;
+  /** Storefront title — supplier account code only (e.g. H4723). */
   translatedTitle: string;
+  accountCode: string | null;
+  accountCodeMissing: boolean;
+  /** @deprecated Kept for admin UI compatibility — mirrors accountCodeMissing. */
   translationFailed: boolean;
-  translation: Awaited<ReturnType<typeof translateSupplierTitle>>;
   sourcePrice: number;
   sourceCurrency: string;
   costMyr: number | null;
@@ -32,29 +38,21 @@ export type SupplierPreviewResult = {
 
 export type BuildSupplierPreviewOptions = {
   markupPercent?: number;
-  translationProvider?: string;
   exchangeRate?: number;
 };
 
 /**
- * Enrich normalized supplier product with translation + pricing for admin preview.
- * No database or storage writes.
+ * Enrich normalized supplier product with account-code title + pricing for admin preview.
+ * No database or storage writes. Does not call AI/rule translation.
  */
 export async function buildSupplierProductPreview(
   product: SupplierProduct,
   options: BuildSupplierPreviewOptions = {}
 ): Promise<SupplierPreviewResult> {
   const originalTitle = product.title.trim();
-  const translation = await translateSupplierTitle(originalTitle, {
-    sourceLanguage: "vi",
-    targetLanguage: "en",
-    provider: options.translationProvider,
-  });
-
-  const translationFailed = translation.status === "failed";
-  const translatedTitle = translationFailed
-    ? originalTitle
-    : translation.translatedText;
+  const accountCode = buildStorefrontTitleFromSupplierTitle(originalTitle);
+  const accountCodeMissing = !accountCode;
+  const translatedTitle = accountCode ?? originalTitle;
 
   const markupPercent =
     options.markupPercent ?? getDefaultMarkupPercent(product.source);
@@ -111,8 +109,9 @@ export async function buildSupplierProductPreview(
     source: product.source,
     originalTitle,
     translatedTitle,
-    translationFailed,
-    translation,
+    accountCode,
+    accountCodeMissing,
+    translationFailed: accountCodeMissing,
     sourcePrice: product.price,
     sourceCurrency: product.currency.trim().toUpperCase() || "VND",
     costMyr,
@@ -127,3 +126,5 @@ export async function buildSupplierProductPreview(
     images: product.images,
   };
 }
+
+export { extractSupplierAccountCode };

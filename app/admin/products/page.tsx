@@ -19,6 +19,7 @@ import {
   type ProductType,
 } from "@/lib/product-type";
 import ProductListingStatusControl from "@/components/admin/ProductListingStatusControl";
+import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { supabase } from "@/lib/supabase";
 
 type Product = {
@@ -129,6 +130,8 @@ export default function ProductsPage() {
   const [gameFilter, setGameFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState<AdminStockFilter>("all");
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [, startTransition] = useTransition();
 
   useEffect(() => {
@@ -275,6 +278,52 @@ export default function ProductsPage() {
   function handleFeedback(message: string, type: "success" | "error") {
     setFeedback({ message, type });
     window.setTimeout(() => setFeedback(null), 4000);
+  }
+
+  async function confirmDeleteProduct() {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    setError("");
+
+    try {
+      const res = await adminFetch("/api/admin/products/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: deleteTarget.id,
+          confirm: true,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.deleted) {
+        setProducts((current) =>
+          current.filter((product) => product.id !== deleteTarget.id)
+        );
+        handleFeedback(`Deleted "${deleteTarget.title}".`, "success");
+        setDeleteTarget(null);
+        return;
+      }
+
+      if (res.status === 409 && data.hidden) {
+        setProducts((current) =>
+          current.map((product) =>
+            product.id === deleteTarget.id
+              ? { ...product, status: "hidden" }
+              : product
+          )
+        );
+        handleFeedback(data.message || "Listing hidden due to order history.", "success");
+        setDeleteTarget(null);
+        return;
+      }
+
+      handleFeedback(data.message || data.error || "Delete failed.", "error");
+    } catch {
+      handleFeedback("Delete failed.", "error");
+    } finally {
+      setDeleteLoading(false);
+    }
   }
 
   return (
@@ -481,6 +530,13 @@ export default function ProductsPage() {
                               onFeedback={handleFeedback}
                               compact
                             />
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(product)}
+                              className="inline-flex min-h-9 items-center rounded-md border border-red-900/50 px-2.5 py-1.5 text-xs font-medium text-red-300 hover:border-red-500 hover:text-red-200"
+                            >
+                              Delete
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -556,6 +612,13 @@ export default function ProductsPage() {
                         compact
                       />
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(product)}
+                      className="inline-flex min-h-11 items-center justify-center rounded-lg border border-red-900/50 px-3 py-2 text-sm font-medium text-red-300 hover:border-red-500 hover:text-red-200"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </article>
               );
@@ -563,6 +626,25 @@ export default function ProductsPage() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete product?"
+        description={
+          deleteTarget
+            ? `Delete "${deleteTarget.title}" permanently? Listings with order history will be hidden instead. This cannot be undone for deletions.`
+            : ""
+        }
+        confirmLabel="Delete"
+        loading={deleteLoading}
+        loadingLabel="Deleting…"
+        onConfirm={() => {
+          void confirmDeleteProduct();
+        }}
+        onCancel={() => {
+          if (!deleteLoading) setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

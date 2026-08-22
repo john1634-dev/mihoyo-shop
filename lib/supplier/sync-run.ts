@@ -400,6 +400,7 @@ export async function applySupplierSync(
 
   const updatePayload: Record<string, unknown> = {
     title: livePreview.translatedTitle,
+    source_account_code: livePreview.accountCode,
     description: buildSupplierDescription(
       livePreview.originalTitle,
       livePreview.product.description

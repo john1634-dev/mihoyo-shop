@@ -3,11 +3,15 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logServerError } from "@/lib/errors";
 import { runSafeAutoSync, type AutoSyncResult } from "@/lib/supplier/auto-sync";
+import { assessZinkGameCatalogFetch } from "@/lib/supplier/account-code";
+import {
+  reconcileMissingAutoImportedProducts,
+  type AutoDeleteResult,
+} from "@/lib/supplier/auto-delete";
 import {
   runZinkGameCategoryAutoImport,
   type AutoImportResult,
 } from "@/lib/supplier/auto-import";
-import { fetchAllowedCategoryListings } from "@/lib/supplier/zinkgame";
 import {
   acquireSupplierSyncLock,
   releaseSupplierSyncLock,
@@ -19,6 +23,7 @@ import {
   type SyncRunStatus,
   type SyncRunTriggerType,
 } from "@/lib/supplier/sync-run-log";
+import { fetchAllowedCategoryListings } from "@/lib/supplier/zinkgame";
 
 export type ScheduledSyncOutcome =
   | {
@@ -48,6 +53,7 @@ export type ScheduledSyncOutcome =
       durationMs: number;
       result: AutoSyncResult;
       autoImport?: AutoImportResult;
+      autoDelete?: AutoDeleteResult;
     }
   | {
       kind: "source_unavailable";
@@ -103,7 +109,8 @@ function publicCompletedPayload(
   runId: string,
   result: AutoSyncResult,
   durationMs: number,
-  importResult?: AutoImportResult
+  importResult?: AutoImportResult,
+  autoDelete?: AutoDeleteResult
 ): Extract<ScheduledSyncOutcome, { kind: "completed" }> {
   return {
     kind: "completed",
@@ -127,6 +134,7 @@ function publicCompletedPayload(
     durationMs,
     result,
     autoImport: importResult,
+    autoDelete,
   };
 }
 
@@ -154,6 +162,7 @@ export async function runScheduledZinkGameSync(
 
     const listings = await fetchAllowedCategoryListings();
     const listingItems = listings.items;
+    const catalogAssessment = assessZinkGameCatalogFetch(listings);
 
     const importResult = await runZinkGameCategoryAutoImport(client, {
       confirm: true,
@@ -240,7 +249,26 @@ export async function runScheduledZinkGameSync(
       };
     }
 
-    return publicCompletedPayload(runId, result, durationMs, importResult);
+    let autoDelete: AutoDeleteResult | undefined;
+    if (catalogAssessment.complete) {
+      autoDelete = await reconcileMissingAutoImportedProducts(client, {
+        confirm: true,
+        catalogAssessment,
+      });
+    } else {
+      logServerError("scheduled zinkgame auto-delete skipped", {
+        message:
+          catalogAssessment.reason ?? "Supplier catalog fetch incomplete.",
+      });
+    }
+
+    return publicCompletedPayload(
+      runId,
+      result,
+      durationMs,
+      importResult,
+      autoDelete
+    );
   } catch (error) {
     logServerError("scheduled zinkgame sync", error);
     const durationMs = Date.now() - started;

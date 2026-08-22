@@ -56,7 +56,7 @@ async function loadImportedSupplierImages(
 
 /**
  * POST /api/admin/suppliers/zinkgame/preview
- * Fetch → parse → translate → price → return JSON. No database writes.
+ * Fetch → parse → derive account-code title → price → return JSON. No database writes.
  */
 export async function POST(request: Request) {
   const admin = await requireAdmin(request);
