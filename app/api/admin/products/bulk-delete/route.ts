@@ -9,6 +9,7 @@ import { isNextResponse, requireAdmin } from "@/lib/require-admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 type BulkDeleteBody = {
   product_ids?: string[];
@@ -82,6 +83,8 @@ export async function POST(request: Request) {
         reason: "reason" in result ? result.reason : undefined,
         message: "message" in result ? result.message : undefined,
         title: "title" in result ? result.title : undefined,
+        storageCleanupFailed:
+          "storageCleanupFailed" in result ? result.storageCleanupFailed : undefined,
       })),
     });
   } catch (error) {

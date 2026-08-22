@@ -20,6 +20,11 @@ import {
 } from "@/lib/product-type";
 import ProductListingStatusControl from "@/components/admin/ProductListingStatusControl";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import {
+  chunkIds,
+  formatBulkDeleteProgress,
+  summarizeBulkDeleteTotals,
+} from "@/lib/admin-bulk-delete-config";
 import { supabase } from "@/lib/supabase";
 
 type Product = {
@@ -135,74 +140,73 @@ export default function ProductsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+  const [bulkDeleteProgress, setBulkDeleteProgress] = useState<{
+    processed: number;
+    total: number;
+  } | null>(null);
   const [, startTransition] = useTransition();
+
+  const reloadProducts = useCallback(async () => {
+    setError("");
+
+    const [productsResultPrimary, gamesResult] = await Promise.all([
+      supabase
+        .from("products")
+        .select(
+          "id,title,slug,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at,product_type"
+        )
+        .order("updated_at", { ascending: false }),
+      supabase.from("games").select("id,name").order("name", { ascending: true }),
+    ]);
+
+    let productList: Product[] | null = (productsResultPrimary.data ||
+      null) as Product[] | null;
+    let productError = productsResultPrimary.error;
+
+    if (productError && /product_type|column|schema/i.test(productError.message)) {
+      const fallback = await supabase
+        .from("products")
+        .select(
+          "id,title,slug,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at"
+        )
+        .order("updated_at", { ascending: false });
+      productList = (fallback.data || null) as Product[] | null;
+      productError = fallback.error;
+    }
+
+    if (productError) {
+      setError(productError.message);
+      return;
+    }
+
+    const list = (productList || []) as Product[];
+    setProducts(list);
+    setGames((gamesResult.data || []) as Game[]);
+
+    try {
+      const ids = list.map((p) => p.id).join(",");
+      if (ids) {
+        const res = await adminFetch(
+          `/api/admin/inventory/stock?product_ids=${encodeURIComponent(ids)}`,
+          { cache: "no-store" }
+        );
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.summaries) {
+          setStockMap(data.summaries as Record<string, ProductStockSummary>);
+        }
+      }
+    } catch {
+      // Stock API optional if inventory tables missing — list still works.
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
 
     async function load() {
       setLoading(true);
-      setError("");
-
-      const [productsResultPrimary, gamesResult] = await Promise.all([
-        supabase
-          .from("products")
-          .select(
-            "id,title,slug,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at,product_type"
-          )
-          .order("updated_at", { ascending: false }),
-        supabase.from("games").select("id,name").order("name", { ascending: true }),
-      ]);
-
-      let productList: Product[] | null = (productsResultPrimary.data ||
-        null) as Product[] | null;
-      let productError = productsResultPrimary.error;
-
-      if (
-        productError &&
-        /product_type|column|schema/i.test(productError.message)
-      ) {
-        const fallback = await supabase
-          .from("products")
-          .select(
-            "id,title,slug,price,currency,status,server,ar_level,cover_image_url,cost_myr,game_id,updated_at"
-          )
-          .order("updated_at", { ascending: false });
-        productList = (fallback.data || null) as Product[] | null;
-        productError = fallback.error;
-      }
-
-      if (!active) return;
-
-      if (productError) {
-        setError(productError.message);
-        setLoading(false);
-        return;
-      }
-
-      const gamesResultResolved = gamesResult;
-
-      const list = (productList || []) as Product[];
-      setProducts(list);
-      setGames((gamesResultResolved.data || []) as Game[]);
-
-      try {
-        const ids = list.map((p) => p.id).join(",");
-        if (ids) {
-          const res = await adminFetch(
-            `/api/admin/inventory/stock?product_ids=${encodeURIComponent(ids)}`,
-            { cache: "no-store" }
-          );
-          const data = await res.json().catch(() => ({}));
-          if (res.ok && data.summaries) {
-            setStockMap(data.summaries as Record<string, ProductStockSummary>);
-          }
-        }
-      } catch {
-        // Stock API optional if inventory tables missing — list still works.
-      }
-
-      setLoading(false);
+      await reloadProducts();
+      if (active) setLoading(false);
     }
 
     startTransition(() => {
@@ -212,7 +216,7 @@ export default function ProductsPage() {
     return () => {
       active = false;
     };
-  }, [startTransition]);
+  }, [reloadProducts, startTransition]);
 
   const gameNameById = useMemo(
     () => new Map(games.map((game) => [game.id, game.name])),
@@ -374,65 +378,62 @@ export default function ProductsPage() {
   }
 
   async function confirmBulkDeleteProducts() {
-    if (visibleSelectedIds.length === 0) return;
+    if (visibleSelectedIds.length === 0 || bulkDeleteLoading) return;
+
+    const idsToDelete = [...visibleSelectedIds];
+    const total = idsToDelete.length;
+    const chunks = chunkIds(idsToDelete);
+
     setBulkDeleteLoading(true);
+    setBulkDeleteProgress({ processed: 0, total });
     setError("");
 
+    let deleted = 0;
+    let hidden = 0;
+    let failed = 0;
+    let processed = 0;
+
     try {
-      const res = await adminFetch("/api/admin/products/bulk-delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_ids: visibleSelectedIds,
-          confirm: true,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
+      for (const chunk of chunks) {
+        try {
+          const res = await adminFetch("/api/admin/products/bulk-delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              product_ids: chunk,
+              confirm: true,
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
-        handleFeedback(data.error || "Bulk delete failed.", "error");
-        return;
+          if (!res.ok) {
+            failed += chunk.length;
+          } else {
+            deleted += data.deleted ?? 0;
+            hidden += data.hidden ?? 0;
+            failed += (data.failed ?? 0) + (data.notFound ?? 0);
+          }
+        } catch {
+          failed += chunk.length;
+        }
+
+        processed += chunk.length;
+        setBulkDeleteProgress({ processed, total });
       }
 
-      const deletedIds = new Set<string>();
-      const hiddenIds = new Set<string>();
-
-      for (const result of data.results ?? []) {
-        if (result.deleted) deletedIds.add(result.productId);
-        if (result.hidden) hiddenIds.add(result.productId);
-      }
-
-      setProducts((current) => {
-        const remaining = current.filter((product) => !deletedIds.has(product.id));
-        return remaining.map((product) =>
-          hiddenIds.has(product.id) ? { ...product, status: "hidden" } : product
-        );
-      });
+      await reloadProducts();
       setSelectedIds(new Set());
 
-      const parts: string[] = [];
-      if ((data.deleted ?? 0) > 0) {
-        parts.push(`${data.deleted} deleted`);
-      }
-      if ((data.hidden ?? 0) > 0) {
-        parts.push(
-          `${data.hidden} hidden because ${data.hidden === 1 ? "it has" : "they have"} order history`
-        );
-      }
-      if ((data.failed ?? 0) > 0 || (data.notFound ?? 0) > 0) {
-        const failedCount = (data.failed ?? 0) + (data.notFound ?? 0);
-        parts.push(`${failedCount} could not be removed`);
-      }
-
       handleFeedback(
-        parts.length > 0 ? `${parts.join(", ")}.` : "Bulk delete completed.",
-        parts.some((part) => part.includes("could not")) ? "error" : "success"
+        summarizeBulkDeleteTotals({ deleted, hidden, failed }),
+        failed > 0 ? "error" : "success"
       );
       setBulkDeleteOpen(false);
     } catch {
       handleFeedback("Bulk delete failed.", "error");
     } finally {
       setBulkDeleteLoading(false);
+      setBulkDeleteProgress(null);
     }
   }
 
@@ -457,7 +458,8 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={() => setBulkDeleteOpen(true)}
-                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-red-900/50 px-4 py-2.5 text-sm font-medium text-red-300 hover:border-red-500 hover:text-red-200"
+                disabled={bulkDeleteLoading}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-red-900/50 px-4 py-2.5 text-sm font-medium text-red-300 hover:border-red-500 hover:text-red-200 disabled:opacity-50"
               >
                 Delete Selected
               </button>
@@ -791,7 +793,11 @@ export default function ProductsPage() {
         }
         confirmLabel="Delete Selected"
         loading={bulkDeleteLoading}
-        loadingLabel="Deleting…"
+        loadingLabel={
+          bulkDeleteProgress
+            ? formatBulkDeleteProgress(bulkDeleteProgress.processed, bulkDeleteProgress.total)
+            : "Deleting…"
+        }
         onConfirm={() => {
           void confirmBulkDeleteProducts();
         }}

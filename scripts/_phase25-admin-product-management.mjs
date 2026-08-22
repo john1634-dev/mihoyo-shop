@@ -172,7 +172,7 @@ try {
   if (
     adminDeleteLib.includes('reason: "has_order_history"') &&
     adminDeleteLib.includes('status: "hidden"') &&
-    adminProductsPage.includes("hidden because")
+    adminProductsPage.includes("summarizeBulkDeleteTotals")
   ) {
     pass("product_with_order_history_is_hidden_instead_of_deleted");
   } else {
@@ -217,8 +217,6 @@ try {
 } catch (error) {
   fail("batch_size_is_bounded", error.message);
 }
-
-// Persistent actions
 try {
   if (adminProductsPage.includes("+ Add Product")) {
     pass("add_product_button_in_header");
